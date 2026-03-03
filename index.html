@@ -4,22 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mi Bitácora Digital</title>
-  <!-- Google Fonts (opcional) -->
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Font Awesome (iconos) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/aja<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mi Bitácora Digital</title>
-  <!-- Google Fonts (opcional) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Font Awesome (iconos) -->
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     :root{
@@ -39,7 +28,9 @@
     .brand{display:flex;align-items:center;gap:12px}
     .brand i{font-size:1.4rem;color:var(--primary);filter:drop-shadow(0 4px 8px var(--ring))}
     .brand h1{font-size:1.25rem;margin:0;letter-spacing:.2px}
-    .header-actions{display:flex;align-items:center;gap:10px}
+    .header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .user-chip{display:inline-flex;align-items:center;gap:8px;background:transparent;border:1px solid var(--border);padding:8px 10px;border-radius:999px;color:var(--text)}
+    .user-chip i{color:var(--primary)}
     .btn{--bg:var(--primary);--bg-h:var(--primary-600);border:1px solid transparent;background:var(--bg);color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;box-shadow:var(--shadow);transition:transform .08s ease,filter .2s ease,background .2s ease}
     .btn:hover{transform:translateY(-1px);filter:brightness(1.02);background:var(--bg-h)}
     .btn-outline{background:transparent;color:var(--text);border:1px solid var(--border);box-shadow:none}
@@ -51,7 +42,7 @@
     @media(max-width:640px){.form-grid{grid-template-columns:1fr}}
     .field{display:flex;flex-direction:column;gap:6px}
     .field label{font-weight:600;font-size:.95rem}
-    .field input[type="text"], .field input[type="datetime-local"], .field select, .field textarea{width:100%;border:1px solid var(--border);background:transparent;color:var(--text);padding:10px 12px;border-radius:10px;outline:none;transition:border-color .2s ease,box-shadow .2s ease}
+    .field input[type="text"], .field input[type="password"], .field input[type="datetime-local"], .field select, .field textarea{width:100%;border:1px solid var(--border);background:transparent;color:var(--text);padding:10px 12px;border-radius:10px;outline:none;transition:border-color .2s ease,box-shadow .2s ease}
     .field textarea{min-height:90px;resize:vertical}
     .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--ring);box-shadow:0 0 0 4px var(--ring)}
     .note{color:var(--muted);font-size:.9rem}
@@ -94,7 +85,19 @@
     .input{border:1px solid var(--border); background:transparent; color:var(--text); padding:8px 10px; border-radius:10px; outline:none; min-width:240px;}
     .input:focus{border-color:var(--ring); box-shadow:0 0 0 4px var(--ring)}
 
-    .toast-container{position:fixed;top:16px;right:16px;display:grid;gap:10px;z-index:1000}
+    /* Auth overlay */
+    .auth-overlay{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:linear-gradient(180deg, rgba(2,6,23,.35), rgba(2,6,23,.55)); backdrop-filter:blur(6px); z-index:1000;}
+    .auth-overlay.show{display:flex}
+    .auth-card{width:min(560px, 92vw); background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding:18px;}
+    .auth-tabs{display:flex; gap:8px; margin-bottom:10px}
+    .tab-btn{flex:1; border:1px solid var(--border); background:transparent; color:var(--text); padding:10px 12px; border-radius:10px; cursor:pointer}
+    .tab-btn.active{border-color:var(--ring); box-shadow:0 0 0 3px var(--ring)}
+    .auth-grid{display:grid; grid-template-columns:1fr; gap:12px}
+    .auth-title{margin:4px 0 10px 0}
+    .helper{color:var(--muted); font-size:.92rem}
+    .hidden{display:none !important}
+
+    .toast-container{position:fixed;top:16px;right:16px;display:grid;gap:10px;z-index:1200}
     .toast{background:var(--card);border:1px solid var(--border);border-left:6px solid var(--danger);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);display:flex;align-items:start;gap:10px;animation:fadeIn .25s ease both}
     footer{text-align:center;color:var(--muted);padding:20px}
     @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
@@ -111,6 +114,8 @@
         <h1>Mi Bitácora Digital</h1>
       </div>
       <div class="header-actions">
+        <span id="userChip" class="user-chip hidden"><i class="fa-regular fa-circle-user"></i><span id="userNameLabel">Invitado</span></span>
+        <button id="logoutBtn" class="btn btn-outline hidden" title="Cerrar sesión"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</button>
         <button id="themeToggle" class="btn btn-outline" aria-label="Cambiar tema"><i class="fa-solid fa-moon"></i> Modo</button>
         <button id="demoData" class="btn btn-outline" title="Cargar ejemplo"><i class="fa-solid fa-wand-magic-sparkles"></i> Demo</button>
         <button id="clearAll" class="btn btn-outline" title="Borrar todo"><i class="fa-solid fa-trash"></i> Limpiar</button>
@@ -118,8 +123,85 @@
     </div>
   </header>
 
-  <main class="container">
-    <!-- Formulario -->
+  <!-- AUTH OVERLAY -->
+  <div id="authOverlay" class="auth-overlay show" aria-modal="true" role="dialog">
+    <div class="auth-card">
+      <div class="brand" style="margin-bottom:8px"><i class="fa-solid fa-lock"></i><h2 class="auth-title">Bienvenido a Mi Bitácora Digital</h2></div>
+      <p class="helper" id="firstTimeMsg" style="margin-top:0"> </p>
+      <div class="auth-tabs">
+        <button id="tabLogin" class="tab-btn active"><i class="fa-solid fa-right-to-bracket"></i> Iniciar sesión</button>
+        <button id="tabRegister" class="tab-btn"><i class="fa-solid fa-user-plus"></i> Registrarme</button>
+      </div>
+
+      <!-- Login -->
+      <form id="loginForm" class="auth-grid">
+        <div class="field"><label for="loginUser">Usuario</label><input type="text" id="loginUser" autocomplete="username" placeholder="Tu usuario" required /></div>
+        <div class="field"><label for="loginPass">Contraseña</label><input type="password" id="loginPass" autocomplete="current-password" placeholder="Tu contraseña" required /></div>
+        <div style="display:flex; gap:10px;">
+          <button type="submit" class="btn"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
+          <button type="button" id="goRegister" class="btn btn-outline">Soy nuevo</button>
+        </div>
+      </form>
+
+      <!-- Register -->
+      <form id="registerForm" class="auth-grid hidden">
+        <div class="field"><label for="regName">Nombre completo</label><input type="text" id="regName" placeholder="Ej. José Pablo" required /></div>
+        <div class="field"><label for="regUser">Usuario</label><input type="text" id="regUser" autocomplete="username" placeholder="Elige un usuario" required /></div>
+        <div class="field"><label for="regPass">Contraseña</label><input type="password" id="regPass" autocomplete="new-password" placeholder="Elige una contraseña" required /></div>
+        <div class="field"><label for="regPass2">Confirmar contraseña</label><input type="password" id="regPass2" autocomplete="new-password" placeholder="Repite la contraseña" required /></div>
+        <div style="display:flex; gap:10px;">
+          <button type="submit" class="btn"><i class="fa-solid fa-user-plus"></i> Crear cuenta</button>
+          <button type="button" id="goLogin" class="btn btn-outline">Ya tengo cuenta</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <main class="container" id="app">
+    <!-- Estadísticas -->
+    <section class="card" aria-labelledby="statsTitle">
+      <div class="list-header">
+        <h2 id="statsTitle" style="margin:0;">Seguimiento</h2>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-title"><i class="fa-regular fa-clock"></i> Pendientes</span>
+          <span class="stat-value" id="countPending">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-title"><i class="fa-solid fa-spinner"></i> En progreso</span>
+          <span class="stat-value" id="countInProgress">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-title"><i class="fa-regular fa-circle-check"></i> Completadas</span>
+          <span class="stat-value" id="countCompleted">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-title"><i class="fa-solid fa-percent"></i> Avance</span>
+          <span class="stat-value"><span id="progressPercent">0</span>%</span>
+        </div>
+        <div class="progress-wrapper">
+          <div class="progress-bar" aria-label="Progreso general" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-fill" id="progressFill" aria-valuenow="0"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mis Seguimientos (viñetas) con filtro -->
+    <section class="card" aria-labelledby="followTitle">
+      <div class="list-header">
+        <h2 id="followTitle" style="margin:0;">Mis seguimientos</h2>
+        <div class="filter-wrap">
+          <i class="fa-solid fa-filter" title="Filtrar por agente"></i>
+          <input id="agentFilterTop" class="input" type="text" placeholder="Filtrar por agente (nombre o ID)" />
+          <button id="clearFilterTop" class="btn btn-outline" title="Limpiar filtro"><i class="fa-solid fa-eraser"></i></button>
+        </div>
+      </div>
+      <ul id="followupsList" class="bullets"></ul>
+    </section>
+
+    <!-- Formulario de nueva entrada -->
     <section class="card" aria-labelledby="formTitle">
       <h2 id="formTitle" style="margin-top:0;">Nueva entrada</h2>
       <form id="entryForm">
@@ -185,49 +267,6 @@
       </form>
     </section>
 
-    <!-- Estadísticas -->
-    <section class="card" aria-labelledby="statsTitle">
-      <div class="list-header">
-        <h2 id="statsTitle" style="margin:0;">Seguimiento</h2>
-      </div>
-      <div class="stats-grid">
-        <div class="stat-card">
-          <span class="stat-title"><i class="fa-regular fa-clock"></i> Pendientes</span>
-          <span class="stat-value" id="countPending">0</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-title"><i class="fa-solid fa-spinner"></i> En progreso</span>
-          <span class="stat-value" id="countInProgress">0</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-title"><i class="fa-regular fa-circle-check"></i> Completadas</span>
-          <span class="stat-value" id="countCompleted">0</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-title"><i class="fa-solid fa-percent"></i> Avance</span>
-          <span class="stat-value"><span id="progressPercent">0</span>%</span>
-        </div>
-        <div class="progress-wrapper">
-          <div class="progress-bar" aria-label="Progreso general" aria-valuemin="0" aria-valuemax="100">
-            <div class="progress-fill" id="progressFill" aria-valuenow="0"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Mis Seguimientos (viñetas) -->
-    <section class="card" aria-labelledby="followTitle">
-      <div class="list-header">
-        <h2 id="followTitle" style="margin:0;">Mis seguimientos</h2>
-        <div class="filter-wrap">
-          <i class="fa-solid fa-filter" title="Filtrar por agente"></i>
-          <input id="agentFilterTop" class="input" type="text" placeholder="Filtrar por agente (nombre o ID)" />
-          <button id="clearFilterTop" class="btn btn-outline" title="Limpiar filtro"><i class="fa-solid fa-eraser"></i></button>
-        </div>
-      </div>
-      <ul id="followupsList" class="bullets"></ul>
-    </section>
-
     <!-- Lista de entradas -->
     <section class="card" aria-labelledby="listTitle">
       <div class="list-header">
@@ -242,7 +281,7 @@
     </section>
   </main>
 
-  <!-- Footer solicitado -->
+  <!-- Footer -->
   <footer class="container">
     <small>© 2026 Mi Bitácora Digital · Hecho por pablooibz</small>
   </footer>
@@ -250,128 +289,80 @@
   <div class="toast-container" id="toastContainer" aria-live="assertive" aria-atomic="true"></div>
 
   <script>
-    const STORAGE_KEY = 'bitacoraEntries';
-    const THEME_KEY   = 'bitacoraTheme';
+    // ==========================
+    // Constantes de almacenamiento
+    // ==========================
+    const BASE_STORAGE_KEY = 'bitacoraEntries'; // por usuario
+    const USERS_KEY = 'bitacoraUsers'; // diccionario de usuarios
+    const SESSION_KEY = 'bitacoraSession';
+    const THEME_KEY = 'bitacoraTheme';
 
-    function getEntries(){ try{ const raw = localStorage.getItem(STORAGE_KEY); return raw? JSON.parse(raw): [] }catch{ return [] } }
-    function saveEntries(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)) }
-    function uid(){ return 'e_' + Math.random().toString(36).slice(2,8) + Date.now().toString(36) }
+    // ==========================
+    // Estado de sesión en memoria
+    // ==========================
+    let currentUser = null; // { username, name }
 
+    // ==========================
+    // Utilidades comunes
+    // ==========================
     function todayStr(){ const d=new Date(); const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const da=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${da}` }
-
-    function sortEntries(entries){ return entries.slice().sort((a,b)=>{ const ad=a.date||'', bd=b.date||''; if(ad===bd) return (b.createdAt||0)-(a.createdAt||0); return bd.localeCompare(ad) }) }
-
-    function fmtDate(dateStr){ try{ const d=new Date(dateStr); return d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'2-digit'}) }catch{return dateStr} }
-    function fmtDateTime(dt){ if(!dt) return ''; try{ const d=new Date(dt); return d.toLocaleString(undefined,{year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'}) }catch{return dt} }
-
-    function nextStatus(s){ if(s==='pendiente') return 'progreso'; if(s==='progreso') return 'completado'; return 'pendiente' }
-
     function showToast(html, timeout=6000){ const c=document.getElementById('toastContainer'); const el=document.createElement('div'); el.className='toast'; el.innerHTML=html; c.appendChild(el); setTimeout(()=>{ el.classList.add('fade-out'); el.addEventListener('animationend',()=>el.remove(),{once:true}) }, timeout) }
 
-    function isOverdue(entry, now=new Date()){
-      if(!entry.reminderEnabled || !entry.reminderAt) return false; const t=new Date(entry.reminderAt); if(isNaN(t.getTime())) return false; const pendingish = (entry.status==='pendiente' || entry.status==='progreso' || !entry.status); return pendingish && now>=t;
-    }
+    // ==========================
+    // Hash de contraseña (SHA-256)
+    // ==========================
+    async function sha256(str){ const enc=new TextEncoder().encode(str); const buf=await crypto.subtle.digest('SHA-256', enc); return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join(''); }
+    async function makePassHash(username, password){ return await sha256(`${username.toLowerCase()}::${password}`) }
 
-    // ----- Filtro por agente -----
+    // ==========================
+    // Gestión de usuarios
+    // Estructura: users = { [usernameLower]: { username, name, passHash, createdAt, lastLogin } }
+    // ==========================
+    function getUsers(){ try{ const raw=localStorage.getItem(USERS_KEY); return raw? JSON.parse(raw) : {} }catch{ return {} } }
+    function saveUsers(users){ localStorage.setItem(USERS_KEY, JSON.stringify(users)) }
+    function getSession(){ try{ const raw=localStorage.getItem(SESSION_KEY); return raw? JSON.parse(raw) : null }catch{ return null } }
+    function setSession(sess){ if(sess) localStorage.setItem(SESSION_KEY, JSON.stringify(sess)); else localStorage.removeItem(SESSION_KEY); }
+
+    // ==========================
+    // Entradas por usuario (scoped storage)
+    // ==========================
+    function getStorageKey(){ const u = currentUser?.username?.toLowerCase() || 'anon'; return `${BASE_STORAGE_KEY}_${u}` }
+    function getEntries(){ try{ const raw=localStorage.getItem(getStorageKey()); return raw? JSON.parse(raw) : [] }catch{ return [] } }
+    function saveEntries(arr){ localStorage.setItem(getStorageKey(), JSON.stringify(arr)) }
+
+    // ==========================
+    // Filtros
+    // ==========================
     const agentFilterEl = document.getElementById('agentFilter');
     const agentFilterTopEl = document.getElementById('agentFilterTop');
+    function currentFilterText(){ return (agentFilterEl.value || agentFilterTopEl.value || '').trim().toLowerCase(); }
+    function passAgentFilter(entry){ const q=currentFilterText(); if(!q) return true; const haystack=`${(entry.agentName||'').toLowerCase()} ${(entry.agentId||'').toLowerCase()}`.trim(); const tokens=q.split(/\s+/).filter(Boolean); return tokens.every(t=>haystack.includes(t)); }
+    function syncFilters(src){ const val=src.value; if(src===agentFilterEl && agentFilterTopEl.value!==val) agentFilterTopEl.value=val; if(src===agentFilterTopEl && agentFilterEl.value!==val) agentFilterEl.value=val; }
 
-    function currentFilterText(){
-      // Prioriza el de Entradas; si vacío, usa el de Seguimientos (se sincronizan en eventos)
-      return (agentFilterEl.value || agentFilterTopEl.value || '').trim().toLowerCase();
-    }
+    // ==========================
+    // UI y render
+    // ==========================
+    function fmtDate(dateStr){ try{ const d=new Date(dateStr); return d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'2-digit'}) }catch{return dateStr} }
+    function fmtDateTime(dt){ if(!dt) return ''; try{ const d=new Date(dt); return d.toLocaleString(undefined,{year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'}) }catch{return dt} }
+    function entryStatusClass(s){ return s==='pendiente' ? 'status-pendiente' : (s==='progreso' ? 'status-progreso' : 'status-completado') }
+    function statusLabel(s){ if(s==='progreso') return 'En progreso'; if(s==='completado') return 'Completado'; return 'Pendiente' }
+    function nextStatus(s){ if(s==='pendiente' || !s) return 'progreso'; if(s==='progreso') return 'completado'; return 'pendiente' }
+    function isOverdue(entry, now=new Date()){ if(!entry.reminderEnabled || !entry.reminderAt) return false; const t=new Date(entry.reminderAt); if(isNaN(t.getTime())) return false; const pendingish=(entry.status==='pendiente' || entry.status==='progreso' || !entry.status); return pendingish && now>=t }
 
-    function passAgentFilter(entry){
-      const q = currentFilterText();
-      if(!q) return true;
-      const haystack = `${(entry.agentName||'').toLowerCase()} ${(entry.agentId||'').toLowerCase()}`.trim();
-      const tokens = q.split(/\s+/).filter(Boolean);
-      return tokens.every(t => haystack.includes(t));
-    }
-
-    function syncFilters(src){
-      const val = src.value;
-      if(src === agentFilterEl && agentFilterTopEl.value !== val) agentFilterTopEl.value = val;
-      if(src === agentFilterTopEl && agentFilterEl.value !== val) agentFilterEl.value = val;
-    }
+    function sortEntries(entries){ return entries.slice().sort((a,b)=>{ const ad=a.date||'', bd=b.date||''; if(ad===bd) return (b.createdAt||0)-(a.createdAt||0); return bd.localeCompare(ad) }) }
 
     const entriesEl=document.getElementById('entries');
     const followupsEl=document.getElementById('followupsList');
 
-    function renderStats(entries){
-      const total=entries.length;
-      const pending=entries.filter(e=> (e.status||'pendiente')==='pendiente').length;
-      const prog=entries.filter(e=> e.status==='progreso').length;
-      const done=entries.filter(e=> e.status==='completado').length;
-      const pct = total ? Math.round((done/total)*100) : 0;
-      document.getElementById('countPending').textContent=pending;
-      document.getElementById('countInProgress').textContent=prog;
-      document.getElementById('countCompleted').textContent=done;
-      document.getElementById('progressPercent').textContent=pct;
-      const fill=document.getElementById('progressFill'); fill.style.width=pct+'%'; fill.setAttribute('aria-valuenow', String(pct));
-    }
+    function renderStats(entries){ const total=entries.length; const pending=entries.filter(e=>(e.status||'pendiente')==='pendiente').length; const prog=entries.filter(e=>e.status==='progreso').length; const done=entries.filter(e=>e.status==='completado').length; const pct= total? Math.round((done/total)*100):0; document.getElementById('countPending').textContent=pending; document.getElementById('countInProgress').textContent=prog; document.getElementById('countCompleted').textContent=done; document.getElementById('progressPercent').textContent=pct; const fill=document.getElementById('progressFill'); fill.style.width=pct+'%'; fill.setAttribute('aria-valuenow', String(pct)); }
 
-    function entryStatusClass(s){ return s==='pendiente' ? 'status-pendiente' : (s==='progreso' ? 'status-progreso' : 'status-completado') }
-    function statusLabel(s){ if(s==='progreso') return 'En progreso'; if(s==='completado') return 'Completado'; return 'Pendiente' }
+    function renderFollowups(entries){ const list=entries.filter(e=>e.hasFollowUp).filter(passAgentFilter); followupsEl.innerHTML=''; if(list.length===0){ const li=document.createElement('li'); li.textContent='No hay seguimientos registrados.'; followupsEl.appendChild(li); return; } list.forEach(e=>{ const li=document.createElement('li'); const title=document.createElement('div'); title.className='fu-title'; title.textContent=e.title||e.reason||'(Sin título)'; const meta=document.createElement('div'); meta.className='fu-meta'; meta.innerHTML=`<span><i class='fa-regular fa-calendar'></i> ${fmtDate(e.date)}</span><span><i class='fa-regular fa-compass'></i> Derivado a: ${e.followUpTo||'No especificado'}</span><span><i class='fa-solid fa-flag'></i> ${statusLabel(e.status)}</span>${e.agentName? `<span><i class='fa-regular fa-user'></i> ${e.agentName}</span>`:''}${e.agentId? ` <span><i class='fa-solid fa-id-card'></i> ${e.agentId}</span>`:''}`; li.appendChild(title); li.appendChild(meta); followupsEl.appendChild(li); }) }
 
-    function renderFollowups(entries){
-      const list = entries.filter(e => e.hasFollowUp).filter(passAgentFilter);
-      followupsEl.innerHTML = '';
-      if(list.length === 0){
-        const empty = document.createElement('li');
-        empty.textContent = 'No hay seguimientos registrados.';
-        followupsEl.appendChild(empty);
-        return;
-      }
-      list.forEach(e => {
-        const li = document.createElement('li');
-        const title = document.createElement('div'); title.className='fu-title'; title.textContent = e.title || e.reason || '(Sin título)';
-        const meta = document.createElement('div'); meta.className='fu-meta';
-        meta.innerHTML = `
-          <span><i class='fa-regular fa-calendar'></i> ${fmtDate(e.date)}</span>
-          <span><i class='fa-regular fa-compass'></i> Derivado a: ${e.followUpTo || 'No especificado'}</span>
-          <span><i class='fa-solid fa-flag'></i> ${statusLabel(e.status)}</span>
-          ${e.agentName ? `<span><i class='fa-regular fa-user'></i> ${e.agentName}</span>` : ''}
-          ${e.agentId ? `<span><i class='fa-solid fa-id-card'></i> ${e.agentId}</span>` : ''}
-        `;
-        li.appendChild(title); li.appendChild(meta);
-        followupsEl.appendChild(li);
-      });
-    }
+    function renderEntries(){ const entries=sortEntries(getEntries()).filter(passAgentFilter); entriesEl.innerHTML=''; entries.forEach(entry=>{ const card=document.createElement('article'); card.className='card entry-card'; if(isOverdue(entry)) card.classList.add('overdue'); card.dataset.id=entry.id; const title=document.createElement('h3'); title.className='entry-title'; title.textContent= entry.title || entry.reason || '(Sin título)'; const meta=document.createElement('div'); meta.className='entry-meta'; meta.innerHTML=`<span><i class="fa-regular fa-calendar"></i> ${fmtDate(entry.date)}</span>` + (entry.agentName? ` <span><i class="fa-regular fa-user"></i> ${entry.agentName}</span>`:'') + (entry.agentId? ` <span><i class="fa-solid fa-id-card"></i> ${entry.agentId}</span>`:''); const desc=document.createElement('p'); desc.style.margin='6px 0 0 0'; desc.textContent= entry.description||''; const badges=document.createElement('div'); badges.className='badges'; const st=document.createElement('span'); st.className=`badge status-chip ${entryStatusClass(entry.status||'pendiente')}`; st.innerHTML=`<i class="fa-solid fa-circle"></i> ${statusLabel(entry.status)}`; st.title='Cambiar estado (clic)'; st.addEventListener('click',()=>{ const all=getEntries(); const i=all.findIndex(e=>e.id===entry.id); if(i>=0){ all[i].status=nextStatus(all[i].status||'pendiente'); all[i].updatedAt=Date.now(); if(all[i].status==='completado') all[i].notified=true; saveEntries(all); renderEntries(); renderStats(all); renderFollowups(all); }}); badges.appendChild(st); if(entry.reason){ const r=document.createElement('span'); r.className='badge'; r.innerHTML=`<i class="fa-regular fa-note-sticky"></i> ${entry.reason}`; badges.appendChild(r); } if(entry.hasFollowUp){ const f=document.createElement('span'); f.className='badge'; f.innerHTML=`<i class="fa-regular fa-compass"></i> Seguimiento${entry.followUpTo? ': '+entry.followUpTo:''}`; badges.appendChild(f); } if(entry.reminderEnabled && entry.reminderAt){ const rm=document.createElement('span'); rm.className='badge'; rm.innerHTML=`<i class="fa-regular fa-bell"></i> ${fmtDateTime(entry.reminderAt)}`; badges.appendChild(rm); } const actions=document.createElement('div'); actions.className='entry-actions'; const editBtn=document.createElement('button'); editBtn.className='icon-btn'; editBtn.innerHTML='<i class="fa-solid fa-pen"></i> Editar'; editBtn.addEventListener('click',()=>startEdit(entry.id)); const delBtn=document.createElement('button'); delBtn.className='icon-btn icon-danger'; delBtn.innerHTML='<i class="fa-solid fa-trash"></i> Eliminar'; delBtn.addEventListener('click',()=>deleteEntry(entry.id, card)); actions.appendChild(editBtn); actions.appendChild(delBtn); card.appendChild(title); card.appendChild(meta); if(entry.description) card.appendChild(desc); card.appendChild(badges); card.appendChild(actions); entriesEl.appendChild(card); }); const all=getEntries(); renderStats(all); renderFollowups(all); }
 
-    function renderEntries(){
-      const entries=sortEntries(getEntries()).filter(passAgentFilter);
-      entriesEl.innerHTML='';
-      entries.forEach(entry=>{
-        const card=document.createElement('article'); card.className='card entry-card'; if(isOverdue(entry)) card.classList.add('overdue'); card.dataset.id=entry.id;
-        const title=document.createElement('h3'); title.className='entry-title'; title.textContent= entry.title || entry.reason || '(Sin título)';
-        const meta=document.createElement('div'); meta.className='entry-meta'; meta.innerHTML=`<span><i class=\"fa-regular fa-calendar\"></i> ${fmtDate(entry.date)}</span>` + (entry.agentName? ` <span><i class=\"fa-regular fa-user\"></i> ${entry.agentName}</span>`:'') + (entry.agentId? ` <span><i class=\"fa-solid fa-id-card\"></i> ${entry.agentId}</span>`:'');
-        const desc = document.createElement('p'); desc.style.margin='6px 0 0 0'; desc.textContent = entry.description || '';
-
-        const badges=document.createElement('div'); badges.className='badges';
-        const st=document.createElement('span'); st.className=`badge status-chip ${entryStatusClass(entry.status||'pendiente')}`; st.innerHTML=`<i class=\"fa-solid fa-circle\"></i> ${statusLabel(entry.status)}`; st.title='Cambiar estado (clic)';
-        st.addEventListener('click',()=>{ const all=getEntries(); const i=all.findIndex(e=>e.id===entry.id); if(i>=0){ all[i].status = nextStatus(all[i].status||'pendiente'); all[i].updatedAt=Date.now(); if(all[i].status==='completado') all[i].notified=true; saveEntries(all); renderEntries(); renderStats(all); renderFollowups(all); }});
-        badges.appendChild(st);
-        if(entry.reason){ const r=document.createElement('span'); r.className='badge'; r.innerHTML = `<i class=\"fa-regular fa-note-sticky\"></i> ${entry.reason}`; badges.appendChild(r); }
-        if(entry.hasFollowUp){ const f=document.createElement('span'); f.className='badge'; f.innerHTML = `<i class=\"fa-regular fa-compass\"></i> Seguimiento${entry.followUpTo? ': '+entry.followUpTo : ''}`; badges.appendChild(f); }
-        if(entry.reminderEnabled && entry.reminderAt){ const rm=document.createElement('span'); rm.className='badge'; rm.innerHTML=`<i class=\"fa-regular fa-bell\"></i> ${fmtDateTime(entry.reminderAt)}`; badges.appendChild(rm); }
-
-        const actions=document.createElement('div'); actions.className='entry-actions';
-        const editBtn=document.createElement('button'); editBtn.className='icon-btn'; editBtn.innerHTML='<i class="fa-solid fa-pen"></i> Editar'; editBtn.addEventListener('click',()=>startEdit(entry.id));
-        const delBtn=document.createElement('button'); delBtn.className='icon-btn icon-danger'; delBtn.innerHTML='<i class="fa-solid fa-trash"></i> Eliminar'; delBtn.addEventListener('click',()=>deleteEntry(entry.id, card));
-        actions.appendChild(editBtn); actions.appendChild(delBtn);
-
-        card.appendChild(title); card.appendChild(meta); if(entry.description) card.appendChild(desc); card.appendChild(badges); card.appendChild(actions);
-        entriesEl.appendChild(card);
-      });
-
-      // Render stats and followups from ALL entries (stats no deben filtrar; followups sí filtran)
-      const all = getEntries();
-      renderStats(all);
-      renderFollowups(all);
-    }
-
-    // --- CRUD & Form ---
+    // ==========================
+    // CRUD Entradas
+    // ==========================
     const form=document.getElementById('entryForm');
     const editIdEl=document.getElementById('editId');
     const agentIdEl=document.getElementById('agentId');
@@ -386,485 +377,88 @@
     const followUpToEl=document.getElementById('followUpTo');
     const saveBtn=document.getElementById('saveBtn');
 
-    // Formatear ID a 9 dígitos con ceros a la izquierda si solo hay números
+    function uid(){ return 'e_' + Math.random().toString(36).slice(2,8) + Date.now().toString(36) }
     function toNineDigits(val){ const v=(val||'').trim(); if(/^\d+$/.test(v)) return v.padStart(9,'0'); return v; }
-    agentIdEl.addEventListener('blur', ()=>{ const v=agentIdEl.value; agentIdEl.value = toNineDigits(v); });
-
+    agentIdEl.addEventListener('blur', ()=>{ agentIdEl.value = toNineDigits(agentIdEl.value); });
     hasFollowUpEl.addEventListener('change',()=>{ followUpToEl.disabled = !hasFollowUpEl.checked; if(!hasFollowUpEl.checked){ followUpToEl.value=''; } });
-
     function resetForm(){ form.reset(); editIdEl.value=''; saveBtn.querySelector('span').textContent='Guardar'; followUpToEl.disabled=true; }
     document.getElementById('resetBtn').addEventListener('click', resetForm);
 
-    function startEdit(id){
-      const all=getEntries(); const e=all.find(x=>x.id===id); if(!e) return;
-      editIdEl.value=e.id;
-      agentIdEl.value=e.agentId||''; agentNameEl.value=e.agentName||''; reasonEl.value=e.reason||'';
-      titleEl.value=e.title||''; descEl.value=e.description||''; statusEl.value=e.status||'';
-      remChk.checked=!!e.reminderEnabled; remAt.value = e.reminderAt? new Date(e.reminderAt).toISOString().slice(0,16):'';
-      hasFollowUpEl.checked=!!e.hasFollowUp; followUpToEl.disabled = !hasFollowUpEl.checked; followUpToEl.value=e.followUpTo||'';
-      saveBtn.querySelector('span').textContent='Actualizar';
-      window.scrollTo({ top: document.querySelector('main').offsetTop, behavior:'smooth' });
-    }
+    function startEdit(id){ const all=getEntries(); const e=all.find(x=>x.id===id); if(!e) return; editIdEl.value=e.id; agentIdEl.value=e.agentId||''; agentNameEl.value=e.agentName||''; reasonEl.value=e.reason||''; titleEl.value=e.title||''; descEl.value=e.description||''; statusEl.value=e.status||''; remChk.checked=!!e.reminderEnabled; remAt.value=e.reminderAt? new Date(e.reminderAt).toISOString().slice(0,16):''; hasFollowUpEl.checked=!!e.hasFollowUp; followUpToEl.disabled=!hasFollowUpEl.checked; followUpToEl.value=e.followUpTo||''; saveBtn.querySelector('span').textContent='Actualizar'; window.scrollTo({ top: document.querySelector('main').offsetTop, behavior:'smooth' }); }
 
     function deleteEntry(id, cardEl){ if(!confirm('¿Seguro que deseas eliminar esta entrada?')) return; cardEl.classList.add('fade-out'); cardEl.addEventListener('animationend',()=>{ const all=getEntries().filter(e=>e.id!==id); saveEntries(all); renderEntries(); },{once:true}); }
 
-    form.addEventListener('submit', (ev)=>{
-      ev.preventDefault();
-      const base = {
-        id: editIdEl.value || uid(),
-        // Fecha automática al CREAR; si edita, se conserva
-        title: (titleEl.value||'').trim(),
-        description: (descEl.value||'').trim(),
-        status: (statusEl.value||'').trim(),
-        reminderEnabled: remChk.checked,
-        reminderAt: remAt.value ? new Date(remAt.value).toISOString() : '',
-        agentId: toNineDigits(agentIdEl.value),
-        agentName: (agentNameEl.value||'').trim(),
-        reason: (reasonEl.value||'').trim(),
-        hasFollowUp: hasFollowUpEl.checked,
-        followUpTo: (followUpToEl.value||'').trim(),
-      };
-      let all = getEntries();
-      if(editIdEl.value){
-        const idx = all.findIndex(e=>e.id===base.id);
-        if(idx>=0){
-          const reminderChanged = all[idx].reminderAt !== base.reminderAt || all[idx].reminderEnabled !== base.reminderEnabled;
-          const keepDate = all[idx].date; // conservar fecha original
-          all[idx] = { ...all[idx], ...base, date: keepDate, updatedAt: Date.now(), ...(reminderChanged? {notified:false}: {}) };
-        }
-      } else {
-        // crear con fecha automática de hoy
-        all.push({ ...base, date: todayStr(), createdAt: Date.now(), updatedAt: Date.now(), notified:false });
-      }
-      saveEntries(all);
-      renderEntries();
-      resetForm();
-    });
+    form.addEventListener('submit', (ev)=>{ ev.preventDefault(); const base={ id: editIdEl.value || uid(), title:(titleEl.value||'').trim(), description:(descEl.value||'').trim(), status:(statusEl.value||'').trim(), reminderEnabled: remChk.checked, reminderAt: remAt.value? new Date(remAt.value).toISOString(): '', agentId: toNineDigits(agentIdEl.value), agentName:(agentNameEl.value||'').trim(), reason:(reasonEl.value||'').trim(), hasFollowUp: hasFollowUpEl.checked, followUpTo:(followUpToEl.value||'').trim(), }; let all = getEntries(); if(editIdEl.value){ const idx=all.findIndex(e=>e.id===base.id); if(idx>=0){ const reminderChanged = all[idx].reminderAt !== base.reminderAt || all[idx].reminderEnabled !== base.reminderEnabled; const keepDate=all[idx].date; all[idx] = { ...all[idx], ...base, date: keepDate, updatedAt: Date.now(), ...(reminderChanged? {notified:false}: {}) }; } } else { all.push({ ...base, date: todayStr(), createdAt: Date.now(), updatedAt: Date.now(), notified:false }); } saveEntries(all); renderEntries(); resetForm(); });
 
+    // ==========================
     // Recordatorios
-    function checkReminders(){
-      const now=new Date(); const all=getEntries(); let changed=false;
-      all.forEach(e=>{
-        if(e.reminderEnabled && e.reminderAt && !e.notified){ const t=new Date(e.reminderAt); if(!isNaN(t.getTime()) && now>=t){ showToast(`<i class='fa-solid fa-bell'></i><div><strong>Recordatorio:</strong> ${e.title || e.reason || 'Entrada'}. <br><small>${fmtDateTime(e.reminderAt)}</small></div>`); e.notified=true; changed=true; }}
-      });
-      if(changed) saveEntries(all);
-      renderEntries();
-    }
+    // ==========================
+    function checkReminders(){ const now=new Date(); const all=getEntries(); let changed=false; all.forEach(e=>{ if(e.reminderEnabled && e.reminderAt && !e.notified){ const t=new Date(e.reminderAt); if(!isNaN(t.getTime()) && now>=t){ showToast(`<i class='fa-solid fa-bell'></i><div><strong>Recordatorio:</strong> ${e.title || e.reason || 'Entrada'}. <br><small>${fmtDateTime(e.reminderAt)}</small></div>`); e.notified=true; changed=true; } } }); if(changed) saveEntries(all); renderEntries(); }
     setInterval(checkReminders, 30*1000);
 
-    // Tema
+    // ==========================
+    // Tema y botones header
+    // ==========================
     const themeToggle=document.getElementById('themeToggle');
     function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); localStorage.setItem(THEME_KEY, t); themeToggle.querySelector('i').className = t==='dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'; }
     themeToggle.addEventListener('click',()=>{ const cur=document.documentElement.getAttribute('data-theme')||'light'; applyTheme(cur==='light'?'dark':'light') });
 
-    // Inicialización
-    function init(){
-      // valor por defecto para recordatorio: +1h
-      const dt=new Date(); dt.setMinutes(dt.getMinutes()+60); const tzAdj = new Date(dt.getTime() - dt.getTimezoneOffset()*60000).toISOString().slice(0,16);
-      document.getElementById('reminderAt').value = tzAdj;
-      const storedTheme = localStorage.getItem(THEME_KEY) || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      applyTheme(storedTheme);
+    document.getElementById('clearAll').addEventListener('click',()=>{ if(!confirm('Esto eliminará todas las entradas de tu cuenta actual. ¿Continuar?')) return; localStorage.removeItem(getStorageKey()); renderEntries(); });
+    document.getElementById('demoData').addEventListener('click',()=>{ const now=Date.now(); const demo=[ { id: uid(), date: todayStr(), title:'Contacto inicial', reason:'Consulta general', agentId:'000100001', agentName:'Luis Gómez', description:'Se registra consulta.', status:'pendiente', reminderEnabled:true, reminderAt:new Date(now+5*60*1000).toISOString(), hasFollowUp:true, followUpTo:'Mesa de ayuda', createdAt:now-10000, updatedAt:now-10000, notified:false }, { id: uid(), date: todayStr(), title:'Revisión de caso', reason:'Seguimiento', agentId:'000000000', agentName:'Ana Pérez', description:'Se analiza información recibida.', status:'progreso', reminderEnabled:false, reminderAt:'', hasFollowUp:false, followUpTo:'', createdAt:now-8000, updatedAt:now-8000, notified:false }, { id: uid(), date: new Date(now-86400000).toISOString().slice(0,10), title:'Cierre', reason:'Resuelto', agentId:'000099990', agentName:'María Ruiz', description:'Caso cerrado sin novedades.', status:'completado', reminderEnabled:true, reminderAt:new Date(now-3600*1000).toISOString(), hasFollowUp:false, followUpTo:'', createdAt:now-6000, updatedAt:now-6000, notified:true } ]; saveEntries(demo); renderEntries(); showToast('<i class="fa-solid fa-wand-magic-sparkles"></i><div><strong>Datos de ejemplo cargados.</strong> Puedes modificarlos o eliminarlos.</div>', 4000); });
 
-      // Eventos de filtro (sincronizados entre ambas secciones)
+    // ==========================
+    // Login / Registro / Sesión
+    // ==========================
+    const authOverlay = document.getElementById('authOverlay');
+    const tabLogin = document.getElementById('tabLogin');
+    const tabRegister = document.getElementById('tabRegister');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const firstTimeMsg = document.getElementById('firstTimeMsg');
+    const goRegisterBtn = document.getElementById('goRegister');
+    const goLoginBtn = document.getElementById('goLogin');
+    const loginUser = document.getElementById('loginUser');
+    const loginPass = document.getElementById('loginPass');
+    const regName = document.getElementById('regName');
+    const regUser = document.getElementById('regUser');
+    const regPass = document.getElementById('regPass');
+    const regPass2 = document.getElementById('regPass2');
+
+    function switchTab(tab){ if(tab==='login'){ tabLogin.classList.add('active'); tabRegister.classList.remove('active'); loginForm.classList.remove('hidden'); registerForm.classList.add('hidden'); } else { tabRegister.classList.add('active'); tabLogin.classList.remove('active'); registerForm.classList.remove('hidden'); loginForm.classList.add('hidden'); } }
+    tabLogin.addEventListener('click', ()=>switchTab('login'));
+    tabRegister.addEventListener('click', ()=>switchTab('register'));
+    goRegisterBtn.addEventListener('click', ()=>switchTab('register'));
+    goLoginBtn.addEventListener('click', ()=>switchTab('login'));
+
+    function updateHeaderUser(){ const chip=document.getElementById('userChip'); const label=document.getElementById('userNameLabel'); const logout=document.getElementById('logoutBtn'); if(currentUser){ label.textContent=currentUser.name || currentUser.username; chip.classList.remove('hidden'); logout.classList.remove('hidden'); } else { label.textContent='Invitado'; chip.classList.add('hidden'); logout.classList.add('hidden'); } }
+
+    document.getElementById('logoutBtn').addEventListener('click', ()=>{ setSession(null); currentUser=null; updateHeaderUser(); authOverlay.classList.add('show'); showToast('<i class="fa-solid fa-right-from-bracket"></i><div>Sesión cerrada.</div>', 3000); });
+
+    loginForm.addEventListener('submit', async (e)=>{ e.preventDefault(); const u = (loginUser.value||'').trim(); const p = (loginPass.value||'').trim(); if(!u || !p){ showToast('<i class="fa-solid fa-circle-exclamation"></i><div>Usuario y contraseña son requeridos.</div>'); return; } const users=getUsers(); const key=u.toLowerCase(); const reg=users[key]; if(!reg){ showToast('<i class="fa-solid fa-user-xmark"></i><div>El usuario no existe. Regístrate primero.</div>'); return; } const hash = await makePassHash(u,p); if(hash!==reg.passHash){ showToast('<i class="fa-solid fa-lock"></i><div>Contraseña incorrecta.</div>'); return; } reg.lastLogin = Date.now(); users[key]=reg; saveUsers(users); currentUser = { username: reg.username, name: reg.name }; setSession(currentUser); updateHeaderUser(); authOverlay.classList.remove('show'); renderEntries(); showToast('<i class="fa-solid fa-circle-check"></i><div>Sesión iniciada.</div>', 2500); loginPass.value=''; });
+
+    registerForm.addEventListener('submit', async (e)=>{ e.preventDefault(); const name=(regName.value||'').trim(); const user=(regUser.value||'').trim(); const p1=(regPass.value||''); const p2=(regPass2.value||''); if(!name || !user || !p1){ showToast('<i class="fa-solid fa-circle-exclamation"></i><div>Completa nombre, usuario y contraseña.</div>'); return; } if(p1!==p2){ showToast('<i class="fa-solid fa-exclamation"></i><div>Las contraseñas no coinciden.</div>'); return; } if(p1.length<6){ showToast('<i class="fa-solid fa-key"></i><div>Usa una contraseña de al menos 6 caracteres.</div>'); return; } const users=getUsers(); const key=user.toLowerCase(); if(users[key]){ showToast('<i class="fa-solid fa-user"></i><div>Ese usuario ya existe. Elige otro.</div>'); return; } const hash=await makePassHash(user,p1); users[key] = { username:user, name, passHash:hash, createdAt:Date.now(), lastLogin:null }; saveUsers(users); // crear sesión
+      currentUser = { username:user, name }; setSession(currentUser); updateHeaderUser(); authOverlay.classList.remove('show'); renderEntries(); showToast('<i class="fa-solid fa-user-check"></i><div>Cuenta creada e inicio de sesión correcto.</div>', 3000); // limpiar
+      regName.value=regUser.value=regPass.value=regPass2.value=''; });
+
+    function initAuth(){ const users=getUsers(); const hasUsers = Object.keys(users).length>0; firstTimeMsg.textContent = hasUsers ? 'Ingresa con tu usuario y contraseña.' : 'Parece que es tu primera vez aquí. Regístrate para comenzar.'; // sesión existente
+      const sess=getSession(); if(sess && users[sess.username.toLowerCase()]){ currentUser = sess; updateHeaderUser(); authOverlay.classList.remove('show'); } else { currentUser=null; updateHeaderUser(); authOverlay.classList.add('show'); }
+    }
+
+    // ==========================
+    // Inicialización general
+    // ==========================
+    function init(){ // tema
+      const storedTheme = localStorage.getItem(THEME_KEY) || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); applyTheme(storedTheme);
+      // Filtros sincronizados
       agentFilterEl.addEventListener('input', (e)=>{ syncFilters(e.target); renderEntries(); });
       agentFilterTopEl.addEventListener('input', (e)=>{ syncFilters(e.target); renderEntries(); });
       document.getElementById('clearFilter').addEventListener('click', ()=>{ agentFilterEl.value=''; agentFilterTopEl.value=''; renderEntries(); });
       document.getElementById('clearFilterTop').addEventListener('click', ()=>{ agentFilterEl.value=''; agentFilterTopEl.value=''; renderEntries(); });
-
+      // Recordatorio default +1h
+      const dt=new Date(); dt.setMinutes(dt.getMinutes()+60); const tzAdj = new Date(dt.getTime() - dt.getTimezoneOffset()*60000).toISOString().slice(0,16); document.getElementById('reminderAt').value = tzAdj;
+      initAuth();
       renderEntries();
     }
-
-    document.getElementById('clearAll').addEventListener('click',()=>{ if(!confirm('Esto eliminará todas las entradas. ¿Continuar?')) return; localStorage.removeItem(STORAGE_KEY); renderEntries(); });
-
-    document.getElementById('demoData').addEventListener('click',()=>{
-      const now=Date.now();
-      const demo=[
-        { id: uid(), date: todayStr(), title: 'Contacto inicial', reason:'Consulta general', agentId:'000100001', agentName:'Luis Gómez', description:'Se registra consulta.', status:'pendiente', reminderEnabled:true, reminderAt:new Date(now+5*60*1000).toISOString(), hasFollowUp:true, followUpTo:'Mesa de ayuda', createdAt:now-10000, updatedAt:now-10000, notified:false },
-        { id: uid(), date: todayStr(), title: 'Revisión de caso', reason:'Seguimiento', agentId:'000000000', agentName:'Ana Pérez', description:'Se analiza información recibida.', status:'progreso', reminderEnabled:false, reminderAt:'', hasFollowUp:false, followUpTo:'', createdAt:now-8000, updatedAt:now-8000, notified:false },
-        { id: uid(), date: new Date(now-86400000).toISOString().slice(0,10), title: 'Cierre', reason:'Resuelto', agentId:'000099990', agentName:'María Ruiz', description:'Caso cerrado sin novedades.', status:'completado', reminderEnabled:true, reminderAt:new Date(now-3600*1000).toISOString(), hasFollowUp:false, followUpTo:'', createdAt:now-6000, updatedAt:now-6000, notified:true }
-      ];
-      saveEntries(demo); renderEntries(); showToast('<i class="fa-solid fa-wand-magic-sparkles"></i><div><strong>Datos de ejemplo cargados.</strong> Puedes modificarlos o eliminarlos.</div>', 4000);
-    });
-
-    document.addEventListener('DOMContentLoaded', init);
-  </script>
-</body>
-</html>x/libs/font-awesome/6.5.0/css/all.min.css">
-  <style>
-    :root{
-      --bg:#f4f6f8;--card:rgba(255,255,255,.7);--text:#121417;--muted:#5f6b7a;
-      --primary:#4f46e5;--primary-600:#4338ca;--accent:#06b6d4;--ring:rgba(79,70,229,.35);
-      --border:rgba(17,24,39,.08);--danger:#ef4444;--shadow:0 10px 25px rgba(2,6,23,.08),0 2px 8px rgba(2,6,23,.06);
-      --radius:14px;--glass:blur(10px)
-    }
-    [data-theme="dark"]{
-      --bg:#0b1220;--card:rgba(13,18,31,.55);--text:#e5e7eb;--muted:#9aa4b2;--primary:#8b5cf6;--primary-600:#7c3aed;--accent:#22d3ee;--ring:rgba(139,92,246,.35);--border:rgba(255,255,255,.08);--shadow:0 12px 30px rgba(0,0,0,.35),0 4px 12px rgba(0,0,0,.25);--glass:blur(12px)
-    }
-    *{box-sizing:border-box}html,body{height:100%}body{margin:0;font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;color:var(--text);background:radial-gradient(1200px 800px at -10% -20%, rgba(79,70,229,.08), transparent 40%),radial-gradient(1000px 700px at 120% -10%, rgba(34,211,238,.08), transparent 45%),var(--bg);line-height:1.5}
-    .container{max-width:1100px;margin:0 auto;padding:24px}
-    header.app-header{position:sticky;top:0;z-index:50;backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);background:linear-gradient(to bottom,var(--card),rgba(255,255,255,.05));border-bottom:1px solid var(--border)}
-    [data-theme="dark"] header.app-header{background:linear-gradient(to bottom,rgba(13,18,31,.65),rgba(13,18,31,.25))}
-    .header-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 24px}
-    .brand{display:flex;align-items:center;gap:12px}
-    .brand i{font-size:1.4rem;color:var(--primary);filter:drop-shadow(0 4px 8px var(--ring))}
-    .brand h1{font-size:1.25rem;margin:0;letter-spacing:.2px}
-    .header-actions{display:flex;align-items:center;gap:10px}
-    .btn{--bg:var(--primary);--bg-h:var(--primary-600);border:1px solid transparent;background:var(--bg);color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;box-shadow:var(--shadow);transition:transform .08s ease,filter .2s ease,background .2s ease}
-    .btn:hover{transform:translateY(-1px);filter:brightness(1.02);background:var(--bg-h)}
-    .btn-outline{background:transparent;color:var(--text);border:1px solid var(--border);box-shadow:none}
-    .btn-outline:hover{border-color:var(--ring)}
-    main{display:grid;gap:22px}
-    .card{background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow);border-radius:var(--radius);padding:18px;backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass)}
-    .form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
-    @media(max-width:980px){.form-grid{grid-template-columns:1fr 1fr}}
-    @media(max-width:640px){.form-grid{grid-template-columns:1fr}}
-    .field{display:flex;flex-direction:column;gap:6px}
-    .field label{font-weight:600;font-size:.95rem}
-    .field input[type="text"], .field input[type="datetime-local"], .field select, .field textarea{width:100%;border:1px solid var(--border);background:transparent;color:var(--text);padding:10px 12px;border-radius:10px;outline:none;transition:border-color .2s ease,box-shadow .2s ease}
-    .field textarea{min-height:90px;resize:vertical}
-    .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--ring);box-shadow:0 0 0 4px var(--ring)}
-    .note{color:var(--muted);font-size:.9rem}
-    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-    @media(max-width:980px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:640px){.stats-grid{grid-template-columns:1fr}}
-    .stat-card{display:grid;gap:8px}
-    .stat-title{color:var(--muted);font-size:.9rem}
-    .stat-value{font-size:1.4rem;font-weight:700}
-    .progress-wrapper{grid-column:1/-1}
-    .progress-bar{width:100%;height:14px;border-radius:999px;background:rgba(2,6,23,.06);border:1px solid var(--border);overflow:hidden}
-    .progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--primary),var(--accent));transition:width .5s ease}
-    .list-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-    .entries{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-    @media(max-width:980px){.entries{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:640px){.entries{grid-template-columns:1fr}}
-    .entry-card{display:grid;gap:10px;animation:fadeInUp .35s ease both}
-    .entry-title{font-weight:700;font-size:1.05rem;margin:0}
-    .entry-meta{display:flex;flex-wrap:wrap;gap:8px;color:var(--muted);font-size:.9rem}
-    .badges{display:flex;gap:8px;flex-wrap:wrap}
-    .badge{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;padding:6px 9px;border-radius:999px;border:1px solid var(--border);background:transparent}
-    .status-pendiente{color:#b45309;background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.35)}
-    .status-progreso{color:#1d4ed8;background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.35)}
-    .status-completado{color:#15803d;background:rgba(22,163,74,.12);border-color:rgba(22,163,74,.35)}
-    .status-chip{cursor:pointer}
-    .entry-actions{display:flex;gap:8px;justify-content:flex-end}
-    .icon-btn{background:transparent;border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:border-color .2s ease}
-    .icon-btn:hover{border-color:var(--ring)}
-    .icon-danger{color:var(--danger)}
-    .overdue{outline:2px dashed rgba(239,68,68,.55);box-shadow:0 0 0 4px rgba(239,68,68,.15) inset}
-    .toast-container{position:fixed;top:16px;right:16px;display:grid;gap:10px;z-index:1000}
-    .toast{background:var(--card);border:1px solid var(--border);border-left:6px solid var(--danger);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);display:flex;align-items:start;gap:10px;animation:fadeIn .25s ease both}
-    footer{text-align:center;color:var(--muted);padding:20px}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes fadeInUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes fadeOut{to{opacity:0;transform:translateY(-6px)}}
-    .fade-out{animation:fadeOut .25s ease forwards}
-  </style>
-</head>
-<body>
-  <header class="app-header">
-    <div class="header-inner container">
-      <div class="brand">
-        <i class="fa-solid fa-book-open"></i>
-        <h1>Mi Bitácora Digital</h1>
-      </div>
-      <div class="header-actions">
-        <button id="themeToggle" class="btn btn-outline" aria-label="Cambiar tema"><i class="fa-solid fa-moon"></i> Modo</button>
-        <button id="demoData" class="btn btn-outline" title="Cargar ejemplo"><i class="fa-solid fa-wand-magic-sparkles"></i> Demo</button>
-        <button id="clearAll" class="btn btn-outline" title="Borrar todo"><i class="fa-solid fa-trash"></i> Limpiar</button>
-      </div>
-    </div>
-  </header>
-
-  <main class="container">
-    <!-- Formulario -->
-    <section class="card" aria-labelledby="formTitle">
-      <h2 id="formTitle" style="margin-top:0;">Nueva entrada</h2>
-      <form id="entryForm">
-        <input type="hidden" id="editId" />
-        <!-- NOTA: La fecha se asigna automáticamente (día actual) -->
-        <div class="form-grid">
-          <div class="field">
-            <label for="agentId">ID del agente (opcional)</label>
-            <input type="text" id="agentId" placeholder="Ej. A-1023" />
-          </div>
-          <div class="field">
-            <label for="agentName">Nombre del agente (opcional)</label>
-            <input type="text" id="agentName" placeholder="Ej. Ana Pérez" />
-          </div>
-          <div class="field">
-            <label for="reason">Motivo (opcional)</label>
-            <input type="text" id="reason" placeholder="Ej. Solicitud de soporte" />
-          </div>
-
-          <div class="field">
-            <label for="title">Título (opcional)</label>
-            <input type="text" id="title" placeholder="Ej. Día de proyecto, reunión, ideas..." />
-          </div>
-          <div class="field">
-            <label for="status">Estado (opcional)</label>
-            <select id="status">
-              <option value="">(Sin estado)</option>
-              <option value="pendiente">Pendiente</option>
-              <option value="progreso">En progreso</option>
-              <option value="completado">Completado</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="reminderAt">Recordatorio (fecha y hora) (opcional)</label>
-            <input type="datetime-local" id="reminderAt" />
-            <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
-              <input type="checkbox" id="reminderEnabled" /> <label for="reminderEnabled" style="margin:0;">Activar recordatorio</label>
-            </div>
-          </div>
-
-          <div class="field" style="grid-column:1/-1;">
-            <label for="description">Descripción (opcional)</label>
-            <textarea id="description" placeholder="Escribe detalles del día, objetivos, aprendizajes, etc."></textarea>
-          </div>
-
-          <div class="field">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <input type="checkbox" id="hasFollowUp" />
-              <label for="hasFollowUp" style="margin:0;">¿Lleva seguimiento?</label>
-            </div>
-            <span class="note">Si marcas esta opción, especifica a quién/área se deriva.</span>
-          </div>
-          <div class="field">
-            <label for="followUpTo">Derivado a (opcional)</label>
-            <input type="text" id="followUpTo" placeholder="Ej. Mesa de ayuda / Coordinación / Persona" disabled />
-          </div>
-
-          <div class="field" style="grid-column:1/-1; display:flex; gap:10px; flex-wrap:wrap;">
-            <button type="submit" class="btn" id="saveBtn"><i class="fa-solid fa-floppy-disk"></i> <span>Guardar</span></button>
-            <button type="reset" class="btn btn-outline" id="resetBtn"><i class="fa-solid fa-rotate"></i> Limpiar formulario</button>
-          </div>
-        </div>
-      </form>
-    </section>
-
-    <!-- Estadísticas -->
-    <section class="card" aria-labelledby="statsTitle">
-      <div class="list-header">
-        <h2 id="statsTitle" style="margin:0;">Seguimiento</h2>
-      </div>
-      <div class="stats-grid">
-        <div class="stat-card">
-          <span class="stat-title"><i class="fa-regular fa-clock"></i> Pendientes</span>
-          <span class="stat-value" id="countPending">0</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-title"><i class="fa-solid fa-spinner"></i> En progreso</span>
-          <span class="stat-value" id="countInProgress">0</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-title"><i class="fa-regular fa-circle-check"></i> Completadas</span>
-          <span class="stat-value" id="countCompleted">0</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-title"><i class="fa-solid fa-percent"></i> Avance</span>
-          <span class="stat-value"><span id="progressPercent">0</span>%</span>
-        </div>
-        <div class="progress-wrapper">
-          <div class="progress-bar" aria-label="Progreso general" aria-valuemin="0" aria-valuemax="100">
-            <div class="progress-fill" id="progressFill" aria-valuenow="0"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Lista de entradas -->
-    <section class="card" aria-labelledby="listTitle">
-      <div class="list-header">
-        <h2 id="listTitle" style="margin:0;">Entradas</h2>
-        <div style="display:flex; gap:8px; align-items:center; color:var(--muted);">
-          <i class="fa-solid fa-info-circle"></i>
-          <small>Consejo: pulsa el chip de estado para cambiarlo rápidamente.</small>
-        </div>
-      </div>
-      <div id="entries" class="entries" aria-live="polite"></div>
-    </section>
-  </main>
-
-  <!-- Footer con texto solicitado -->
-  <footer class="container">
-    <small>© 2026 Mi Bitácora Digital · Hecho por pablooibz</small>
-  </footer>
-
-  <div class="toast-container" id="toastContainer" aria-live="assertive" aria-atomic="true"></div>
-
-  <script>
-    const STORAGE_KEY = 'bitacoraEntries';
-    const THEME_KEY   = 'bitacoraTheme';
-
-    function getEntries(){ try{ const raw = localStorage.getItem(STORAGE_KEY); return raw? JSON.parse(raw): [] }catch{ return [] } }
-    function saveEntries(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)) }
-    function uid(){ return 'e_' + Math.random().toString(36).slice(2,8) + Date.now().toString(36) }
-
-    function todayStr(){ const d=new Date(); const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const da=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${da}` }
-
-    function sortEntries(entries){
-      return entries.slice().sort((a,b)=>{ const ad=a.date||'', bd=b.date||''; if(ad===bd) return (b.createdAt||0)-(a.createdAt||0); return bd.localeCompare(ad) })
-    }
-
-    function fmtDate(dateStr){ try{ const d=new Date(dateStr); return d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'2-digit'}) }catch{return dateStr} }
-    function fmtDateTime(dt){ if(!dt) return ''; try{ const d=new Date(dt); return d.toLocaleString(undefined,{year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'}) }catch{return dt} }
-
-    function nextStatus(s){ if(s==='pendiente') return 'progreso'; if(s==='progreso') return 'completado'; return 'pendiente' }
-
-    function showToast(html, timeout=6000){ const c=document.getElementById('toastContainer'); const el=document.createElement('div'); el.className='toast'; el.innerHTML=html; c.appendChild(el); setTimeout(()=>{ el.classList.add('fade-out'); el.addEventListener('animationend',()=>el.remove(),{once:true}) }, timeout) }
-
-    function isOverdue(entry, now=new Date()){
-      if(!entry.reminderEnabled || !entry.reminderAt) return false; const t=new Date(entry.reminderAt); if(isNaN(t.getTime())) return false; const pendingish = (entry.status==='pendiente' || entry.status==='progreso' || !entry.status); return pendingish && now>=t;
-    }
-
-    const entriesEl=document.getElementById('entries');
-
-    function renderStats(entries){
-      const total=entries.length;
-      const pending=entries.filter(e=> (e.status||'pendiente')==='pendiente').length;
-      const prog=entries.filter(e=> e.status==='progreso').length;
-      const done=entries.filter(e=> e.status==='completado').length;
-      const pct = total ? Math.round((done/total)*100) : 0;
-      document.getElementById('countPending').textContent=pending;
-      document.getElementById('countInProgress').textContent=prog;
-      document.getElementById('countCompleted').textContent=done;
-      document.getElementById('progressPercent').textContent=pct;
-      const fill=document.getElementById('progressFill'); fill.style.width=pct+'%'; fill.setAttribute('aria-valuenow', String(pct));
-    }
-
-    function entryStatusClass(s){ return s==='pendiente' ? 'status-pendiente' : (s==='progreso' ? 'status-progreso' : 'status-completado') }
-
-    function renderEntries(){
-      const entries=sortEntries(getEntries());
-      entriesEl.innerHTML='';
-      entries.forEach(entry=>{
-        const card=document.createElement('article'); card.className='card entry-card'; if(isOverdue(entry)) card.classList.add('overdue'); card.dataset.id=entry.id;
-        const title=document.createElement('h3'); title.className='entry-title'; title.textContent= entry.title || entry.reason || '(Sin título)';
-        const meta=document.createElement('div'); meta.className='entry-meta'; meta.innerHTML=`<span><i class="fa-regular fa-calendar"></i> ${fmtDate(entry.date)}</span>` + (entry.agentName? ` <span><i class="fa-regular fa-user"></i> ${entry.agentName}</span>`:'') + (entry.agentId? ` <span><i class="fa-solid fa-id-card"></i> ${entry.agentId}</span>`:'');
-        const desc = document.createElement('p'); desc.style.margin='6px 0 0 0'; desc.textContent = entry.description || '';
-
-        const badges=document.createElement('div'); badges.className='badges';
-        const st=document.createElement('span'); st.className=`badge status-chip ${entryStatusClass(entry.status||'pendiente')}`; st.innerHTML=`<i class="fa-solid fa-circle"></i> ${entry.status? (entry.status==='progreso'? 'En progreso' : entry.status.charAt(0).toUpperCase()+entry.status.slice(1)) : 'Pendiente'}`; st.title='Cambiar estado (clic)';
-        st.addEventListener('click',()=>{ const all=getEntries(); const i=all.findIndex(e=>e.id===entry.id); if(i>=0){ all[i].status = nextStatus(all[i].status||'pendiente'); all[i].updatedAt=Date.now(); if(all[i].status==='completado') all[i].notified=true; saveEntries(all); renderEntries(); renderStats(all); }});
-        badges.appendChild(st);
-        if(entry.reason){ const r=document.createElement('span'); r.className='badge'; r.innerHTML = `<i class="fa-regular fa-note-sticky"></i> ${entry.reason}`; badges.appendChild(r); }
-        if(entry.hasFollowUp){ const f=document.createElement('span'); f.className='badge'; f.innerHTML = `<i class="fa-regular fa-compass"></i> Seguimiento${entry.followUpTo? ': '+entry.followUpTo : ''}`; badges.appendChild(f); }
-        if(entry.reminderEnabled && entry.reminderAt){ const rm=document.createElement('span'); rm.className='badge'; rm.innerHTML=`<i class="fa-regular fa-bell"></i> ${fmtDateTime(entry.reminderAt)}`; badges.appendChild(rm); }
-
-        const actions=document.createElement('div'); actions.className='entry-actions';
-        const editBtn=document.createElement('button'); editBtn.className='icon-btn'; editBtn.innerHTML='<i class="fa-solid fa-pen"></i> Editar'; editBtn.addEventListener('click',()=>startEdit(entry.id));
-        const delBtn=document.createElement('button'); delBtn.className='icon-btn icon-danger'; delBtn.innerHTML='<i class="fa-solid fa-trash"></i> Eliminar'; delBtn.addEventListener('click',()=>deleteEntry(entry.id, card));
-        actions.appendChild(editBtn); actions.appendChild(delBtn);
-
-        card.appendChild(title); card.appendChild(meta); if(entry.description) card.appendChild(desc); card.appendChild(badges); card.appendChild(actions);
-        entriesEl.appendChild(card);
-      });
-      renderStats(entries);
-    }
-
-    // --- CRUD & Form ---
-    const form=document.getElementById('entryForm');
-    const editIdEl=document.getElementById('editId');
-    const agentIdEl=document.getElementById('agentId');
-    const agentNameEl=document.getElementById('agentName');
-    const reasonEl=document.getElementById('reason');
-    const titleEl=document.getElementById('title');
-    const descEl=document.getElementById('description');
-    const statusEl=document.getElementById('status');
-    const remChk=document.getElementById('reminderEnabled');
-    const remAt=document.getElementById('reminderAt');
-    const hasFollowUpEl=document.getElementById('hasFollowUp');
-    const followUpToEl=document.getElementById('followUpTo');
-    const saveBtn=document.getElementById('saveBtn');
-
-    hasFollowUpEl.addEventListener('change',()=>{ followUpToEl.disabled = !hasFollowUpEl.checked; if(!hasFollowUpEl.checked){ followUpToEl.value=''; } });
-
-    function resetForm(){ form.reset(); editIdEl.value=''; saveBtn.querySelector('span').textContent='Guardar'; followUpToEl.disabled=true; }
-    document.getElementById('resetBtn').addEventListener('click', resetForm);
-
-    function startEdit(id){
-      const all=getEntries(); const e=all.find(x=>x.id===id); if(!e) return;
-      editIdEl.value=e.id;
-      agentIdEl.value=e.agentId||''; agentNameEl.value=e.agentName||''; reasonEl.value=e.reason||'';
-      titleEl.value=e.title||''; descEl.value=e.description||''; statusEl.value=e.status||'';
-      remChk.checked=!!e.reminderEnabled; remAt.value = e.reminderAt? new Date(e.reminderAt).toISOString().slice(0,16):'';
-      hasFollowUpEl.checked=!!e.hasFollowUp; followUpToEl.disabled = !hasFollowUpEl.checked; followUpToEl.value=e.followUpTo||'';
-      saveBtn.querySelector('span').textContent='Actualizar';
-      window.scrollTo({ top: document.querySelector('main').offsetTop, behavior:'smooth' });
-    }
-
-    function deleteEntry(id, cardEl){ if(!confirm('¿Seguro que deseas eliminar esta entrada?')) return; cardEl.classList.add('fade-out'); cardEl.addEventListener('animationend',()=>{ const all=getEntries().filter(e=>e.id!==id); saveEntries(all); renderEntries(); },{once:true}); }
-
-    form.addEventListener('submit', (ev)=>{
-      ev.preventDefault();
-      const base = {
-        id: editIdEl.value || uid(),
-        // Fecha automática al CREAR; si edita, se conserva
-        title: (titleEl.value||'').trim(),
-        description: (descEl.value||'').trim(),
-        status: (statusEl.value||'').trim(),
-        reminderEnabled: remChk.checked,
-        reminderAt: remAt.value ? new Date(remAt.value).toISOString() : '',
-        agentId: (agentIdEl.value||'').trim(),
-        agentName: (agentNameEl.value||'').trim(),
-        reason: (reasonEl.value||'').trim(),
-        hasFollowUp: hasFollowUpEl.checked,
-        followUpTo: (followUpToEl.value||'').trim(),
-      };
-      let all = getEntries();
-      if(editIdEl.value){
-        const idx = all.findIndex(e=>e.id===base.id);
-        if(idx>=0){
-          const reminderChanged = all[idx].reminderAt !== base.reminderAt || all[idx].reminderEnabled !== base.reminderEnabled;
-          const keepDate = all[idx].date; // conservar fecha original
-          all[idx] = { ...all[idx], ...base, date: keepDate, updatedAt: Date.now(), ...(reminderChanged? {notified:false}: {}) };
-        }
-      } else {
-        // crear con fecha automática de hoy
-        all.push({ ...base, date: todayStr(), createdAt: Date.now(), updatedAt: Date.now(), notified:false });
-      }
-      saveEntries(all);
-      renderEntries();
-      resetForm();
-    });
-
-    // Recordatorios
-    function checkReminders(){
-      const now=new Date(); const all=getEntries(); let changed=false;
-      all.forEach(e=>{
-        if(e.reminderEnabled && e.reminderAt && !e.notified){ const t=new Date(e.reminderAt); if(!isNaN(t.getTime()) && now>=t){ showToast(`<i class='fa-solid fa-bell'></i><div><strong>Recordatorio:</strong> ${e.title || e.reason || 'Entrada'}. <br><small>${fmtDateTime(e.reminderAt)}</small></div>`); e.notified=true; changed=true; }}
-      });
-      if(changed) saveEntries(all);
-      renderEntries();
-    }
-    setInterval(checkReminders, 30*1000);
-
-    // Tema
-    const themeToggle=document.getElementById('themeToggle');
-    function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); localStorage.setItem(THEME_KEY, t); themeToggle.querySelector('i').className = t==='dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'; }
-    themeToggle.addEventListener('click',()=>{ const cur=document.documentElement.getAttribute('data-theme')||'light'; applyTheme(cur==='light'?'dark':'light') });
-
-    // Inicialización
-    function init(){
-      // valor por defecto para recordatorio: +1h
-      const dt=new Date(); dt.setMinutes(dt.getMinutes()+60); const tzAdj = new Date(dt.getTime() - dt.getTimezoneOffset()*60000).toISOString().slice(0,16);
-      document.getElementById('reminderAt').value = tzAdj;
-      const storedTheme = localStorage.getItem(THEME_KEY) || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      applyTheme(storedTheme);
-      renderEntries();
-    }
-
-    document.getElementById('clearAll').addEventListener('click',()=>{ if(!confirm('Esto eliminará todas las entradas. ¿Continuar?')) return; localStorage.removeItem(STORAGE_KEY); renderEntries(); });
-
-    document.getElementById('demoData').addEventListener('click',()=>{
-      const now=Date.now();
-      const demo=[
-        { id: uid(), date: todayStr(), title: 'Contacto inicial', reason:'Consulta general', agentId:'A-1001', agentName:'Luis Gómez', description:'Se registra consulta.', status:'pendiente', reminderEnabled:true, reminderAt:new Date(now+5*60*1000).toISOString(), hasFollowUp:true, followUpTo:'Mesa de ayuda', createdAt:now-10000, updatedAt:now-10000, notified:false },
-        { id: uid(), date: todayStr(), title: 'Revisión de caso', reason:'Seguimiento', agentId:'', agentName:'', description:'Se analiza información recibida.', status:'progreso', reminderEnabled:false, reminderAt:'', hasFollowUp:false, followUpTo:'', createdAt:now-8000, updatedAt:now-8000, notified:false },
-        { id: uid(), date: new Date(now-86400000).toISOString().slice(0,10), title: 'Cierre', reason:'Resuelto', agentId:'A-0990', agentName:'María Ruiz', description:'Caso cerrado sin novedades.', status:'completado', reminderEnabled:true, reminderAt:new Date(now-3600*1000).toISOString(), hasFollowUp:false, followUpTo:'', createdAt:now-6000, updatedAt:now-6000, notified:true }
-      ];
-      saveEntries(demo); renderEntries(); showToast('<i class="fa-solid fa-wand-magic-sparkles"></i><div><strong>Datos de ejemplo cargados.</strong> Puedes modificarlos o eliminarlos.</div>', 4000);
-    });
 
     document.addEventListener('DOMContentLoaded', init);
   </script>
