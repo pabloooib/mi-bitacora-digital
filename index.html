@@ -269,7 +269,7 @@
           <h2 id="followTitle" style="margin:0;"><i class="fa-solid fa-list-check"></i> Mis seguimientos</h2>
           <div class="filter-wrap">
             <i class="fa-solid fa-filter" title="Filtrar por agente"></i>
-            <input id="agentFilterTop" class="input" type="text" placeholder="Filtrar por agente (nombre o ID)" />
+            <input id="agentFilterTop" class="input" type="text" placeholder="Filtrar" />
             <button id="clearFilterTop" class="btn btn-outline" title="Limpiar filtro"><i class="fa-solid fa-eraser"></i></button>
           </div>
         </div>
@@ -282,22 +282,22 @@
 
       <!-- =============== ENTRADAS: FORM + LIST =============== -->
       <section class="card" aria-labelledby="formTitle" id="secForm" data-view="entradas">
-        <h2 id="formTitle" style="margin-top:0;"><i class="fa-solid fa-square-plus"></i> Nueva entrada</h2>
+        <h2 id="formTitle" style="margin-top:0;"><i class="fa-solid fa-square-plus"></i> Entrantes - Estudiantes</h2>
         <form id="entryForm">
           <input type="hidden" id="editId" />
           <div class="form-grid">
 
             <div class="field">
               <label for="agentId">ID del estudiante (opcional)</label>
-              <input type="text" id="agentId" placeholder="Ej. 149294 → 000149294" />
+              <input type="text" id="agentId" placeholder="Ej.000149294" />
             </div>
             <div class="field">
               <label for="agentName">Nombre del estudiante (opcional)</label>
-              <input type="text" id="agentName" placeholder="Ej. Ana Pérez" />
+              <input type="text" id="agentName"/>
             </div>
             <div class="field">
               <label for="reason">Motivo (opcional)</label>
-              <input type="text" id="reason" placeholder="Ej. Solicitud de soporte" />
+              <input type="text" id="reason" />
             </div>
 
             <div class="field">
@@ -322,7 +322,7 @@
             </div>
             <div class="field">
               <label for="followUpTo">Derivado a (opcional)</label>
-              <input type="text" id="followUpTo" placeholder="Ej. Mesa de ayuda / Coordinación / Persona" disabled />
+              <input type="text" id="followUpTo" placeholder="ingresa la persona quien lleva el seguimiento" disabled />
             </div>
 
             <div class="field" style="grid-column:1/-1; display:flex; gap:10px; flex-wrap:wrap;">
