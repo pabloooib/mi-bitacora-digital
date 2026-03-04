@@ -38,7 +38,7 @@
     }
 
     /* ===========================
-       SIDEBAR LATERAL (NUEVO)
+       SIDEBAR LATERAL
        =========================== */
     .sidebar{
       position:fixed; inset:0 auto 0 0;
@@ -113,13 +113,13 @@
     .icon-danger{color:var(--danger)}
     .overdue{outline:2px dashed rgba(239,68,68,.55);box-shadow:0 0 0 4px rgba(239,68,68,.15) inset}
 
-    /* Mis seguimientos (viñetas) */
+    /* Mis seguimientos (viñetas) + barras de días */
     .bullets{ list-style: disc; padding-left: 1.2rem; display: grid; gap: 8px; }
     .bullets li{ border:1px dashed var(--border); border-radius:10px; padding:8px 10px; background:transparent; }
     .fu-title{ font-weight:600; }
     .fu-meta{ color: var(--muted); font-size: .9rem; display:flex; flex-wrap:wrap; gap:10px; }
 
-    /* Filtro por agente */
+    /* Filtro por agente / día */
     .filter-wrap{display:flex; align-items:center; gap:8px;}
     .input{border:1px solid var(--border); background:transparent; color:var(--text); padding:8px 10px; border-radius:10px; outline:none; min-width:240px;}
     .input:focus{border-color:var(--ring); box-shadow:0 0 0 4px var(--ring)}
@@ -140,7 +140,7 @@
     .toast{background:var(--card);border:1px solid var(--border);border-left:6px solid var(--danger);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);display:flex;align-items:start;gap:10px;animation:fadeIn .25s ease both}
     footer{text-align:center;color:var(--muted);padding:20px}
 
-    /* Secciones nuevas llamadas: tarjetas */
+    /* Llamadas */
     .call-card .entry-meta i{ opacity:.85 }
     .call-form-actions{ display:flex; gap:10px; flex-wrap:wrap }
 
@@ -153,14 +153,14 @@
 <body>
 
   <!-- ===========================
-       SIDEBAR (NUEVO)
+       SIDEBAR
        =========================== -->
   <nav class="sidebar" aria-label="Navegación lateral">
     <i class="fa-solid fa-bars side-icon" data-section="home" title="Menú / Inicio"></i>
 
     <i class="fa-solid fa-house side-icon active" data-section="home" title="Inicio"></i>
     <i class="fa-solid fa-list-check side-icon" data-section="seguimientos" title="Seguimientos"></i>
-    <i class="fa-solid fa-clipboard-list side-icon" data-section="entradas" title="Entradas"></i>
+    <i class="fa-solid fa-inbox side-icon" data-section="entradas" title="Entradas"></i>
 
     <div class="separator"></div>
 
@@ -170,7 +170,6 @@
     <div class="separator"></div>
 
     <i class="fa-solid fa-circle-question side-icon" data-section="ayuda" title="Ayuda"></i>
-    <i class="fa-regular fa-star side-icon" data-section="favoritos" title="Favoritos"></i>
 
     <div class="separator"></div>
 
@@ -267,24 +266,26 @@
       <!-- Mis Seguimientos -->
       <section class="card" aria-labelledby="followTitle" id="secFollowups" data-view="home seguimientos">
         <div class="list-header">
-          <h2 id="followTitle" style="margin:0;">Mis seguimientos</h2>
+          <h2 id="followTitle" style="margin:0;"><i class="fa-solid fa-list-check"></i> Mis seguimientos</h2>
           <div class="filter-wrap">
             <i class="fa-solid fa-filter" title="Filtrar por agente"></i>
             <input id="agentFilterTop" class="input" type="text" placeholder="Filtrar por agente (nombre o ID)" />
             <button id="clearFilterTop" class="btn btn-outline" title="Limpiar filtro"><i class="fa-solid fa-eraser"></i></button>
           </div>
         </div>
+
+        <!-- Barra de días (seguimientos) -->
+        <div id="followDaysBar" class="filter-wrap" style="margin:8px 0; flex-wrap:wrap;"></div>
+
         <ul id="followupsList" class="bullets"></ul>
       </section>
 
       <!-- =============== ENTRADAS: FORM + LIST =============== -->
       <section class="card" aria-labelledby="formTitle" id="secForm" data-view="entradas">
-        <h2 id="formTitle" style="margin-top:0;">Nueva entrada</h2>
+        <h2 id="formTitle" style="margin-top:0;"><i class="fa-solid fa-square-plus"></i> Nueva entrada</h2>
         <form id="entryForm">
           <input type="hidden" id="editId" />
           <div class="form-grid">
-
-           
 
             <div class="field">
               <label for="agentId">ID del estudiante (opcional)</label>
@@ -334,13 +335,17 @@
 
       <section class="card" aria-labelledby="listTitle" id="secEntries" data-view="entradas">
         <div class="list-header">
-          <h2 id="listTitle" style="margin:0;">Entradas</h2>
+          <h2 id="listTitle" style="margin:0;"><i class="fa-solid fa-inbox"></i> Entradas</h2>
           <div class="filter-wrap">
             <i class="fa-solid fa-filter" title="Filtrar por agente"></i>
             <input id="agentFilter" class="input" type="text" placeholder="Filtrar por agente (nombre o ID)" />
             <button id="clearFilter" class="btn btn-outline" title="Limpiar filtro"><i class="fa-solid fa-eraser"></i></button>
           </div>
         </div>
+
+        <!-- Barra de días (entradas) -->
+        <div id="entryDaysBar" class="filter-wrap" style="margin:8px 0; flex-wrap:wrap;"></div>
+
         <div id="entries" class="entries" aria-live="polite"></div>
       </section>
 
@@ -386,6 +391,10 @@
             <button id="clearFilterOutCalls" class="btn btn-outline" title="Limpiar"><i class="fa-solid fa-eraser"></i></button>
           </div>
         </div>
+
+        <!-- Barra de días (salientes) -->
+        <div id="outDaysBar" class="filter-wrap" style="margin:8px 0; flex-wrap:wrap;"></div>
+
         <div id="outCallsList" class="entries"></div>
       </section>
 
@@ -432,6 +441,10 @@
             <button id="clearFilterInCalls" class="btn btn-outline" title="Limpiar"><i class="fa-solid fa-eraser"></i></button>
           </div>
         </div>
+
+        <!-- Barra de días (entrantes) -->
+        <div id="inDaysBar" class="filter-wrap" style="margin:8px 0; flex-wrap:wrap;"></div>
+
         <div id="inCallsList" class="entries"></div>
       </section>
 
@@ -443,12 +456,6 @@
           <li><strong>Atajos:</strong> <em>H</em> (Inicio), <em>S</em> (Seguimientos), <em>E</em> (Entradas), <em>I</em> (Entrantes), <em>O</em> (Salientes).</li>
           <li>El sistema guarda todo por usuario (localStorage), incluyendo tema, entradas y llamadas.</li>
         </ul>
-      </section>
-
-      <!-- =============== FAVORITOS =============== -->
-      <section class="card" id="secFavs" data-view="favoritos">
-        <h2 style="margin:0 0 8px 0;"><i class="fa-regular fa-star"></i> Favoritos</h2>
-        <p class="note">Sección reservada para accesos o registros que marques como favoritos (pendiente de implementación).</p>
       </section>
 
     </main>
@@ -481,6 +488,7 @@
     // Utilidades comunes
     // ==========================
     function todayStr(){ const d=new Date(); const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const da=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${da}` }
+    function yesterdayStr(){ const d=new Date(); d.setDate(d.getDate()-1); const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const da=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${da}` }
     function showToast(html, timeout=6000){ const c=document.getElementById('toastContainer'); const el=document.createElement('div'); el.className='toast'; el.innerHTML=html; c.appendChild(el); setTimeout(()=>{ el.classList.add('fade-out'); el.addEventListener('animationend',()=>el.remove(),{once:true}) }, timeout) }
 
     // ==========================
@@ -513,13 +521,22 @@
     function saveCalls(dir, arr){ localStorage.setItem(getCallsKey(dir), JSON.stringify(arr)) }
 
     // ==========================
-    // Filtros
+    // Filtros (Entradas/Seguimientos)
     // ==========================
     const agentFilterEl = document.getElementById('agentFilter');
     const agentFilterTopEl = document.getElementById('agentFilterTop');
     function currentFilterText(){ return (agentFilterEl.value || agentFilterTopEl.value || '').trim().toLowerCase(); }
-    function passAgentFilter(entry){ const q=currentFilterText(); if(!q) return true; const haystack=`${(entry.agentName||'').toLowerCase()} ${(entry.agentId||'').toLowerCase()}`.trim(); const tokens=q.split(/\s+/).filter(Boolean); return tokens.every(t=>haystack.includes(t)); }
-    function syncFilters(src){ const val=src.value; if(src===agentFilterEl && agentFilterTopEl.value!==val) agentFilterTopEl.value=val; if(src===agentFilterTopEl && agentFilterEl.value!==val) agentFilterEl.value=val; }
+    function passAgentFilter(entry){
+      const q=currentFilterText(); if(!q) return true;
+      const haystack=`${(entry.agentName||'').toLowerCase()} ${(entry.agentId||'').toLowerCase()}`.trim();
+      const tokens=q.split(/\s+/).filter(Boolean);
+      return tokens.every(t=>haystack.includes(t));
+    }
+    function syncFilters(src){
+      const val=src.value;
+      if(src===agentFilterEl && agentFilterTopEl.value!==val) agentFilterTopEl.value=val;
+      if(src===agentFilterTopEl && agentFilterEl.value!==val) agentFilterEl.value=val;
+    }
 
     // ==========================
     // UI y render
@@ -529,30 +546,209 @@
     function entryStatusClass(s){ return s==='pendiente' ? 'status-pendiente' : (s==='progreso' ? 'status-progreso' : 'status-completado') }
     function statusLabel(s){ if(s==='progreso') return 'En progreso'; if(s==='completado') return 'Completado'; return 'Pendiente' }
     function nextStatus(s){ if(s==='pendiente' || !s) return 'progreso'; if(s==='progreso') return 'completado'; return 'pendiente' }
-    function isOverdue(entry, now=new Date()){ if(!entry.reminderEnabled || !entry.reminderAt) return false; const t=new Date(entry.reminderAt); if(isNaN(t.getTime())) return false; const pendingish=(entry.status==='pendiente' || entry.status==='progreso' || !entry.status); return pendingish && now>=t }
-
-    function sortEntries(entries){ return entries.slice().sort((a,b)=>{ const ad=a.date||'', bd=b.date||''; if(ad===bd) return (b.createdAt||0)-(a.createdAt||0); return bd.localeCompare(ad) }) }
+    function isOverdue(entry, now=new Date()){
+      if(!entry.reminderEnabled || !entry.reminderAt) return false;
+      const t=new Date(entry.reminderAt); if(isNaN(t.getTime())) return false;
+      const pendingish=(entry.status==='pendiente' || entry.status==='progreso' || !entry.status);
+      return pendingish && now>=t;
+    }
+    function sortEntries(entries){
+      return entries.slice().sort((a,b)=>{
+        const ad=a.date||'', bd=b.date||'';
+        if(ad===bd) return (b.createdAt||0)-(a.createdAt||0);
+        return bd.localeCompare(ad);
+      });
+    }
 
     const entriesEl=document.getElementById('entries');
     const followupsEl=document.getElementById('followupsList');
 
-    function renderStats(entries){ const total=entries.length; const pending=entries.filter(e=>(e.status||'pendiente')==='pendiente').length; const prog=entries.filter(e=>e.status==='progreso').length; const done=entries.filter(e=>e.status==='completado').length; const pct= total? Math.round((done/total)*100):0; document.getElementById('countPending').textContent=pending; document.getElementById('countInProgress').textContent=prog; document.getElementById('countCompleted').textContent=done; document.getElementById('progressPercent').textContent=pct; const fill=document.getElementById('progressFill'); fill.style.width=pct+'%'; fill.setAttribute('aria-valuenow', String(pct)); }
+    // ====== Filtros por día (Entradas y Seguimientos) ======
+    let entryDayFilter = '';    // '', 'YYYY-MM-DD'
+    let followDayFilter = '';   // '', 'YYYY-MM-DD'
 
-    function renderFollowups(entries){ const list=entries.filter(e=>e.hasFollowUp).filter(passAgentFilter); followupsEl.innerHTML=''; if(list.length===0){ const li=document.createElement('li'); li.textContent='No hay seguimientos registrados.'; followupsEl.appendChild(li); return; } list.forEach(e=>{ const li=document.createElement('li'); const title=document.createElement('div'); title.className='fu-title'; title.textContent=e.title||e.reason||'(Sin título)'; const meta=document.createElement('div'); meta.className='fu-meta'; meta.innerHTML=`<span><i class='fa-regular fa-calendar'></i> ${fmtDate(e.date)}</span><span><i class='fa-regular fa-compass'></i> Derivado a: ${e.followUpTo||'No especificado'}</span><span><i class='fa-solid fa-flag'></i> ${statusLabel(e.status)}</span>${e.agentName? `<span><i class='fa-regular fa-user'></i> ${e.agentName}</span>`:''}${e.agentId? ` <span><i class='fa-solid fa-id-card'></i> ${e.agentId}</span>`:''}`; li.appendChild(title); li.appendChild(meta); followupsEl.appendChild(li); }) }
+    function uniqueEntryDays(){
+      const set=new Set();
+      getEntries().forEach(e=>{ const d=(e.date||'').slice(0,10); if(d) set.add(d); });
+      return Array.from(set).sort((a,b)=>b.localeCompare(a));
+    }
+    function uniqueFollowDays(){
+      const set=new Set();
+      getEntries().filter(e=>e.hasFollowUp).forEach(e=>{ const d=(e.date||'').slice(0,10); if(d) set.add(d); });
+      return Array.from(set).sort((a,b)=>b.localeCompare(a));
+    }
+    function renderEntryDayButtons(){
+      const bar=document.getElementById('entryDaysBar'); if(!bar) return;
+      const days=uniqueEntryDays();
+      const today=todayStr(), yest=yesterdayStr();
+      let html=`
+        <button class="btn btn-outline" data-day="">Todos</button>
+        <button class="btn btn-outline" data-day="${today}"><i class="fa-regular fa-calendar"></i> Hoy</button>
+        <button class="btn btn-outline" data-day="${yest}"><i class="fa-regular fa-calendar"></i> Ayer</button>
+      ` + days.map(d=>`<button class="btn btn-outline" data-day="${d}">${d}</button>`).join('');
+      bar.innerHTML=html;
+      bar.querySelectorAll('button[data-day]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{ entryDayFilter = btn.getAttribute('data-day')||''; renderEntries(); });
+      });
+    }
+    function renderFollowDayButtons(){
+      const bar=document.getElementById('followDaysBar'); if(!bar) return;
+      const days=uniqueFollowDays();
+      const today=todayStr(), yest=yesterdayStr();
+      let html=`
+        <button class="btn btn-outline" data-day="">Todos</button>
+        <button class="btn btn-outline" data-day="${today}"><i class="fa-regular fa-calendar"></i> Hoy</button>
+        <button class="btn btn-outline" data-day="${yest}"><i class="fa-regular fa-calendar"></i> Ayer</button>
+      ` + days.map(d=>`<button class="btn btn-outline" data-day="${d}">${d}</button>`).join('');
+      bar.innerHTML=html;
+      bar.querySelectorAll('button[data-day]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{ followDayFilter = btn.getAttribute('data-day')||''; renderFollowups(); });
+      });
+    }
 
-    function renderEntries(){ const entries=sortEntries(getEntries()).filter(passAgentFilter); entriesEl.innerHTML=''; entries.forEach(entry=>{ const card=document.createElement('article'); card.className='card entry-card'; if(isOverdue(entry)) card.classList.add('overdue'); card.dataset.id=entry.id; const title=document.createElement('h3'); title.className='entry-title'; title.textContent= entry.title || entry.reason || '(Sin título)'; const meta=document.createElement('div'); meta.className='entry-meta'; meta.innerHTML=`<span><i class="fa-regular fa-calendar"></i> ${fmtDate(entry.date)}</span>` + (entry.agentName? ` <span><i class="fa-regular fa-user"></i> ${entry.agentName}</span>`:'') + (entry.agentId? ` <span><i class="fa-solid fa-id-card"></i> ${entry.agentId}</span>`:''); const desc=document.createElement('p'); desc.style.margin='6px 0 0 0'; desc.textContent= entry.description||''; const badges=document.createElement('div'); badges.className='badges'; const st=document.createElement('span'); st.className=`badge status-chip ${entryStatusClass(entry.status||'pendiente')}`; st.innerHTML=`<i class="fa-solid fa-circle"></i> ${statusLabel(entry.status)}`; st.title='Cambiar estado (clic)'; st.addEventListener('click',()=>{ const all=getEntries(); const i=all.findIndex(e=>e.id===entry.id); if(i>=0){ all[i].status=nextStatus(all[i].status||'pendiente'); all[i].updatedAt=Date.now(); if(all[i].status==='completado') all[i].notified=true; saveEntries(all); renderEntries(); renderStats(all); renderFollowups(all); }}); badges.appendChild(st); if(entry.reason){ const r=document.createElement('span'); r.className='badge'; r.innerHTML=`<i class="fa-regular fa-note-sticky"></i> ${entry.reason}`; badges.appendChild(r); } if(entry.hasFollowUp){ const f=document.createElement('span'); f.className='badge'; f.innerHTML=`<i class="fa-regular fa-compass"></i> Seguimiento${entry.followUpTo? ': '+entry.followUpTo:''}`; badges.appendChild(f); } if(entry.reminderEnabled && entry.reminderAt){ const rm=document.createElement('span'); rm.className='badge'; rm.innerHTML=`<i class="fa-regular fa-bell"></i> ${fmtDateTime(entry.reminderAt)}`; badges.appendChild(rm); } const actions=document.createElement('div'); actions.className='entry-actions'; const editBtn=document.createElement('button'); editBtn.className='icon-btn'; editBtn.innerHTML='<i class="fa-solid fa-pen"></i> Editar'; editBtn.addEventListener('click',()=>startEdit(entry.id)); const delBtn=document.createElement('button'); delBtn.className='icon-btn icon-danger'; delBtn.innerHTML='<i class="fa-solid fa-trash"></i> Eliminar'; delBtn.addEventListener('click',()=>deleteEntry(entry.id, card)); actions.appendChild(editBtn); actions.appendChild(delBtn); card.appendChild(title); card.appendChild(meta); if(entry.description) card.appendChild(desc); card.appendChild(badges); card.appendChild(actions); entriesEl.appendChild(card); }); const all=getEntries(); renderStats(all); renderFollowups(all); }
+    function renderStats(entries){
+      const total=entries.length;
+      const pending=entries.filter(e=>(e.status||'pendiente')==='pendiente').length;
+      const prog=entries.filter(e=>e.status==='progreso').length;
+      const done=entries.filter(e=>e.status==='completado').length;
+      const pct= total? Math.round((done/total)*100):0;
+      document.getElementById('countPending').textContent=pending;
+      document.getElementById('countInProgress').textContent=prog;
+      document.getElementById('countCompleted').textContent=done;
+      document.getElementById('progressPercent').textContent=pct;
+      const fill=document.getElementById('progressFill'); fill.style.width=pct+'%'; fill.setAttribute('aria-valuenow', String(pct));
+    }
+
+    function renderFollowups(){
+      // Aplica filtros independientes (agente y día)
+      const all=getEntries();
+      let list=all.filter(e=>e.hasFollowUp);
+      if(followDayFilter){ list = list.filter(e => (e.date||'').slice(0,10)===followDayFilter); }
+      list = list.filter(passAgentFilter);
+
+      renderFollowDayButtons();
+
+      followupsEl.innerHTML='';
+      if(list.length===0){
+        const li=document.createElement('li'); li.textContent='No hay seguimientos registrados.'; followupsEl.appendChild(li); return;
+      }
+      list.forEach(e=>{
+        const li=document.createElement('li');
+        const title=document.createElement('div');
+        title.className='fu-title';
+        title.textContent=e.title||e.reason||'(Sin título)';
+        const meta=document.createElement('div');
+        meta.className='fu-meta';
+        meta.innerHTML=`<span><i class='fa-regular fa-calendar'></i> ${fmtDate(e.date)}</span>
+                        <span><i class='fa-regular fa-compass'></i> Derivado a: ${e.followUpTo||'No especificado'}</span>
+                        <span><i class='fa-solid fa-flag'></i> ${statusLabel(e.status)}</span>
+                        ${e.agentName? `<span><i class='fa-regular fa-user'></i> ${e.agentName}</span>`:''}
+                        ${e.agentId? ` <span><i class='fa-solid fa-id-card'></i> ${e.agentId}</span>`:''}`;
+        li.appendChild(title); li.appendChild(meta); followupsEl.appendChild(li);
+      })
+    }
+
+    function renderEntries(){
+      let entries=sortEntries(getEntries());
+      if(entryDayFilter){ entries = entries.filter(e => (e.date||'').slice(0,10)===entryDayFilter); }
+      entries = entries.filter(passAgentFilter);
+
+      entriesEl.innerHTML='';
+      entries.forEach(entry=>{
+        const card=document.createElement('article');
+        card.className='card entry-card';
+        if(isOverdue(entry)) card.classList.add('overdue');
+        card.dataset.id=entry.id;
+
+        const title=document.createElement('h3');
+        title.className='entry-title';
+        title.textContent= entry.title || entry.reason || '(Sin título)';
+
+        const meta=document.createElement('div');
+        meta.className='entry-meta';
+        meta.innerHTML=`<span><i class="fa-regular fa-calendar"></i> ${fmtDate(entry.date)}</span>` +
+                       (entry.agentName? ` <span><i class="fa-regular fa-user"></i> ${entry.agentName}</span>`:'') +
+                       (entry.agentId? ` <span><i class="fa-solid fa-id-card"></i> ${entry.agentId}</span>`:'');
+
+        const badges=document.createElement('div');
+        badges.className='badges';
+
+        const st=document.createElement('span');
+        st.className=`badge status-chip ${entryStatusClass(entry.status||'pendiente')}`;
+        st.innerHTML=`<i class="fa-solid fa-circle"></i> ${statusLabel(entry.status)}`;
+        st.title='Cambiar estado (clic)';
+        st.addEventListener('click',()=>{
+          const all=getEntries();
+          const i=all.findIndex(e=>e.id===entry.id);
+          if(i>=0){
+            all[i].status=nextStatus(all[i].status||'pendiente');
+            all[i].updatedAt=Date.now();
+            if(all[i].status==='completado') all[i].notified=true;
+            saveEntries(all);
+            renderEntries();
+            renderStats(all);
+            renderFollowups();
+          }
+        });
+        badges.appendChild(st);
+
+        if(entry.reason){
+          const r=document.createElement('span');
+          r.className='badge';
+          r.innerHTML=`<i class="fa-regular fa-note-sticky"></i> ${entry.reason}`;
+          badges.appendChild(r);
+        }
+        if(entry.hasFollowUp){
+          const f=document.createElement('span');
+          f.className='badge';
+          f.innerHTML=`<i class="fa-regular fa-compass"></i> Seguimiento${entry.followUpTo? ': '+entry.followUpTo:''}`;
+          badges.appendChild(f);
+        }
+        if(entry.reminderEnabled && entry.reminderAt){
+          const rm=document.createElement('span');
+          rm.className='badge';
+          rm.innerHTML=`<i class="fa-regular fa-bell"></i> ${fmtDateTime(entry.reminderAt)}`;
+          badges.appendChild(rm);
+        }
+
+        const actions=document.createElement('div');
+        actions.className='entry-actions';
+        const editBtn=document.createElement('button');
+        editBtn.className='icon-btn';
+        editBtn.innerHTML='<i class="fa-solid fa-pen"></i> Editar';
+        editBtn.addEventListener('click',()=>startEdit(entry.id));
+        const delBtn=document.createElement('button');
+        delBtn.className='icon-btn icon-danger';
+        delBtn.innerHTML='<i class="fa-solid fa-trash"></i> Eliminar';
+        delBtn.addEventListener('click',()=>deleteEntry(entry.id, card));
+
+        actions.appendChild(editBtn); actions.appendChild(delBtn);
+
+        card.appendChild(title); card.appendChild(meta);
+        if(entry.description){
+          const desc=document.createElement('p'); desc.style.margin='6px 0 0 0'; desc.textContent= entry.description||''; card.appendChild(desc);
+        }
+        card.appendChild(badges);
+        card.appendChild(actions);
+        entriesEl.appendChild(card);
+      });
+
+      // Render barras y estadísticas
+      renderEntryDayButtons();
+      const all=getEntries();
+      renderStats(all);
+      renderFollowups();
+    }
 
     // ==========================
-    // CRUD Entradas
+    // CRUD Entradas (Corregido)
     // ==========================
     const form=document.getElementById('entryForm');
     const editIdEl=document.getElementById('editId');
     const agentIdEl=document.getElementById('agentId');
     const agentNameEl=document.getElementById('agentName');
     const reasonEl=document.getElementById('reason');
-    const titleEl=document.getElementById('title');
     const descEl=document.getElementById('description');
-    const statusEl=document.getElementById('status');
     const remChk=document.getElementById('reminderEnabled');
     const remAt=document.getElementById('reminderAt');
     const hasFollowUpEl=document.getElementById('hasFollowUp');
@@ -562,20 +758,111 @@
     function uid(){ return 'e_' + Math.random().toString(36).slice(2,8) + Date.now().toString(36) }
     function toNineDigits(val){ const v=(val||'').trim(); if(/^\d+$/.test(v)) return v.padStart(9,'0'); return v; }
     agentIdEl.addEventListener('blur', ()=>{ agentIdEl.value = toNineDigits(agentIdEl.value); });
-    hasFollowUpEl.addEventListener('change',()=>{ followUpToEl.disabled = !hasFollowUpEl.checked; if(!hasFollowUpEl.checked){ followUpToEl.value=''; } });
+    hasFollowUpEl.addEventListener('change',()=>{
+      followUpToEl.disabled = !hasFollowUpEl.checked;
+      if(!hasFollowUpEl.checked){ followUpToEl.value=''; }
+    });
     function resetForm(){ form.reset(); editIdEl.value=''; saveBtn.querySelector('span').textContent='Guardar'; followUpToEl.disabled=true; }
     document.getElementById('resetBtn').addEventListener('click', resetForm);
 
-    function startEdit(id){ const all=getEntries(); const e=all.find(x=>x.id===id); if(!e) return; editIdEl.value=e.id; agentIdEl.value=e.agentId||''; agentNameEl.value=e.agentName||''; reasonEl.value=e.reason||''; titleEl.value=e.title||''; descEl.value=e.description||''; statusEl.value=e.status||'pendiente'; remChk.checked=!!e.reminderEnabled; remAt.value=e.reminderAt? new Date(e.reminderAt).toISOString().slice(0,16):''; hasFollowUpEl.checked=!!e.hasFollowUp; followUpToEl.disabled=!hasFollowUpEl.checked; followUpToEl.value=e.followUpTo||''; saveBtn.querySelector('span').textContent='Actualizar'; window.scrollTo({ top: document.querySelector('main').offsetTop, behavior:'smooth' }); }
+    function startEdit(id){
+      const all=getEntries();
+      const e=all.find(x=>x.id===id);
+      if(!e) return;
+      editIdEl.value=e.id;
+      agentIdEl.value=e.agentId||'';
+      agentNameEl.value=e.agentName||'';
+      reasonEl.value=e.reason||'';
+      descEl.value=e.description||'';
+      remChk.checked=!!e.reminderEnabled;
+      remAt.value=e.reminderAt? new Date(e.reminderAt).toISOString().slice(0,16):'';
+      hasFollowUpEl.checked=!!e.hasFollowUp;
+      followUpToEl.disabled=!hasFollowUpEl.checked;
+      followUpToEl.value=e.followUpTo||'';
+      saveBtn.querySelector('span').textContent='Actualizar';
+      window.scrollTo({ top: document.querySelector('main').offsetTop, behavior:'smooth' });
+    }
 
-    function deleteEntry(id, cardEl){ if(!confirm('¿Seguro que deseas eliminar esta entrada?')) return; cardEl.classList.add('fade-out'); cardEl.addEventListener('animationend',()=>{ const all=getEntries().filter(e=>e.id!==id); saveEntries(all); renderEntries(); },{once:true}); }
+    function deleteEntry(id, cardEl){
+      if(!confirm('¿Seguro que deseas eliminar esta entrada?')) return;
+      cardEl.classList.add('fade-out');
+      cardEl.addEventListener('animationend',()=>{
+        const all=getEntries().filter(e=>e.id!==id);
+        saveEntries(all);
+        renderEntries();
+      },{once:true});
+    }
 
-    form.addEventListener('submit', (ev)=>{ ev.preventDefault(); const base={ id: editIdEl.value || uid(), title:(titleEl.value||'').trim(), description:(descEl.value||'').trim(), status:(statusEl.value||'pendiente').trim(), reminderEnabled: remChk.checked, reminderAt: remAt.value? new Date(remAt.value).toISOString(): '', agentId: toNineDigits(agentIdEl.value), agentName:(agentNameEl.value||'').trim(), reason:(reasonEl.value||'').trim(), hasFollowUp: hasFollowUpEl.checked, followUpTo:(followUpToEl.value||'').trim(), }; let all = getEntries(); if(editIdEl.value){ const idx=all.findIndex(e=>e.id===base.id); if(idx>=0){ const reminderChanged = all[idx].reminderAt !== base.reminderAt || all[idx].reminderEnabled !== base.reminderEnabled; const keepDate=all[idx].date; all[idx] = { ...all[idx], ...base, date: keepDate, updatedAt: Date.now(), ...(reminderChanged? {notified:false}: {}) }; } } else { all.push({ ...base, date: todayStr(), createdAt: Date.now(), updatedAt: Date.now(), notified:false }); } saveEntries(all); renderEntries(); resetForm(); });
+    form.addEventListener('submit', (ev)=>{
+      ev.preventDefault();
+
+      // Título derivado del motivo (libre) o nombre, sin campos inexistentes
+      const computedTitle = (reasonEl.value||'').trim() || (agentNameEl.value? `Caso ${agentNameEl.value}` : '(Sin título)');
+
+      const base={
+        id: editIdEl.value || uid(),
+        title: computedTitle,
+        description:(descEl.value||'').trim(),
+        reminderEnabled: remChk.checked,
+        reminderAt: remAt.value? new Date(remAt.value).toISOString(): '',
+        agentId: toNineDigits(agentIdEl.value),
+        agentName:(agentNameEl.value||'').trim(),
+        reason:(reasonEl.value||'').trim(),
+        hasFollowUp: hasFollowUpEl.checked,
+        followUpTo:(followUpToEl.value||'').trim(),
+      };
+
+      let all = getEntries();
+
+      if(editIdEl.value){
+        const idx=all.findIndex(e=>e.id===base.id);
+        if(idx>=0){
+          const reminderChanged = all[idx].reminderAt !== base.reminderAt || all[idx].reminderEnabled !== base.reminderEnabled;
+          const keepDate=all[idx].date;
+          base.status = all[idx].status || 'pendiente'; // conservar estado
+          all[idx] = { 
+            ...all[idx], 
+            ...base, 
+            date: keepDate, 
+            updatedAt: Date.now(), 
+            ...(reminderChanged? {notified:false}: {}) 
+          };
+        }
+      } else {
+        all.push({ 
+          ...base, 
+          status:'pendiente',
+          date: todayStr(), 
+          createdAt: Date.now(), 
+          updatedAt: Date.now(), 
+          notified:false 
+        });
+      }
+
+      saveEntries(all);
+      renderEntries();
+      resetForm();
+    });
 
     // ==========================
     // Recordatorios
     // ==========================
-    function checkReminders(){ const now=new Date(); const all=getEntries(); let changed=false; all.forEach(e=>{ if(e.reminderEnabled && e.reminderAt && !e.notified){ const t=new Date(e.reminderAt); if(!isNaN(t.getTime()) && now>=t){ showToast(`<i class='fa-solid fa-bell'></i><div><strong>Recordatorio:</strong> ${e.title || e.reason || 'Entrada'}. <br><small>${fmtDateTime(e.reminderAt)}</small></div>`); e.notified=true; changed=true; } } }); if(changed) saveEntries(all); renderEntries(); }
+    function checkReminders(){
+      const now=new Date();
+      const all=getEntries();
+      let changed=false;
+      all.forEach(e=>{
+        if(e.reminderEnabled && e.reminderAt && !e.notified){
+          const t=new Date(e.reminderAt);
+          if(!isNaN(t.getTime()) && now>=t){
+            showToast(`<i class='fa-solid fa-bell'></i><div><strong>Recordatorio:</strong> ${e.title || e.reason || 'Entrada'}. <br><small>${fmtDateTime(e.reminderAt)}</small></div>`);
+            e.notified=true; changed=true;
+          }
+        }
+      });
+      if(changed) saveEntries(all);
+      renderEntries();
+    }
     setInterval(checkReminders, 30*1000);
 
     // ==========================
@@ -586,7 +873,17 @@
     themeToggle.addEventListener('click',()=>{ const cur=document.documentElement.getAttribute('data-theme')||'light'; applyTheme(cur==='light'?'dark':'light') });
 
     document.getElementById('clearAll').addEventListener('click',()=>{ if(!confirm('Esto eliminará todas las entradas de tu cuenta actual. ¿Continuar?')) return; localStorage.removeItem(getStorageKey()); renderEntries(); });
-    document.getElementById('demoData').addEventListener('click',()=>{ const now=Date.now(); const demo=[ { id: uid(), date: todayStr(), title:'Contacto inicial', reason:'Consulta general', agentId:'000100001', agentName:'Luis Gómez', description:'Se registra consulta.', status:'pendiente', reminderEnabled:true, reminderAt:new Date(now+5*60*1000).toISOString(), hasFollowUp:true, followUpTo:'Mesa de ayuda', createdAt:now-10000, updatedAt:now-10000, notified:false }, { id: uid(), date: todayStr(), title:'Revisión de caso', reason:'Seguimiento', agentId:'000000000', agentName:'Ana Pérez', description:'Se analiza información recibida.', status:'progreso', reminderEnabled:false, reminderAt:'', hasFollowUp:false, followUpTo:'', createdAt:now-8000, updatedAt:now-8000, notified:false }, { id: uid(), date: new Date(now-86400000).toISOString().slice(0,10), title:'Cierre', reason:'Resuelto', agentId:'000099990', agentName:'María Ruiz', description:'Caso cerrado sin novedades.', status:'completado', reminderEnabled:true, reminderAt:new Date(now-3600*1000).toISOString(), hasFollowUp:false, followUpTo:'', createdAt:now-6000, updatedAt:now-6000, notified:true } ]; saveEntries(demo); renderEntries(); showToast('<i class="fa-solid fa-wand-magic-sparkles"></i><div><strong>Datos de ejemplo cargados.</strong> Puedes modificarlos o eliminarlos.</div>', 4000); });
+    document.getElementById('demoData').addEventListener('click',()=>{
+      const now=Date.now();
+      const demo=[
+        { id: uid(), date: todayStr(), title:'Contacto inicial', reason:'Consulta general', agentId:'000100001', agentName:'Luis Gómez', description:'Se registra consulta.', status:'pendiente', reminderEnabled:true, reminderAt:new Date(now+5*60*1000).toISOString(), hasFollowUp:true, followUpTo:'Mesa de ayuda', createdAt:now-10000, updatedAt:now-10000, notified:false },
+        { id: uid(), date: todayStr(), title:'Revisión de caso', reason:'Seguimiento', agentId:'000000000', agentName:'Ana Pérez', description:'Se analiza información recibida.', status:'progreso', reminderEnabled:false, reminderAt:'', hasFollowUp:false, followUpTo:'', createdAt:now-8000, updatedAt:now-8000, notified:false },
+        { id: uid(), date: new Date(now-86400000).toISOString().slice(0,10), title:'Cierre', reason:'Resuelto', agentId:'000099990', agentName:'María Ruiz', description:'Caso cerrado sin novedades.', status:'completado', reminderEnabled:true, reminderAt:new Date(now-3600*1000).toISOString(), hasFollowUp:false, followUpTo:'', createdAt:now-6000, updatedAt:now-6000, notified:true }
+      ];
+      saveEntries(demo);
+      renderEntries();
+      showToast('<i class="fa-solid fa-wand-magic-sparkles"></i><div><strong>Datos de ejemplo cargados.</strong> Puedes modificarlos o eliminarlos.</div>', 4000);
+    });
 
     // ==========================
     // Login / Registro / Sesión
@@ -612,20 +909,70 @@
     goRegisterBtn.addEventListener('click', ()=>switchTab('register'));
     goLoginBtn.addEventListener('click', ()=>switchTab('login'));
 
-    function updateHeaderUser(){ const chip=document.getElementById('userChip'); const label=document.getElementById('userNameLabel'); const logout=document.getElementById('logoutBtn'); if(currentUser){ label.textContent=currentUser.name || currentUser.username; chip.classList.remove('hidden'); logout.classList.remove('hidden'); } else { label.textContent='Invitado'; chip.classList.add('hidden'); logout.classList.add('hidden'); } }
+    function updateHeaderUser(){
+      const chip=document.getElementById('userChip');
+      const label=document.getElementById('userNameLabel');
+      const logout=document.getElementById('logoutBtn');
+      if(currentUser){
+        label.textContent=currentUser.name || currentUser.username;
+        chip.classList.remove('hidden'); logout.classList.remove('hidden');
+      } else {
+        label.textContent='Invitado';
+        chip.classList.add('hidden'); logout.classList.add('hidden');
+      }
+    }
 
     function doLogout(){ setSession(null); currentUser=null; updateHeaderUser(); authOverlay.classList.add('show'); showToast('<i class="fa-solid fa-right-from-bracket"></i><div>Sesión cerrada.</div>', 3000); }
     document.getElementById('logoutBtn').addEventListener('click', doLogout);
     document.getElementById('logoutSidebar').addEventListener('click', doLogout);
 
-    loginForm.addEventListener('submit', async (e)=>{ e.preventDefault(); const u = (loginUser.value||'').trim(); const p = (loginPass.value||'').trim(); if(!u || !p){ showToast('<i class="fa-solid fa-circle-exclamation"></i><div>Usuario y contraseña son requeridos.</div>'); return; } const users=getUsers(); const key=u.toLowerCase(); const reg=users[key]; if(!reg){ showToast('<i class="fa-solid fa-user-xmark"></i><div>El usuario no existe. Regístrate primero.</div>'); return; } const hash = await makePassHash(u,p); if(hash!==reg.passHash){ showToast('<i class="fa-solid fa-lock"></i><div>Contraseña incorrecta.</div>'); return; } reg.lastLogin = Date.now(); users[key]=reg; saveUsers(users); currentUser = { username: reg.username, name: reg.name }; setSession(currentUser); updateHeaderUser(); authOverlay.classList.remove('show'); renderEntries(); renderCalls('out'); renderCalls('in'); showToast('<i class="fa-solid fa-circle-check"></i><div>Sesión iniciada.</div>', 2500); loginPass.value=''; });
+    loginForm.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const u = (loginUser.value||'').trim();
+      const p = (loginPass.value||'').trim();
+      if(!u || !p){ showToast('<i class="fa-solid fa-circle-exclamation"></i><div>Usuario y contraseña son requeridos.</div>'); return; }
+      const users=getUsers(); const key=u.toLowerCase(); const reg=users[key];
+      if(!reg){ showToast('<i class="fa-solid fa-user-xmark"></i><div>El usuario no existe. Regístrate primero.</div>'); return; }
+      const hash = await makePassHash(u,p);
+      if(hash!==reg.passHash){ showToast('<i class="fa-solid fa-lock"></i><div>Contraseña incorrecta.</div>'); return; }
+      reg.lastLogin = Date.now(); users[key]=reg; saveUsers(users);
+      currentUser = { username: reg.username, name: reg.name };
+      setSession(currentUser); updateHeaderUser(); authOverlay.classList.remove('show');
+      renderEntries(); renderCalls('out'); renderCalls('in');
+      showToast('<i class="fa-solid fa-circle-check"></i><div>Sesión iniciada.</div>', 2500);
+      loginPass.value='';
+    });
 
-    registerForm.addEventListener('submit', async (e)=>{ e.preventDefault(); const name=(regName.value||'').trim(); const user=(regUser.value||'').trim(); const p1=(regPass.value||''); const p2=(regPass2.value||''); if(!name || !user || !p1){ showToast('<i class="fa-solid fa-circle-exclamation"></i><div>Completa nombre, usuario y contraseña.</div>'); return; } if(p1!==p2){ showToast('<i class="fa-solid fa-exclamation"></i><div>Las contraseñas no coinciden.</div>'); return; } if(p1.length<6){ showToast('<i class="fa-solid fa-key"></i><div>Usa una contraseña de al menos 6 caracteres.</div>'); return; } const users=getUsers(); const key=user.toLowerCase(); if(users[key]){ showToast('<i class="fa-solid fa-user"></i><div>Ese usuario ya existe. Elige otro.</div>'); return; } const hash=await makePassHash(user,p1); users[key] = { username:user, name, passHash:hash, createdAt:Date.now(), lastLogin:null }; saveUsers(users); // crear sesión
-      currentUser = { username:user, name }; setSession(currentUser); updateHeaderUser(); authOverlay.classList.remove('show'); renderEntries(); renderCalls('out'); renderCalls('in'); showToast('<i class="fa-solid fa-user-check"></i><div>Cuenta creada e inicio de sesión correcto.</div>', 3000); // limpiar
-      regName.value=regUser.value=regPass.value=regPass2.value=''; });
+    registerForm.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const name=(regName.value||'').trim();
+      const user=(regUser.value||'').trim();
+      const p1=(regPass.value||'');
+      const p2=(regPass2.value||'');
+      if(!name || !user || !p1){ showToast('<i class="fa-solid fa-circle-exclamation"></i><div>Completa nombre, usuario y contraseña.</div>'); return; }
+      if(p1!==p2){ showToast('<i class="fa-solid fa-exclamation"></i><div>Las contraseñas no coinciden.</div>'); return; }
+      if(p1.length<6){ showToast('<i class="fa-solid fa-key"></i><div>Usa una contraseña de al menos 6 caracteres.</div>'); return; }
+      const users=getUsers(); const key=user.toLowerCase();
+      if(users[key]){ showToast('<i class="fa-solid fa-user"></i><div>Ese usuario ya existe. Elige otro.</div>'); return; }
+      const hash=await makePassHash(user,p1);
+      users[key] = { username:user, name, passHash:hash, createdAt:Date.now(), lastLogin:null };
+      saveUsers(users);
+      currentUser = { username:user, name }; setSession(currentUser); updateHeaderUser(); authOverlay.classList.remove('show');
+      renderEntries(); renderCalls('out'); renderCalls('in');
+      showToast('<i class="fa-solid fa-user-check"></i><div>Cuenta creada e inicio de sesión correcto.</div>', 3000);
+      regName.value=regUser.value=regPass.value=regPass2.value='';
+    });
 
-    function initAuth(){ const users=getUsers(); const hasUsers = Object.keys(users).length>0; firstTimeMsg.textContent = hasUsers ? 'Ingresa con tu usuario y contraseña.' : 'Parece que es tu primera vez aquí. Regístrate para comenzar.'; // sesión existente
-      const sess=getSession(); if(sess && users[sess.username.toLowerCase()]){ currentUser = sess; updateHeaderUser(); authOverlay.classList.remove('show'); } else { currentUser=null; updateHeaderUser(); authOverlay.classList.add('show'); }
+    function initAuth(){
+      const users=getUsers();
+      const hasUsers = Object.keys(users).length>0;
+      firstTimeMsg.textContent = hasUsers ? 'Ingresa con tu usuario y contraseña.' : 'Parece que es tu primera vez aquí. Regístrate para comenzar.';
+      const sess=getSession();
+      if(sess && users[sess.username.toLowerCase()]){
+        currentUser = sess; updateHeaderUser(); authOverlay.classList.remove('show');
+      } else {
+        currentUser=null; updateHeaderUser(); authOverlay.classList.add('show');
+      }
     }
 
     // ==========================
@@ -633,34 +980,29 @@
     // ==========================
     const viewSections = Array.from(document.querySelectorAll('main [data-view]'));
     function showView(viewName){
-      // Marcar icono activo
       const icons = document.querySelectorAll('.side-icon[data-section]');
       icons.forEach(i => i.classList.toggle('active', i.dataset.section===viewName));
 
-      // Mostrar secciones que incluyan ese view en su data-view (pueden tener varios)
       viewSections.forEach(sec=>{
         const views = (sec.getAttribute('data-view')||'').split(/\s+/);
         if(views.includes(viewName)) sec.classList.remove('hidden');
         else sec.classList.add('hidden');
       });
 
-      // Si es home y no hay vistas múltiples, asegúrate de que stats y followups se muestren
       if(viewName==='home'){
         document.getElementById('secStats')?.classList.remove('hidden');
         document.getElementById('secFollowups')?.classList.remove('hidden');
       }
-      // En entradas, mostrar form + lista
       if(viewName==='entradas'){
         document.getElementById('secForm')?.classList.remove('hidden');
         document.getElementById('secEntries')?.classList.remove('hidden');
       }
-      // Render de llamadas por si se navega directo
       if(viewName==='salientes'){ renderCalls('out'); }
       if(viewName==='entrantes'){ renderCalls('in'); }
     }
 
     document.querySelectorAll('.side-icon[data-section]').forEach(icon=>{
-      icon.addEventListener('click', ()=> showView(icon.dataset.section));
+      icon.addEventListener('click', () => showView(icon.dataset.section));
     });
 
     // Atajos de teclado
@@ -675,12 +1017,33 @@
     });
 
     // ==========================
-    // Llamadas: render y CRUD simples
+    // Llamadas: render y CRUD simples (con filtro por día)
     // ==========================
     const outList = document.getElementById('outCallsList');
     const inList  = document.getElementById('inCallsList');
     const filterOutCalls = document.getElementById('filterOutCalls');
     const filterInCalls  = document.getElementById('filterInCalls');
+
+    // Filtro por día activo
+    const callDayFilter = { out:'', in:'' };
+
+    function dateKeyLocal(iso){
+      if(!iso) return '';
+      const d=new Date(iso);
+      const y=d.getFullYear();
+      const m=String(d.getMonth()+1).padStart(2,'0');
+      const da=String(d.getDate()).padStart(2,'0');
+      return `${y}-${m}-${da}`;
+    }
+
+    function uniqueCallDays(dir){
+      const set=new Set();
+      getCalls(dir).forEach(c=>{
+        const k=dateKeyLocal(c.ts);
+        if(k) set.add(k);
+      });
+      return Array.from(set).sort((a,b)=>b.localeCompare(a));
+    }
 
     function callCardMarkup(call){
       const when = fmtDateTime(call.ts);
@@ -704,14 +1067,45 @@
       </article>`;
     }
 
+    function renderDayButtons(dir){
+      const bar = dir==='out'? document.getElementById('outDaysBar') : document.getElementById('inDaysBar');
+      if(!bar) return;
+      const days = uniqueCallDays(dir);
+      const today = todayStr();
+      const yest = yesterdayStr();
+
+      let html = `
+        <button class="btn btn-outline" data-day="">Todos</button>
+        <button class="btn btn-outline" data-day="${today}"><i class="fa-regular fa-calendar"></i> Hoy</button>
+        <button class="btn btn-outline" data-day="${yest}"><i class="fa-regular fa-calendar"></i> Ayer</button>
+      `;
+      html += days.map(d=>`<button class="btn btn-outline" data-day="${d}">${d}</button>`).join('');
+      bar.innerHTML = html;
+
+      bar.querySelectorAll('button[data-day]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          callDayFilter[dir] = btn.getAttribute('data-day') || '';
+          renderCalls(dir);
+        });
+      });
+    }
+
     function renderCalls(dir){
       const list = (dir==='out')? outList : inList;
       const data = getCalls(dir);
+
       const q = (dir==='out'? (filterOutCalls?.value||'') : (filterInCalls?.value||'')).trim().toLowerCase();
-      const filtered = q? data.filter(c => (`${c.name||''} ${c.phone||''}`).toLowerCase().includes(q)) : data;
+
+      let filtered = q? data.filter(c => (`${c.name||''} ${c.phone||''}`).toLowerCase().includes(q)) : data;
+
+      if(callDayFilter[dir]){
+        filtered = filtered.filter(c => dateKeyLocal(c.ts)===callDayFilter[dir]);
+      }
+
+      renderDayButtons(dir);
+
       list.innerHTML = filtered.map(callCardMarkup).join('') || '<p class="note" style="margin:6px 0;">No hay llamadas registradas.</p>';
 
-      // Eliminar
       list.querySelectorAll('.btn-del-call').forEach(btn=>{
         btn.addEventListener('click', ()=>{
           const card = btn.closest('[data-id]');
@@ -756,11 +1150,6 @@
       showToast('<i class="fa-solid fa-phone-arrow-down-left"></i><div>Llamada entrante registrada.</div>', 2200);
     });
 
-    filterOutCalls.addEventListener('input', ()=>renderCalls('out'));
-    filterInCalls.addEventListener('input', ()=>renderCalls('in'));
-    document.getElementById('clearFilterOutCalls').addEventListener('click', ()=>{ filterOutCalls.value=''; renderCalls('out'); });
-    document.getElementById('clearFilterInCalls').addEventListener('click', ()=>{ filterInCalls.value=''; renderCalls('in'); });
-
     // ==========================
     // Inicialización general
     // ==========================
@@ -772,6 +1161,7 @@
       // Filtros sincronizados
       agentFilterEl.addEventListener('input', (e)=>{ syncFilters(e.target); renderEntries(); });
       agentFilterTopEl.addEventListener('input', (e)=>{ syncFilters(e.target); renderEntries(); });
+
       document.getElementById('clearFilter').addEventListener('click', ()=>{ agentFilterEl.value=''; agentFilterTopEl.value=''; renderEntries(); });
       document.getElementById('clearFilterTop').addEventListener('click', ()=>{ agentFilterEl.value=''; agentFilterTopEl.value=''; renderEntries(); });
 
