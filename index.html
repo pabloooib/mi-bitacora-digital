@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mi Bitácora Digital</title>
+  <title>Bitacora</title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -111,7 +111,7 @@
     <div class="header-inner container">
       <div class="brand">
         <i class="fa-solid fa-book-open"></i>
-        <h1>Mi Bitácora Digital</h1>
+        <h1>Bitácora Digital</h1>
       </div>
       <div class="header-actions">
         <span id="userChip" class="user-chip hidden"><i class="fa-regular fa-circle-user"></i><span id="userNameLabel">Invitado</span></span>
@@ -209,31 +209,18 @@
         <!-- NOTA: La fecha se asigna automáticamente (día actual) -->
         <div class="form-grid">
           <div class="field">
-            <label for="agentId">ID del agente (opcional)</label>
+            <label for="agentId">ID del estudiante (opcional)  </label>
             <input type="text" id="agentId" placeholder="Ej. 149294 → 000149294" />
           </div>
           <div class="field">
-            <label for="agentName">Nombre del agente (opcional)</label>
+            <label for="agentName">Nombre del estudiante (opcional)</label>
             <input type="text" id="agentName" placeholder="Ej. Ana Pérez" />
           </div>
           <div class="field">
             <label for="reason">Motivo (opcional)</label>
             <input type="text" id="reason" placeholder="Ej. Solicitud de soporte" />
           </div>
-
-          <div class="field">
-            <label for="title">Título (opcional)</label>
-            <input type="text" id="title" placeholder="Ej. Día de proyecto, reunión, ideas..." />
-          </div>
-          <div class="field">
-            <label for="status">Estado (opcional)</label>
-            <select id="status">
-              <option value="">(Sin estado)</option>
-              <option value="pendiente">Pendiente</option>
-              <option value="progreso">En progreso</option>
-              <option value="completado">Completado</option>
-            </select>
-          </div>
+          
           <div class="field">
             <label for="reminderAt">Recordatorio (fecha y hora) (opcional)</label>
             <input type="datetime-local" id="reminderAt" />
@@ -252,7 +239,7 @@
               <input type="checkbox" id="hasFollowUp" />
               <label for="hasFollowUp" style="margin:0;">¿Lleva seguimiento?</label>
             </div>
-            <span class="note">Si marcas esta opción, especifica a quién/área se deriva.</span>
+            <span class="note">Si marcas esta opción, especifica a quién o a que área se deriva.</span>
           </div>
           <div class="field">
             <label for="followUpTo">Derivado a (opcional)</label>
@@ -283,7 +270,7 @@
 
   <!-- Footer -->
   <footer class="container">
-    <small>© 2026 Mi Bitácora Digital · Hecho por pablooibz</small>
+    <small>© 2026  Bitácora Digital · Hecho por pablooibz - Callcenter Upana</small>
   </footer>
 
   <div class="toast-container" id="toastContainer" aria-live="assertive" aria-atomic="true"></div>
