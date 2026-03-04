@@ -3,24 +3,63 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bitacora</title>
+  <title>Bitácora Digital</title>
+
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
   <style>
     :root{
       --bg:#f4f6f8;--card:rgba(255,255,255,.7);--text:#121417;--muted:#5f6b7a;
       --primary:#4f46e5;--primary-600:#4338ca;--accent:#06b6d4;--ring:rgba(79,70,229,.35);
       --border:rgba(17,24,39,.08);--danger:#ef4444;--shadow:0 10px 25px rgba(2,6,23,.08),0 2px 8px rgba(2,6,23,.06);
-      --radius:14px;--glass:blur(10px)
+      --radius:14px;--glass:blur(10px);
+      --sidebar-w:66px;
     }
     [data-theme="dark"]{
       --bg:#0b1220;--card:rgba(13,18,31,.55);--text:#e5e7eb;--muted:#9aa4b2;--primary:#8b5cf6;--primary-600:#7c3aed;--accent:#22d3ee;--ring:rgba(139,92,246,.35);--border:rgba(255,255,255,.08);--shadow:0 12px 30px rgba(0,0,0,.35),0 4px 12px rgba(0,0,0,.25);--glass:blur(12px)
     }
-    *{box-sizing:border-box}html,body{height:100%}body{margin:0;font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;color:var(--text);background:radial-gradient(1200px 800px at -10% -20%, rgba(79,70,229,.08), transparent 40%),radial-gradient(1000px 700px at 120% -10%, rgba(34,211,238,.08), transparent 45%),var(--bg);line-height:1.5}
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 800px at -10% -20%, rgba(79,70,229,.08), transparent 40%),
+        radial-gradient(1000px 700px at 120% -10%, rgba(34,211,238,.08), transparent 45%),
+        var(--bg);
+      line-height:1.5;
+    }
+
+    /* ===========================
+       SIDEBAR LATERAL (NUEVO)
+       =========================== */
+    .sidebar{
+      position:fixed; inset:0 auto 0 0;
+      width:var(--sidebar-w);
+      background:#3a3a3a;
+      display:flex; flex-direction:column; align-items:center;
+      padding:12px 0; gap:14px; z-index:60;
+      border-right:1px solid rgba(255,255,255,0.08);
+    }
+    .side-icon{
+      color:#fff; width:46px; height:46px; display:flex; align-items:center; justify-content:center;
+      border-radius:12px; cursor:pointer; font-size:18px; transition:.18s ease;
+      border:1px solid transparent;
+    }
+    .side-icon:hover{ background:#4f46e5; border-color:rgba(255,255,255,.22) }
+    .side-icon.active{ background:#4f46e5 }
+    .separator{ width:58%; border-bottom:1px solid rgba(255,255,255,.18); margin:6px 0 2px 0 }
+
+    /* Empuje del contenido principal para no tapar sidebar */
+    .app-wrap{ margin-left:var(--sidebar-w); min-height:100vh; display:flex; flex-direction:column; }
+
     .container{max-width:1100px;margin:0 auto;padding:24px}
     header.app-header{position:sticky;top:0;z-index:50;backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);background:linear-gradient(to bottom,var(--card),rgba(255,255,255,.05));border-bottom:1px solid var(--border)}
     [data-theme="dark"] header.app-header{background:linear-gradient(to bottom,rgba(13,18,31,.65),rgba(13,18,31,.25))}
@@ -100,6 +139,11 @@
     .toast-container{position:fixed;top:16px;right:16px;display:grid;gap:10px;z-index:1200}
     .toast{background:var(--card);border:1px solid var(--border);border-left:6px solid var(--danger);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);display:flex;align-items:start;gap:10px;animation:fadeIn .25s ease both}
     footer{text-align:center;color:var(--muted);padding:20px}
+
+    /* Secciones nuevas llamadas: tarjetas */
+    .call-card .entry-meta i{ opacity:.85 }
+    .call-form-actions{ display:flex; gap:10px; flex-wrap:wrap }
+
     @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
     @keyframes fadeInUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
     @keyframes fadeOut{to{opacity:0;transform:translateY(-6px)}}
@@ -107,171 +151,325 @@
   </style>
 </head>
 <body>
-  <header class="app-header">
-    <div class="header-inner container">
-      <div class="brand">
-        <i class="fa-solid fa-book-open"></i>
-        <h1>Bitácora Digital</h1>
+
+  <!-- ===========================
+       SIDEBAR (NUEVO)
+       =========================== -->
+  <nav class="sidebar" aria-label="Navegación lateral">
+    <i class="fa-solid fa-bars side-icon" data-section="home" title="Menú / Inicio"></i>
+
+    <i class="fa-solid fa-house side-icon active" data-section="home" title="Inicio"></i>
+    <i class="fa-solid fa-list-check side-icon" data-section="seguimientos" title="Seguimientos"></i>
+    <i class="fa-solid fa-clipboard-list side-icon" data-section="entradas" title="Entradas"></i>
+
+    <div class="separator"></div>
+
+    <i class="fa-solid fa-phone-volume side-icon" data-section="salientes" title="Llamadas salientes"></i>
+    <i class="fa-solid fa-phone-arrow-down-left side-icon" data-section="entrantes" title="Llamadas entrantes"></i>
+
+    <div class="separator"></div>
+
+    <i class="fa-solid fa-circle-question side-icon" data-section="ayuda" title="Ayuda"></i>
+    <i class="fa-regular fa-star side-icon" data-section="favoritos" title="Favoritos"></i>
+
+    <div class="separator"></div>
+
+    <i class="fa-solid fa-right-from-bracket side-icon" id="logoutSidebar" title="Cerrar sesión"></i>
+  </nav>
+
+  <!-- WRAP DE APP PARA QUE NO LO TAPE EL SIDEBAR -->
+  <div class="app-wrap">
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="header-inner container">
+        <div class="brand">
+          <i class="fa-solid fa-book-open"></i>
+          <h1>Bitácora Digital</h1>
+        </div>
+        <div class="header-actions">
+          <span id="userChip" class="user-chip hidden"><i class="fa-regular fa-circle-user"></i><span id="userNameLabel">Invitado</span></span>
+          <button id="logoutBtn" class="btn btn-outline hidden" title="Cerrar sesión"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</button>
+          <button id="themeToggle" class="btn btn-outline" aria-label="Cambiar tema"><i class="fa-solid fa-moon"></i> Modo</button>
+          <button id="demoData" class="btn btn-outline" title="Cargar ejemplo"><i class="fa-solid fa-wand-magic-sparkles"></i> Demo</button>
+          <button id="clearAll" class="btn btn-outline" title="Borrar todo"><i class="fa-solid fa-trash"></i> Limpiar</button>
+        </div>
       </div>
-      <div class="header-actions">
-        <span id="userChip" class="user-chip hidden"><i class="fa-regular fa-circle-user"></i><span id="userNameLabel">Invitado</span></span>
-        <button id="logoutBtn" class="btn btn-outline hidden" title="Cerrar sesión"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</button>
-        <button id="themeToggle" class="btn btn-outline" aria-label="Cambiar tema"><i class="fa-solid fa-moon"></i> Modo</button>
-        <button id="demoData" class="btn btn-outline" title="Cargar ejemplo"><i class="fa-solid fa-wand-magic-sparkles"></i> Demo</button>
-        <button id="clearAll" class="btn btn-outline" title="Borrar todo"><i class="fa-solid fa-trash"></i> Limpiar</button>
+    </header>
+
+    <!-- AUTH OVERLAY -->
+    <div id="authOverlay" class="auth-overlay show" aria-modal="true" role="dialog">
+      <div class="auth-card">
+        <div class="brand" style="margin-bottom:8px"><i class="fa-solid fa-lock"></i><h2 class="auth-title">Bienvenido a Mi Bitácora Digital</h2></div>
+        <p class="helper" id="firstTimeMsg" style="margin-top:0"> </p>
+
+        <div class="auth-tabs">
+          <button id="tabLogin" class="tab-btn active"><i class="fa-solid fa-right-to-bracket"></i> Iniciar sesión</button>
+          <button id="tabRegister" class="tab-btn"><i class="fa-solid fa-user-plus"></i> Registrarme</button>
+        </div>
+
+        <!-- Login -->
+        <form id="loginForm" class="auth-grid">
+          <div class="field"><label for="loginUser">Usuario</label><input type="text" id="loginUser" autocomplete="username" placeholder="Tu usuario" required /></div>
+          <div class="field"><label for="loginPass">Contraseña</label><input type="password" id="loginPass" autocomplete="current-password" placeholder="Tu contraseña" required /></div>
+          <div style="display:flex; gap:10px;">
+            <button type="submit" class="btn"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
+            <button type="button" id="goRegister" class="btn btn-outline">Soy nuevo</button>
+          </div>
+        </form>
+
+        <!-- Register -->
+        <form id="registerForm" class="auth-grid hidden">
+          <div class="field"><label for="regName">Nombre completo</label><input type="text" id="regName" placeholder="Ej. José Pablo" required /></div>
+          <div class="field"><label for="regUser">Usuario</label><input type="text" id="regUser" autocomplete="username" placeholder="Elige un usuario" required /></div>
+          <div class="field"><label for="regPass">Contraseña</label><input type="password" id="regPass" autocomplete="new-password" placeholder="Elige una contraseña" required /></div>
+          <div class="field"><label for="regPass2">Confirmar contraseña</label><input type="password" id="regPass2" autocomplete="new-password" placeholder="Repite la contraseña" required /></div>
+          <div style="display:flex; gap:10px;">
+            <button type="submit" class="btn"><i class="fa-solid fa-user-plus"></i> Crear cuenta</button>
+            <button type="button" id="goLogin" class="btn btn-outline">Ya tengo cuenta</button>
+          </div>
+        </form>
       </div>
     </div>
-  </header>
 
-  <!-- AUTH OVERLAY -->
-  <div id="authOverlay" class="auth-overlay show" aria-modal="true" role="dialog">
-    <div class="auth-card">
-      <div class="brand" style="margin-bottom:8px"><i class="fa-solid fa-lock"></i><h2 class="auth-title">Bienvenido a Mi Bitácora Digital</h2></div>
-      <p class="helper" id="firstTimeMsg" style="margin-top:0"> </p>
-      <div class="auth-tabs">
-        <button id="tabLogin" class="tab-btn active"><i class="fa-solid fa-right-to-bracket"></i> Iniciar sesión</button>
-        <button id="tabRegister" class="tab-btn"><i class="fa-solid fa-user-plus"></i> Registrarme</button>
-      </div>
+    <!-- APP -->
+    <main class="container" id="app">
 
-      <!-- Login -->
-      <form id="loginForm" class="auth-grid">
-        <div class="field"><label for="loginUser">Usuario</label><input type="text" id="loginUser" autocomplete="username" placeholder="Tu usuario" required /></div>
-        <div class="field"><label for="loginPass">Contraseña</label><input type="password" id="loginPass" autocomplete="current-password" placeholder="Tu contraseña" required /></div>
-        <div style="display:flex; gap:10px;">
-          <button type="submit" class="btn"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
-          <button type="button" id="goRegister" class="btn btn-outline">Soy nuevo</button>
+      <!-- =============== HOME: STATS + FOLLOWUPS =============== -->
+      <section class="card" aria-labelledby="statsTitle" id="secStats" data-view="home">
+        <div class="list-header">
+          <h2 id="statsTitle" style="margin:0;">Seguimiento</h2>
         </div>
-      </form>
-
-      <!-- Register -->
-      <form id="registerForm" class="auth-grid hidden">
-        <div class="field"><label for="regName">Nombre completo</label><input type="text" id="regName" placeholder="Ej. José Pablo" required /></div>
-        <div class="field"><label for="regUser">Usuario</label><input type="text" id="regUser" autocomplete="username" placeholder="Elige un usuario" required /></div>
-        <div class="field"><label for="regPass">Contraseña</label><input type="password" id="regPass" autocomplete="new-password" placeholder="Elige una contraseña" required /></div>
-        <div class="field"><label for="regPass2">Confirmar contraseña</label><input type="password" id="regPass2" autocomplete="new-password" placeholder="Repite la contraseña" required /></div>
-        <div style="display:flex; gap:10px;">
-          <button type="submit" class="btn"><i class="fa-solid fa-user-plus"></i> Crear cuenta</button>
-          <button type="button" id="goLogin" class="btn btn-outline">Ya tengo cuenta</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <main class="container" id="app">
-    <!-- Estadísticas -->
-    <section class="card" aria-labelledby="statsTitle">
-      <div class="list-header">
-        <h2 id="statsTitle" style="margin:0;">Seguimiento</h2>
-      </div>
-      <div class="stats-grid">
-        <div class="stat-card">
-          <span class="stat-title"><i class="fa-regular fa-clock"></i> Pendientes</span>
-          <span class="stat-value" id="countPending">0</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-title"><i class="fa-solid fa-spinner"></i> En progreso</span>
-          <span class="stat-value" id="countInProgress">0</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-title"><i class="fa-regular fa-circle-check"></i> Completadas</span>
-          <span class="stat-value" id="countCompleted">0</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-title"><i class="fa-solid fa-percent"></i> Avance</span>
-          <span class="stat-value"><span id="progressPercent">0</span>%</span>
-        </div>
-        <div class="progress-wrapper">
-          <div class="progress-bar" aria-label="Progreso general" aria-valuemin="0" aria-valuemax="100">
-            <div class="progress-fill" id="progressFill" aria-valuenow="0"></div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-title"><i class="fa-regular fa-clock"></i> Pendientes</span>
+            <span class="stat-value" id="countPending">0</span>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Mis Seguimientos (viñetas) con filtro -->
-    <section class="card" aria-labelledby="followTitle">
-      <div class="list-header">
-        <h2 id="followTitle" style="margin:0;">Mis seguimientos</h2>
-        <div class="filter-wrap">
-          <i class="fa-solid fa-filter" title="Filtrar por agente"></i>
-          <input id="agentFilterTop" class="input" type="text" placeholder="Filtrar por agente (nombre o ID)" />
-          <button id="clearFilterTop" class="btn btn-outline" title="Limpiar filtro"><i class="fa-solid fa-eraser"></i></button>
-        </div>
-      </div>
-      <ul id="followupsList" class="bullets"></ul>
-    </section>
-
-    <!-- Formulario de nueva entrada -->
-    <section class="card" aria-labelledby="formTitle">
-      <h2 id="formTitle" style="margin-top:0;">Nueva entrada</h2>
-      <form id="entryForm">
-        <input type="hidden" id="editId" />
-        <!-- NOTA: La fecha se asigna automáticamente (día actual) -->
-        <div class="form-grid">
-          <div class="field">
-            <label for="agentId">ID del estudiante (opcional)  </label>
-            <input type="text" id="agentId" placeholder="Ej. 149294 → 000149294" />
+          <div class="stat-card">
+            <span class="stat-title"><i class="fa-solid fa-spinner"></i> En progreso</span>
+            <span class="stat-value" id="countInProgress">0</span>
           </div>
-          <div class="field">
-            <label for="agentName">Nombre del estudiante (opcional)</label>
-            <input type="text" id="agentName" placeholder="Ej. Ana Pérez" />
+          <div class="stat-card">
+            <span class="stat-title"><i class="fa-regular fa-circle-check"></i> Completadas</span>
+            <span class="stat-value" id="countCompleted">0</span>
           </div>
-          <div class="field">
-            <label for="reason">Motivo (opcional)</label>
-            <input type="text" id="reason" placeholder="Ej. Solicitud de soporte" />
+          <div class="stat-card">
+            <span class="stat-title"><i class="fa-solid fa-percent"></i> Avance</span>
+            <span class="stat-value"><span id="progressPercent">0</span>%</span>
           </div>
-          
-          <div class="field">
-            <label for="reminderAt">Recordatorio (fecha y hora) (opcional)</label>
-            <input type="datetime-local" id="reminderAt" />
-            <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
-              <input type="checkbox" id="reminderEnabled" /> <label for="reminderEnabled" style="margin:0;">Activar recordatorio</label>
+          <div class="progress-wrapper">
+            <div class="progress-bar" aria-label="Progreso general" aria-valuemin="0" aria-valuemax="100">
+              <div class="progress-fill" id="progressFill" aria-valuenow="0"></div>
             </div>
           </div>
+        </div>
+      </section>
 
+      <!-- Mis Seguimientos -->
+      <section class="card" aria-labelledby="followTitle" id="secFollowups" data-view="home seguimientos">
+        <div class="list-header">
+          <h2 id="followTitle" style="margin:0;">Mis seguimientos</h2>
+          <div class="filter-wrap">
+            <i class="fa-solid fa-filter" title="Filtrar por agente"></i>
+            <input id="agentFilterTop" class="input" type="text" placeholder="Filtrar por agente (nombre o ID)" />
+            <button id="clearFilterTop" class="btn btn-outline" title="Limpiar filtro"><i class="fa-solid fa-eraser"></i></button>
+          </div>
+        </div>
+        <ul id="followupsList" class="bullets"></ul>
+      </section>
+
+      <!-- =============== ENTRADAS: FORM + LIST =============== -->
+      <section class="card" aria-labelledby="formTitle" id="secForm" data-view="entradas">
+        <h2 id="formTitle" style="margin-top:0;">Nueva entrada</h2>
+        <form id="entryForm">
+          <input type="hidden" id="editId" />
+          <div class="form-grid">
+
+            <!-- NUEVOS CAMPOS PARA EVITAR ERRORES EN JS -->
+            <div class="field">
+              <label for="title">Título (opcional)</label>
+              <input type="text" id="title" placeholder="Ej. Contacto inicial" />
+            </div>
+            <div class="field">
+              <label for="status">Estado</label>
+              <select id="status">
+                <option value="pendiente">Pendiente</option>
+                <option value="progreso">En progreso</option>
+                <option value="completado">Completado</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="agentId">ID del estudiante (opcional)</label>
+              <input type="text" id="agentId" placeholder="Ej. 149294 → 000149294" />
+            </div>
+            <div class="field">
+              <label for="agentName">Nombre del estudiante (opcional)</label>
+              <input type="text" id="agentName" placeholder="Ej. Ana Pérez" />
+            </div>
+            <div class="field">
+              <label for="reason">Motivo (opcional)</label>
+              <input type="text" id="reason" placeholder="Ej. Solicitud de soporte" />
+            </div>
+
+            <div class="field">
+              <label for="reminderAt">Recordatorio (fecha y hora) (opcional)</label>
+              <input type="datetime-local" id="reminderAt" />
+              <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+                <input type="checkbox" id="reminderEnabled" /> <label for="reminderEnabled" style="margin:0;">Activar recordatorio</label>
+              </div>
+            </div>
+
+            <div class="field" style="grid-column:1/-1;">
+              <label for="description">Descripción (opcional)</label>
+              <textarea id="description" placeholder="Escribe detalles del día, objetivos, aprendizajes, etc."></textarea>
+            </div>
+
+            <div class="field">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="hasFollowUp" />
+                <label for="hasFollowUp" style="margin:0;">¿Lleva seguimiento?</label>
+              </div>
+              <span class="note">Si marcas esta opción, especifica a quién o a qué área se deriva.</span>
+            </div>
+            <div class="field">
+              <label for="followUpTo">Derivado a (opcional)</label>
+              <input type="text" id="followUpTo" placeholder="Ej. Mesa de ayuda / Coordinación / Persona" disabled />
+            </div>
+
+            <div class="field" style="grid-column:1/-1; display:flex; gap:10px; flex-wrap:wrap;">
+              <button type="submit" class="btn" id="saveBtn"><i class="fa-solid fa-floppy-disk"></i> <span>Guardar</span></button>
+              <button type="reset" class="btn btn-outline" id="resetBtn"><i class="fa-solid fa-rotate"></i> Limpiar formulario</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="listTitle" id="secEntries" data-view="entradas">
+        <div class="list-header">
+          <h2 id="listTitle" style="margin:0;">Entradas</h2>
+          <div class="filter-wrap">
+            <i class="fa-solid fa-filter" title="Filtrar por agente"></i>
+            <input id="agentFilter" class="input" type="text" placeholder="Filtrar por agente (nombre o ID)" />
+            <button id="clearFilter" class="btn btn-outline" title="Limpiar filtro"><i class="fa-solid fa-eraser"></i></button>
+          </div>
+        </div>
+        <div id="entries" class="entries" aria-live="polite"></div>
+      </section>
+
+      <!-- =============== LLAMADAS: SALIENTES =============== -->
+      <section class="card" id="secCallsOut" data-view="salientes">
+        <div class="list-header">
+          <h2 style="margin:0;"><i class="fa-solid fa-phone-volume"></i> Llamadas salientes</h2>
+        </div>
+        <form id="formCallOut" class="form-grid" autocomplete="off">
+          <div class="field">
+            <label for="outPhone">Teléfono *</label>
+            <input type="text" id="outPhone" placeholder="Ej. 55551234" required />
+          </div>
+          <div class="field">
+            <label for="outName">Contacto (opcional)</label>
+            <input type="text" id="outName" placeholder="Ej. Luis Gómez" />
+          </div>
+          <div class="field">
+            <label for="outResult">Resultado</label>
+            <select id="outResult">
+              <option>Contestó</option>
+              <option>No contestó</option>
+              <option>Buzón</option>
+              <option>Número incorrecto</option>
+            </select>
+          </div>
           <div class="field" style="grid-column:1/-1;">
-            <label for="description">Descripción (opcional)</label>
-            <textarea id="description" placeholder="Escribe detalles del día, objetivos, aprendizajes, etc."></textarea>
+            <label for="outNotes">Notas</label>
+            <textarea id="outNotes" placeholder="Detalle breve de la llamada..."></textarea>
           </div>
-
-          <div class="field">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <input type="checkbox" id="hasFollowUp" />
-              <label for="hasFollowUp" style="margin:0;">¿Lleva seguimiento?</label>
+          <div class="field" style="grid-column:1/-1;">
+            <div class="call-form-actions">
+              <button type="submit" class="btn"><i class="fa-solid fa-plus"></i> Registrar llamada</button>
+              <button type="reset" class="btn btn-outline"><i class="fa-solid fa-rotate"></i> Limpiar</button>
             </div>
-            <span class="note">Si marcas esta opción, especifica a quién o a que área se deriva.</span>
+          </div>
+        </form>
+        <div class="list-header" style="margin-top:8px;">
+          <h3 style="margin:0;">Historial</h3>
+          <div class="filter-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input id="filterOutCalls" class="input" placeholder="Buscar por nombre o teléfono" />
+            <button id="clearFilterOutCalls" class="btn btn-outline" title="Limpiar"><i class="fa-solid fa-eraser"></i></button>
+          </div>
+        </div>
+        <div id="outCallsList" class="entries"></div>
+      </section>
+
+      <!-- =============== LLAMADAS: ENTRANTES =============== -->
+      <section class="card" id="secCallsIn" data-view="entrantes">
+        <div class="list-header">
+          <h2 style="margin:0;"><i class="fa-solid fa-phone-arrow-down-left"></i> Llamadas entrantes</h2>
+        </div>
+        <form id="formCallIn" class="form-grid" autocomplete="off">
+          <div class="field">
+            <label for="inPhone">Teléfono *</label>
+            <input type="text" id="inPhone" placeholder="Ej. 55551234" required />
           </div>
           <div class="field">
-            <label for="followUpTo">Derivado a (opcional)</label>
-            <input type="text" id="followUpTo" placeholder="Ej. Mesa de ayuda / Coordinación / Persona" disabled />
+            <label for="inName">Contacto (opcional)</label>
+            <input type="text" id="inName" placeholder="Ej. Ana Pérez" />
           </div>
-
-          <div class="field" style="grid-column:1/-1; display:flex; gap:10px; flex-wrap:wrap;">
-            <button type="submit" class="btn" id="saveBtn"><i class="fa-solid fa-floppy-disk"></i> <span>Guardar</span></button>
-            <button type="reset" class="btn btn-outline" id="resetBtn"><i class="fa-solid fa-rotate"></i> Limpiar formulario</button>
+          <div class="field">
+            <label for="inResult">Motivo / Resultado</label>
+            <select id="inResult">
+              <option>Consulta</option>
+              <option>Soporte</option>
+              <option>Información</option>
+              <option>Queja</option>
+              <option>Otro</option>
+            </select>
+          </div>
+          <div class="field" style="grid-column:1/-1;">
+            <label for="inNotes">Notas</label>
+            <textarea id="inNotes" placeholder="Detalle breve de la llamada..."></textarea>
+          </div>
+          <div class="field" style="grid-column:1/-1;">
+            <div class="call-form-actions">
+              <button type="submit" class="btn"><i class="fa-solid fa-plus"></i> Registrar llamada</button>
+              <button type="reset" class="btn btn-outline"><i class="fa-solid fa-rotate"></i> Limpiar</button>
+            </div>
+          </div>
+        </form>
+        <div class="list-header" style="margin-top:8px;">
+          <h3 style="margin:0;">Historial</h3>
+          <div class="filter-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input id="filterInCalls" class="input" placeholder="Buscar por nombre o teléfono" />
+            <button id="clearFilterInCalls" class="btn btn-outline" title="Limpiar"><i class="fa-solid fa-eraser"></i></button>
           </div>
         </div>
-      </form>
-    </section>
+        <div id="inCallsList" class="entries"></div>
+      </section>
 
-    <!-- Lista de entradas -->
-    <section class="card" aria-labelledby="listTitle">
-      <div class="list-header">
-        <h2 id="listTitle" style="margin:0;">Entradas</h2>
-        <div class="filter-wrap">
-          <i class="fa-solid fa-filter" title="Filtrar por agente"></i>
-          <input id="agentFilter" class="input" type="text" placeholder="Filtrar por agente (nombre o ID)" />
-          <button id="clearFilter" class="btn btn-outline" title="Limpiar filtro"><i class="fa-solid fa-eraser"></i></button>
-        </div>
-      </div>
-      <div id="entries" class="entries" aria-live="polite"></div>
-    </section>
-  </main>
+      <!-- =============== AYUDA =============== -->
+      <section class="card" id="secHelp" data-view="ayuda">
+        <h2 style="margin:0 0 8px 0;"><i class="fa-solid fa-circle-question"></i> Ayuda</h2>
+        <p class="note">Usa la barra lateral para navegar. En <strong>Entradas</strong> puedes registrar tus bitácoras, en <strong>Seguimientos</strong> verás las derivaciones marcadas con “Lleva seguimiento”, y en <strong>Llamadas</strong> podrás registrar llamadas entrantes/salientes.</p>
+        <ul>
+          <li><strong>Atajos:</strong> <em>H</em> (Inicio), <em>S</em> (Seguimientos), <em>E</em> (Entradas), <em>I</em> (Entrantes), <em>O</em> (Salientes).</li>
+          <li>El sistema guarda todo por usuario (localStorage), incluyendo tema, entradas y llamadas.</li>
+        </ul>
+      </section>
 
-  <!-- Footer -->
-  <footer class="container">
-    <small>© 2026  Bitácora Digital · Hecho por pablooibz - Callcenter Upana</small>
-  </footer>
+      <!-- =============== FAVORITOS =============== -->
+      <section class="card" id="secFavs" data-view="favoritos">
+        <h2 style="margin:0 0 8px 0;"><i class="fa-regular fa-star"></i> Favoritos</h2>
+        <p class="note">Sección reservada para accesos o registros que marques como favoritos (pendiente de implementación).</p>
+      </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="container">
+      <small>© 2026  Bitácora Digital · Hecho por pablooibz - Callcenter Upana</small>
+    </footer>
+  </div>
 
   <div class="toast-container" id="toastContainer" aria-live="assertive" aria-atomic="true"></div>
 
@@ -283,6 +481,8 @@
     const USERS_KEY = 'bitacoraUsers'; // diccionario de usuarios
     const SESSION_KEY = 'bitacoraSession';
     const THEME_KEY = 'bitacoraTheme';
+    const CALLS_OUT_BASE = 'bitacoraCallsOut';
+    const CALLS_IN_BASE  = 'bitacoraCallsIn';
 
     // ==========================
     // Estado de sesión en memoria
@@ -316,6 +516,13 @@
     function getStorageKey(){ const u = currentUser?.username?.toLowerCase() || 'anon'; return `${BASE_STORAGE_KEY}_${u}` }
     function getEntries(){ try{ const raw=localStorage.getItem(getStorageKey()); return raw? JSON.parse(raw) : [] }catch{ return [] } }
     function saveEntries(arr){ localStorage.setItem(getStorageKey(), JSON.stringify(arr)) }
+
+    // ==========================
+    // Llamadas por usuario
+    // ==========================
+    function getCallsKey(dir){ const u=currentUser?.username?.toLowerCase() || 'anon'; return `${dir==='out'?CALLS_OUT_BASE:CALLS_IN_BASE}_${u}` }
+    function getCalls(dir){ try{ const raw=localStorage.getItem(getCallsKey(dir)); return raw? JSON.parse(raw) : [] }catch{ return [] } }
+    function saveCalls(dir, arr){ localStorage.setItem(getCallsKey(dir), JSON.stringify(arr)) }
 
     // ==========================
     // Filtros
@@ -371,11 +578,11 @@
     function resetForm(){ form.reset(); editIdEl.value=''; saveBtn.querySelector('span').textContent='Guardar'; followUpToEl.disabled=true; }
     document.getElementById('resetBtn').addEventListener('click', resetForm);
 
-    function startEdit(id){ const all=getEntries(); const e=all.find(x=>x.id===id); if(!e) return; editIdEl.value=e.id; agentIdEl.value=e.agentId||''; agentNameEl.value=e.agentName||''; reasonEl.value=e.reason||''; titleEl.value=e.title||''; descEl.value=e.description||''; statusEl.value=e.status||''; remChk.checked=!!e.reminderEnabled; remAt.value=e.reminderAt? new Date(e.reminderAt).toISOString().slice(0,16):''; hasFollowUpEl.checked=!!e.hasFollowUp; followUpToEl.disabled=!hasFollowUpEl.checked; followUpToEl.value=e.followUpTo||''; saveBtn.querySelector('span').textContent='Actualizar'; window.scrollTo({ top: document.querySelector('main').offsetTop, behavior:'smooth' }); }
+    function startEdit(id){ const all=getEntries(); const e=all.find(x=>x.id===id); if(!e) return; editIdEl.value=e.id; agentIdEl.value=e.agentId||''; agentNameEl.value=e.agentName||''; reasonEl.value=e.reason||''; titleEl.value=e.title||''; descEl.value=e.description||''; statusEl.value=e.status||'pendiente'; remChk.checked=!!e.reminderEnabled; remAt.value=e.reminderAt? new Date(e.reminderAt).toISOString().slice(0,16):''; hasFollowUpEl.checked=!!e.hasFollowUp; followUpToEl.disabled=!hasFollowUpEl.checked; followUpToEl.value=e.followUpTo||''; saveBtn.querySelector('span').textContent='Actualizar'; window.scrollTo({ top: document.querySelector('main').offsetTop, behavior:'smooth' }); }
 
     function deleteEntry(id, cardEl){ if(!confirm('¿Seguro que deseas eliminar esta entrada?')) return; cardEl.classList.add('fade-out'); cardEl.addEventListener('animationend',()=>{ const all=getEntries().filter(e=>e.id!==id); saveEntries(all); renderEntries(); },{once:true}); }
 
-    form.addEventListener('submit', (ev)=>{ ev.preventDefault(); const base={ id: editIdEl.value || uid(), title:(titleEl.value||'').trim(), description:(descEl.value||'').trim(), status:(statusEl.value||'').trim(), reminderEnabled: remChk.checked, reminderAt: remAt.value? new Date(remAt.value).toISOString(): '', agentId: toNineDigits(agentIdEl.value), agentName:(agentNameEl.value||'').trim(), reason:(reasonEl.value||'').trim(), hasFollowUp: hasFollowUpEl.checked, followUpTo:(followUpToEl.value||'').trim(), }; let all = getEntries(); if(editIdEl.value){ const idx=all.findIndex(e=>e.id===base.id); if(idx>=0){ const reminderChanged = all[idx].reminderAt !== base.reminderAt || all[idx].reminderEnabled !== base.reminderEnabled; const keepDate=all[idx].date; all[idx] = { ...all[idx], ...base, date: keepDate, updatedAt: Date.now(), ...(reminderChanged? {notified:false}: {}) }; } } else { all.push({ ...base, date: todayStr(), createdAt: Date.now(), updatedAt: Date.now(), notified:false }); } saveEntries(all); renderEntries(); resetForm(); });
+    form.addEventListener('submit', (ev)=>{ ev.preventDefault(); const base={ id: editIdEl.value || uid(), title:(titleEl.value||'').trim(), description:(descEl.value||'').trim(), status:(statusEl.value||'pendiente').trim(), reminderEnabled: remChk.checked, reminderAt: remAt.value? new Date(remAt.value).toISOString(): '', agentId: toNineDigits(agentIdEl.value), agentName:(agentNameEl.value||'').trim(), reason:(reasonEl.value||'').trim(), hasFollowUp: hasFollowUpEl.checked, followUpTo:(followUpToEl.value||'').trim(), }; let all = getEntries(); if(editIdEl.value){ const idx=all.findIndex(e=>e.id===base.id); if(idx>=0){ const reminderChanged = all[idx].reminderAt !== base.reminderAt || all[idx].reminderEnabled !== base.reminderEnabled; const keepDate=all[idx].date; all[idx] = { ...all[idx], ...base, date: keepDate, updatedAt: Date.now(), ...(reminderChanged? {notified:false}: {}) }; } } else { all.push({ ...base, date: todayStr(), createdAt: Date.now(), updatedAt: Date.now(), notified:false }); } saveEntries(all); renderEntries(); resetForm(); });
 
     // ==========================
     // Recordatorios
@@ -419,12 +626,14 @@
 
     function updateHeaderUser(){ const chip=document.getElementById('userChip'); const label=document.getElementById('userNameLabel'); const logout=document.getElementById('logoutBtn'); if(currentUser){ label.textContent=currentUser.name || currentUser.username; chip.classList.remove('hidden'); logout.classList.remove('hidden'); } else { label.textContent='Invitado'; chip.classList.add('hidden'); logout.classList.add('hidden'); } }
 
-    document.getElementById('logoutBtn').addEventListener('click', ()=>{ setSession(null); currentUser=null; updateHeaderUser(); authOverlay.classList.add('show'); showToast('<i class="fa-solid fa-right-from-bracket"></i><div>Sesión cerrada.</div>', 3000); });
+    function doLogout(){ setSession(null); currentUser=null; updateHeaderUser(); authOverlay.classList.add('show'); showToast('<i class="fa-solid fa-right-from-bracket"></i><div>Sesión cerrada.</div>', 3000); }
+    document.getElementById('logoutBtn').addEventListener('click', doLogout);
+    document.getElementById('logoutSidebar').addEventListener('click', doLogout);
 
-    loginForm.addEventListener('submit', async (e)=>{ e.preventDefault(); const u = (loginUser.value||'').trim(); const p = (loginPass.value||'').trim(); if(!u || !p){ showToast('<i class="fa-solid fa-circle-exclamation"></i><div>Usuario y contraseña son requeridos.</div>'); return; } const users=getUsers(); const key=u.toLowerCase(); const reg=users[key]; if(!reg){ showToast('<i class="fa-solid fa-user-xmark"></i><div>El usuario no existe. Regístrate primero.</div>'); return; } const hash = await makePassHash(u,p); if(hash!==reg.passHash){ showToast('<i class="fa-solid fa-lock"></i><div>Contraseña incorrecta.</div>'); return; } reg.lastLogin = Date.now(); users[key]=reg; saveUsers(users); currentUser = { username: reg.username, name: reg.name }; setSession(currentUser); updateHeaderUser(); authOverlay.classList.remove('show'); renderEntries(); showToast('<i class="fa-solid fa-circle-check"></i><div>Sesión iniciada.</div>', 2500); loginPass.value=''; });
+    loginForm.addEventListener('submit', async (e)=>{ e.preventDefault(); const u = (loginUser.value||'').trim(); const p = (loginPass.value||'').trim(); if(!u || !p){ showToast('<i class="fa-solid fa-circle-exclamation"></i><div>Usuario y contraseña son requeridos.</div>'); return; } const users=getUsers(); const key=u.toLowerCase(); const reg=users[key]; if(!reg){ showToast('<i class="fa-solid fa-user-xmark"></i><div>El usuario no existe. Regístrate primero.</div>'); return; } const hash = await makePassHash(u,p); if(hash!==reg.passHash){ showToast('<i class="fa-solid fa-lock"></i><div>Contraseña incorrecta.</div>'); return; } reg.lastLogin = Date.now(); users[key]=reg; saveUsers(users); currentUser = { username: reg.username, name: reg.name }; setSession(currentUser); updateHeaderUser(); authOverlay.classList.remove('show'); renderEntries(); renderCalls('out'); renderCalls('in'); showToast('<i class="fa-solid fa-circle-check"></i><div>Sesión iniciada.</div>', 2500); loginPass.value=''; });
 
     registerForm.addEventListener('submit', async (e)=>{ e.preventDefault(); const name=(regName.value||'').trim(); const user=(regUser.value||'').trim(); const p1=(regPass.value||''); const p2=(regPass2.value||''); if(!name || !user || !p1){ showToast('<i class="fa-solid fa-circle-exclamation"></i><div>Completa nombre, usuario y contraseña.</div>'); return; } if(p1!==p2){ showToast('<i class="fa-solid fa-exclamation"></i><div>Las contraseñas no coinciden.</div>'); return; } if(p1.length<6){ showToast('<i class="fa-solid fa-key"></i><div>Usa una contraseña de al menos 6 caracteres.</div>'); return; } const users=getUsers(); const key=user.toLowerCase(); if(users[key]){ showToast('<i class="fa-solid fa-user"></i><div>Ese usuario ya existe. Elige otro.</div>'); return; } const hash=await makePassHash(user,p1); users[key] = { username:user, name, passHash:hash, createdAt:Date.now(), lastLogin:null }; saveUsers(users); // crear sesión
-      currentUser = { username:user, name }; setSession(currentUser); updateHeaderUser(); authOverlay.classList.remove('show'); renderEntries(); showToast('<i class="fa-solid fa-user-check"></i><div>Cuenta creada e inicio de sesión correcto.</div>', 3000); // limpiar
+      currentUser = { username:user, name }; setSession(currentUser); updateHeaderUser(); authOverlay.classList.remove('show'); renderEntries(); renderCalls('out'); renderCalls('in'); showToast('<i class="fa-solid fa-user-check"></i><div>Cuenta creada e inicio de sesión correcto.</div>', 3000); // limpiar
       regName.value=regUser.value=regPass.value=regPass2.value=''; });
 
     function initAuth(){ const users=getUsers(); const hasUsers = Object.keys(users).length>0; firstTimeMsg.textContent = hasUsers ? 'Ingresa con tu usuario y contraseña.' : 'Parece que es tu primera vez aquí. Regístrate para comenzar.'; // sesión existente
@@ -432,19 +641,164 @@
     }
 
     // ==========================
+    // Navegación por VISTAS (sidebar)
+    // ==========================
+    const viewSections = Array.from(document.querySelectorAll('main [data-view]'));
+    function showView(viewName){
+      // Marcar icono activo
+      const icons = document.querySelectorAll('.side-icon[data-section]');
+      icons.forEach(i => i.classList.toggle('active', i.dataset.section===viewName));
+
+      // Mostrar secciones que incluyan ese view en su data-view (pueden tener varios)
+      viewSections.forEach(sec=>{
+        const views = (sec.getAttribute('data-view')||'').split(/\s+/);
+        if(views.includes(viewName)) sec.classList.remove('hidden');
+        else sec.classList.add('hidden');
+      });
+
+      // Si es home y no hay vistas múltiples, asegúrate de que stats y followups se muestren
+      if(viewName==='home'){
+        document.getElementById('secStats')?.classList.remove('hidden');
+        document.getElementById('secFollowups')?.classList.remove('hidden');
+      }
+      // En entradas, mostrar form + lista
+      if(viewName==='entradas'){
+        document.getElementById('secForm')?.classList.remove('hidden');
+        document.getElementById('secEntries')?.classList.remove('hidden');
+      }
+      // Render de llamadas por si se navega directo
+      if(viewName==='salientes'){ renderCalls('out'); }
+      if(viewName==='entrantes'){ renderCalls('in'); }
+    }
+
+    document.querySelectorAll('.side-icon[data-section]').forEach(icon=>{
+      icon.addEventListener('click', ()=> showView(icon.dataset.section));
+    });
+
+    // Atajos de teclado
+    document.addEventListener('keydown', (e)=>{
+      if(e.target && ['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+      const k=e.key.toLowerCase();
+      if(k==='h') showView('home');
+      if(k==='s') showView('seguimientos');
+      if(k==='e') showView('entradas');
+      if(k==='i') showView('entrantes');
+      if(k==='o') showView('salientes');
+    });
+
+    // ==========================
+    // Llamadas: render y CRUD simples
+    // ==========================
+    const outList = document.getElementById('outCallsList');
+    const inList  = document.getElementById('inCallsList');
+    const filterOutCalls = document.getElementById('filterOutCalls');
+    const filterInCalls  = document.getElementById('filterInCalls');
+
+    function callCardMarkup(call){
+      const when = fmtDateTime(call.ts);
+      const icon = call.dir==='out' ? 'fa-phone-volume' : 'fa-phone-arrow-down-left';
+      const title = call.name || '(Sin nombre)';
+      const phone = call.phone || '';
+      const result = call.result || '';
+      const notes = call.notes || '';
+      return `
+      <article class="card entry-card call-card" data-id="${call.id}">
+        <h3 class="entry-title"><i class="fa-solid ${icon}"></i> ${title}</h3>
+        <div class="entry-meta">
+          <span><i class="fa-solid fa-phone"></i> ${phone}</span>
+          <span><i class="fa-regular fa-clock"></i> ${when}</span>
+          ${result? `<span><i class="fa-solid fa-circle-info"></i> ${result}</span>`:''}
+        </div>
+        ${notes? `<p style="margin:6px 0 0 0;">${notes}</p>`:''}
+        <div class="entry-actions">
+          <button class="icon-btn icon-danger btn-del-call"><i class="fa-solid fa-trash"></i> Eliminar</button>
+        </div>
+      </article>`;
+    }
+
+    function renderCalls(dir){
+      const list = (dir==='out')? outList : inList;
+      const data = getCalls(dir);
+      const q = (dir==='out'? (filterOutCalls?.value||'') : (filterInCalls?.value||'')).trim().toLowerCase();
+      const filtered = q? data.filter(c => (`${c.name||''} ${c.phone||''}`).toLowerCase().includes(q)) : data;
+      list.innerHTML = filtered.map(callCardMarkup).join('') || '<p class="note" style="margin:6px 0;">No hay llamadas registradas.</p>';
+
+      // Eliminar
+      list.querySelectorAll('.btn-del-call').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const card = btn.closest('[data-id]');
+          const id = card?.dataset?.id;
+          if(!id) return;
+          if(!confirm('¿Eliminar esta llamada?')) return;
+          const arr = getCalls(dir).filter(c => c.id!==id);
+          saveCalls(dir, arr);
+          renderCalls(dir);
+        });
+      });
+    }
+
+    // Forms llamadas
+    document.getElementById('formCallOut').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const phone = document.getElementById('outPhone').value.trim();
+      if(!phone){ showToast('<i class="fa-solid fa-phone-slash"></i><div>Ingresa un teléfono.</div>'); return; }
+      const name  = (document.getElementById('outName').value||'').trim();
+      const result= document.getElementById('outResult').value;
+      const notes = (document.getElementById('outNotes').value||'').trim();
+      const arr = getCalls('out');
+      arr.unshift({ id:'c_'+Math.random().toString(36).slice(2), dir:'out', phone, name, result, notes, ts:new Date().toISOString() });
+      saveCalls('out', arr);
+      (e.target).reset();
+      renderCalls('out');
+      showToast('<i class="fa-solid fa-phone-volume"></i><div>Llamada saliente registrada.</div>', 2200);
+    });
+
+    document.getElementById('formCallIn').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const phone = document.getElementById('inPhone').value.trim();
+      if(!phone){ showToast('<i class="fa-solid fa-phone-slash"></i><div>Ingresa un teléfono.</div>'); return; }
+      const name  = (document.getElementById('inName').value||'').trim();
+      const result= document.getElementById('inResult').value;
+      const notes = (document.getElementById('inNotes').value||'').trim();
+      const arr = getCalls('in');
+      arr.unshift({ id:'c_'+Math.random().toString(36).slice(2), dir:'in', phone, name, result, notes, ts:new Date().toISOString() });
+      saveCalls('in', arr);
+      (e.target).reset();
+      renderCalls('in');
+      showToast('<i class="fa-solid fa-phone-arrow-down-left"></i><div>Llamada entrante registrada.</div>', 2200);
+    });
+
+    filterOutCalls.addEventListener('input', ()=>renderCalls('out'));
+    filterInCalls.addEventListener('input', ()=>renderCalls('in'));
+    document.getElementById('clearFilterOutCalls').addEventListener('click', ()=>{ filterOutCalls.value=''; renderCalls('out'); });
+    document.getElementById('clearFilterInCalls').addEventListener('click', ()=>{ filterInCalls.value=''; renderCalls('in'); });
+
+    // ==========================
     // Inicialización general
     // ==========================
-    function init(){ // tema
-      const storedTheme = localStorage.getItem(THEME_KEY) || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); applyTheme(storedTheme);
+    function init(){
+      // tema
+      const storedTheme = localStorage.getItem(THEME_KEY) || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      applyTheme(storedTheme);
+
       // Filtros sincronizados
       agentFilterEl.addEventListener('input', (e)=>{ syncFilters(e.target); renderEntries(); });
       agentFilterTopEl.addEventListener('input', (e)=>{ syncFilters(e.target); renderEntries(); });
       document.getElementById('clearFilter').addEventListener('click', ()=>{ agentFilterEl.value=''; agentFilterTopEl.value=''; renderEntries(); });
       document.getElementById('clearFilterTop').addEventListener('click', ()=>{ agentFilterEl.value=''; agentFilterTopEl.value=''; renderEntries(); });
+
       // Recordatorio default +1h
-      const dt=new Date(); dt.setMinutes(dt.getMinutes()+60); const tzAdj = new Date(dt.getTime() - dt.getTimezoneOffset()*60000).toISOString().slice(0,16); document.getElementById('reminderAt').value = tzAdj;
+      const dt=new Date(); dt.setMinutes(dt.getMinutes()+60);
+      const tzAdj = new Date(dt.getTime() - dt.getTimezoneOffset()*60000).toISOString().slice(0,16);
+      document.getElementById('reminderAt').value = tzAdj;
+
       initAuth();
       renderEntries();
+      renderCalls('out');
+      renderCalls('in');
+
+      // Vista inicial: home
+      showView('home');
     }
 
     document.addEventListener('DOMContentLoaded', init);
