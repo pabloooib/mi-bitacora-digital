@@ -4,825 +4,330 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bitácora · UPANA Call Center</title>
+<title>Call Center UPANA · Panel Operativo</title>
 <link rel="icon" type="image/png" href="https://es-academic.com/pictures/eswiki/76/Logo_Universidad_Panamericana.png">
 
-<!-- Tipografías -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-<!-- Firebase (SDK compat, para un solo archivo) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          display: ['Sora','sans-serif'],
+          body: ['Inter','sans-serif'],
+          mono: ['JetBrains Mono','monospace']
+        },
+        colors: {
+          upana: { DEFAULT:'#163B72', 600:'#1F4B8C', 700:'#0E2A54' },
+          oro: { DEFAULT:'#C9A227', soft:'#E4C766' }
+        },
+        boxShadow: {
+          soft: '0 8px 24px -8px rgba(14,42,84,.16), 0 2px 8px rgba(14,42,84,.06)',
+          lift: '0 20px 50px -14px rgba(14,42,84,.28)'
+        }
+      }
+    }
+  }
+</script>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
-
-<!-- Chart.js para métricas y reportes -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
 <style>
-/* ============================================================
-   BITÁCORA · UPANA — Sistema de tokens de diseño
-   ------------------------------------------------------------
-   Paleta:
-     --azul-upana   #163B72  (institucional, confianza, sobriedad)
-     --azul-hondo   #0E2A54  (superficies oscuras / hover)
-     --oro-upana    #C9A227  (acento, distinción académica)
-     --lino         #F5F6F8  (fondo claro, "papel")
-     --tinta        #1B2230  (texto principal)
-     --grafito      #616B7A  (texto secundario)
-   Tipografía: Sora (display, títulos) + Inter (cuerpo) + JetBrains Mono (datos/IDs)
-   Firma visual: el "Radar Banner" — un pulso de sincronización en vivo que
-   representa la escucha activa hacia Ellucian Application Navigator.
-   ============================================================ */
-
 :root{
-  --azul-upana: #163B72;
-  --azul-upana-600: #1F4B8C;
-  --azul-hondo: #0E2A54;
-  --oro-upana: #C9A227;
-  --oro-suave: #E4C766;
-
-  --bg: #F5F6F8;
-  --bg-alt: #EBEEF3;
-  --surface: #FFFFFF;
-  --surface-2: #FAFBFC;
-  --text: #1B2230;
-  --text-muted: #616B7A;
-  --border: #E1E5EC;
-  --border-strong: #CBD2DE;
-
-  --success: #22764F;
-  --success-bg: #E5F3EC;
-  --danger: #B23A32;
-  --danger-bg: #FBEAE8;
-  --warning: #A8710A;
-  --warning-bg: #FBF0DA;
-
-  --radius-sm: 8px;
-  --radius: 14px;
-  --radius-lg: 20px;
-
-  --shadow-sm: 0 1px 2px rgba(14,42,84,.06), 0 1px 1px rgba(14,42,84,.04);
-  --shadow: 0 8px 24px -8px rgba(14,42,84,.16), 0 2px 8px rgba(14,42,84,.06);
-  --shadow-lg: 0 24px 60px -16px rgba(14,42,84,.28);
-
-  --ease: cubic-bezier(.22,.61,.36,1);
-  --font-display: 'Sora', system-ui, sans-serif;
-  --font-body: 'Inter', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --bg-solid: #EEF2F7;
+  --bg-image: none;
+  --on-bg: #12203a;
 }
-
-[data-theme="dark"]{
-  --bg: #0D1524;
-  --bg-alt: #101A2C;
-  --surface: #131E32;
-  --surface-2: #17223A;
-  --text: #E9EDF5;
-  --text-muted: #93A0B4;
-  --border: #22304A;
-  --border-strong: #2E3F5E;
-  --azul-upana: #3E6BB0;
-  --azul-upana-600: #4E7DC9;
-  --success-bg: #143327;
-  --danger-bg: #341A18;
-  --warning-bg: #362507;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,.3);
-  --shadow: 0 8px 28px -8px rgba(0,0,0,.55);
-  --shadow-lg: 0 24px 60px -16px rgba(0,0,0,.7);
-}
-
-*{ box-sizing: border-box; }
+*{ box-sizing:border-box; }
 html,body{ height:100%; }
 body{
-  margin:0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-body);
-  -webkit-font-smoothing: antialiased;
-  transition: background .35s var(--ease), color .35s var(--ease);
-}
-h1,h2,h3,h4,.display{ font-family: var(--font-display); letter-spacing:-.01em; margin:0; }
-code, .mono{ font-family: var(--font-mono); }
-button{ font-family: inherit; }
-a{ color: inherit; }
-::selection{ background: var(--oro-suave); color:#12203a; }
-
-.hidden{ display:none !important; }
-.scroll-thin::-webkit-scrollbar{ width:8px; height:8px; }
-.scroll-thin::-webkit-scrollbar-thumb{ background: var(--border-strong); border-radius: 8px; }
-
-/* ---------- LOGIN ---------- */
-#loginScreen{
+  font-family:'Inter', sans-serif;
+  color:#1B2230;
+  background-color: var(--bg-solid);
+  background-image: var(--bg-image);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  transition: background-color .4s ease;
   min-height:100vh;
-  display:grid;
-  grid-template-columns: 1.1fr 1fr;
-  background: var(--bg);
 }
-@media (max-width: 860px){
-  #loginScreen{ grid-template-columns: 1fr; }
-  .login-aside{ display:none; }
-}
-.login-aside{
-  position:relative;
-  background:
-    radial-gradient(120% 140% at 15% 10%, rgba(255,255,255,.10), transparent 55%),
-    linear-gradient(155deg, var(--azul-hondo) 0%, var(--azul-upana) 55%, #204A8C 100%);
-  color:#fff;
-  padding: 56px;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-  overflow:hidden;
-}
-.login-aside::before{
-  content:"";
-  position:absolute; inset:-40% -20% auto auto;
-  width:520px; height:520px; border-radius:50%;
-  background: radial-gradient(circle at 30% 30%, rgba(201,162,39,.35), transparent 65%);
-  filter: blur(4px);
-}
-.brand-row{ display:flex; align-items:center; gap:14px; position:relative; z-index:1; }
-.brand-row img{ width:46px; height:46px; border-radius:10px; background:#fff; padding:4px; box-shadow: var(--shadow-sm); }
-.brand-row .brand-name{ font-family: var(--font-display); font-weight:700; font-size:19px; line-height:1.1; }
-.brand-row .brand-sub{ font-size:12px; opacity:.75; letter-spacing:.06em; text-transform:uppercase; }
+.font-display{ font-family:'Sora', sans-serif; }
+.font-mono{ font-family:'JetBrains Mono', monospace; }
+.on-bg-text{ color: var(--on-bg); transition: color .3s ease; }
+.on-bg-sub{ color: var(--on-bg); opacity:.72; }
 
-.login-hero{ position:relative; z-index:1; max-width:460px; margin-top: 40px; }
-.login-hero .eyebrow{
-  display:inline-flex; align-items:center; gap:8px;
-  font-size:12px; letter-spacing:.08em; text-transform:uppercase;
-  background: rgba(255,255,255,.12); padding:6px 12px; border-radius:99px;
-  margin-bottom:18px; backdrop-filter: blur(6px);
+.glass{
+  background: rgba(255,255,255,.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,.55);
 }
-.login-hero h1{ font-size:38px; line-height:1.15; font-weight:700; }
-.login-hero p{ opacity:.82; margin-top:14px; font-size:15px; line-height:1.6; }
+.glass-strong{
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,.6);
+}
+.scroll-thin::-webkit-scrollbar{ width:8px; height:8px; }
+.scroll-thin::-webkit-scrollbar-thumb{ background:#CBD2DE; border-radius:8px; }
 
-.radar-pulse{ display:flex; align-items:center; gap:10px; margin-top:34px; font-size:13px; opacity:.85; position:relative; z-index:1;}
-.radar-dot{ position:relative; width:10px; height:10px; border-radius:50%; background: var(--oro-suave); }
-.radar-dot::after{
-  content:""; position:absolute; inset:-6px; border-radius:50%;
-  border:2px solid var(--oro-suave); opacity:.7;
-  animation: radarPing 2.2s ease-out infinite;
-}
-@keyframes radarPing{
-  0%{ transform:scale(.4); opacity:.9; }
-  80%{ transform:scale(2.4); opacity:0; }
-  100%{ opacity:0; }
-}
+.hidden-imp{ display:none !important; }
 
-.login-main{
-  display:flex; align-items:center; justify-content:center; padding: 32px;
-}
-.login-card{
-  width:100%; max-width:420px;
-  background: var(--surface);
-  border:1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  padding: 40px 36px;
-  animation: cardIn .6s var(--ease);
-}
-@keyframes cardIn{ from{ opacity:0; transform: translateY(14px) scale(.98);} to{ opacity:1; transform:none; } }
-.login-card h2{ font-size:24px; font-weight:700; }
-.login-card .sub{ color: var(--text-muted); font-size:13.5px; margin-top:6px; margin-bottom:30px; }
+@keyframes fadeUp{ from{ opacity:0; transform: translateY(10px);} to{ opacity:1; transform:none; } }
+.anim-in{ animation: fadeUp .35s cubic-bezier(.22,.61,.36,1); }
 
-.btn{
-  border:none; cursor:pointer; border-radius: var(--radius-sm);
-  font-weight:600; font-size:14px; padding:12px 18px;
-  display:inline-flex; align-items:center; justify-content:center; gap:9px;
-  transition: transform .18s var(--ease), box-shadow .18s var(--ease), background .2s var(--ease), opacity .2s;
-}
-.btn:active{ transform: translateY(1px) scale(.99); }
-.btn-primary{ background: var(--azul-upana); color:#fff; box-shadow: var(--shadow-sm); }
-.btn-primary:hover{ background: var(--azul-upana-600); box-shadow: var(--shadow); }
-.btn-gold{ background: var(--oro-upana); color:#2A2103; }
-.btn-gold:hover{ filter: brightness(1.06); box-shadow: var(--shadow); }
-.btn-ghost{ background: transparent; color: var(--text); border:1px solid var(--border-strong); }
-.btn-ghost:hover{ background: var(--bg-alt); }
-.btn-danger{ background: var(--danger-bg); color: var(--danger); }
-.btn-danger:hover{ filter:brightness(0.97); }
-.btn-sm{ padding:8px 13px; font-size:12.5px; }
-.btn-block{ width:100%; }
-.btn:disabled{ opacity:.55; cursor:not-allowed; }
+@keyframes pulseDot{ 0%{ box-shadow:0 0 0 0 currentColor44; } 70%{ box-shadow:0 0 0 8px transparent; } 100%{ box-shadow:0 0 0 0 transparent; } }
+.pulse-dot{ animation: pulseDot 2s infinite; }
 
-.btn-ms{
-  width:100%; background:#fff; color:#2b2b2b; border:1px solid var(--border-strong);
-}
-.btn-ms:hover{ box-shadow: var(--shadow); }
-.ms-logo{ width:18px; height:18px; display:grid; grid-template-columns:1fr 1fr; gap:2px; }
-.ms-logo span{ display:block; }
+.star-btn{ transition: transform .12s ease, color .12s ease; cursor:pointer; }
+.star-btn:hover{ transform: scale(1.15); }
 
-.login-foot{ margin-top:22px; text-align:center; font-size:12px; color: var(--text-muted); }
+.status-card{ transition: transform .2s ease, box-shadow .2s ease; }
+.status-card:hover{ transform: translateY(-2px); box-shadow: 0 16px 34px -12px rgba(14,42,84,.22); }
 
-/* ---------- APP SHELL ---------- */
-#appShell{ display:flex; min-height:100vh; }
-.sidebar{
-  width: 256px; flex-shrink:0;
-  background: var(--surface);
-  border-right:1px solid var(--border);
-  display:flex; flex-direction:column;
-  padding: 20px 14px;
-  transition: transform .3s var(--ease);
-  position: sticky; top:0; height:100vh;
-}
-.sidebar .brand-row{ padding: 6px 8px 22px; color: var(--text); }
-.sidebar .brand-row img{ box-shadow:none; border:1px solid var(--border); }
-.sidebar .brand-row .brand-name{ color: var(--text); }
-.sidebar .brand-row .brand-sub{ color: var(--text-muted); }
+input[type=color]{ -webkit-appearance:none; border:none; padding:0; width:42px; height:42px; border-radius:10px; cursor:pointer; }
+input[type=color]::-webkit-color-swatch-wrapper{ padding:0; }
+input[type=color]::-webkit-color-swatch{ border-radius:10px; border:2px solid #fff; box-shadow:0 0 0 1px #E1E5EC; }
 
-.nav-group{ margin-bottom: 18px; }
-.nav-label{ font-size:11px; text-transform:uppercase; letter-spacing:.08em; color: var(--text-muted); padding: 6px 10px; }
-.nav-item{
-  display:flex; align-items:center; gap:12px;
-  padding:10px 12px; border-radius: var(--radius-sm);
-  color: var(--text-muted); font-size:14px; font-weight:500; cursor:pointer;
-  transition: background .2s var(--ease), color .2s var(--ease);
-  margin-bottom:2px; border:1px solid transparent;
-}
-.nav-item svg{ width:18px; height:18px; flex-shrink:0; }
-.nav-item:hover{ background: var(--bg-alt); color: var(--text); }
-.nav-item.active{ background: linear-gradient(180deg, var(--azul-upana), var(--azul-upana-600)); color:#fff; box-shadow: var(--shadow-sm); }
+.swatch{ width:34px; height:34px; border-radius:10px; cursor:pointer; border:2px solid #fff; box-shadow:0 0 0 1px #E1E5EC; transition: transform .15s ease; }
+.swatch:hover{ transform: scale(1.1); }
+.swatch.active{ box-shadow:0 0 0 2px #163B72; }
 
-.sidebar-foot{ margin-top:auto; padding-top:14px; border-top:1px solid var(--border); }
-
-.main-col{ flex:1; min-width:0; display:flex; flex-direction:column; }
-.topbar{
-  height:66px; flex-shrink:0;
-  display:flex; align-items:center; justify-content:space-between;
-  padding: 0 26px; border-bottom:1px solid var(--border);
-  background: var(--surface);
-  position: sticky; top:0; z-index:20;
-}
-.topbar-title{ font-family: var(--font-display); font-weight:700; font-size:18px; }
-.topbar-title .muted{ color: var(--text-muted); font-weight:500; font-size:12.5px; display:block; margin-top:1px; }
-
-.topbar-right{ display:flex; align-items:center; gap:12px; }
-
-.icon-btn{
-  width:38px; height:38px; border-radius:10px; border:1px solid var(--border);
-  background: var(--surface-2); display:grid; place-items:center; cursor:pointer;
-  color: var(--text-muted); transition: all .2s var(--ease);
-}
-.icon-btn:hover{ background: var(--bg-alt); color: var(--text); }
-.icon-btn svg{ width:18px; height:18px; }
-
-.avatar{
-  width:38px; height:38px; border-radius:50%; object-fit:cover;
-  border:2px solid var(--surface); box-shadow:0 0 0 1.5px var(--border-strong);
-  cursor:pointer;
-}
-.user-menu-wrap{ position:relative; }
-.user-menu{
-  position:absolute; right:0; top:48px; width:250px;
-  background: var(--surface); border:1px solid var(--border); border-radius: var(--radius);
-  box-shadow: var(--shadow-lg); padding:8px; z-index:50;
-  opacity:0; transform: translateY(-6px); pointer-events:none;
-  transition: all .18s var(--ease);
-}
-.user-menu.open{ opacity:1; transform:none; pointer-events:auto; }
-.user-menu-head{ padding:10px 10px 12px; border-bottom:1px solid var(--border); margin-bottom:6px; }
-.user-menu-head .name{ font-weight:600; font-size:14px; }
-.user-menu-head .mail{ font-size:12px; color: var(--text-muted); }
-.role-badge{
-  display:inline-flex; align-items:center; gap:6px; margin-top:6px;
-  font-size:11px; font-weight:600; padding:3px 9px; border-radius:99px;
-  background: var(--warning-bg); color: var(--warning);
-}
-.role-badge.rol-supervisor{ background: #E3ECFB; color:#1F4B8C; }
-[data-theme="dark"] .role-badge.rol-supervisor{ background:#132444; color:#8FB2E8; }
-.role-badge.rol-jefe{ background:#FBEAE8; color:#9A3A32;}
-[data-theme="dark"] .role-badge.rol-jefe{ background:#341A18; color:#E1958F; }
-.user-menu-item{
-  display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px;
-  font-size:13.5px; cursor:pointer; color: var(--text);
-}
-.user-menu-item:hover{ background: var(--bg-alt); }
-.user-menu-item svg{ width:16px; height:16px; color: var(--text-muted); }
-
-.view{ padding: 26px; max-width: 1180px; width:100%; margin:0 auto; animation: viewIn .35s var(--ease); }
-@keyframes viewIn{ from{ opacity:0; transform: translateY(6px);} to{ opacity:1; transform:none; } }
-.view-head{ margin-bottom: 22px; }
-.view-head h1{ font-size:22px; }
-.view-head p{ color: var(--text-muted); font-size:13.5px; margin-top:4px; }
-
-.card{
-  background: var(--surface); border:1px solid var(--border);
-  border-radius: var(--radius); box-shadow: var(--shadow-sm);
-  padding: 22px;
-}
-.grid-2{ display:grid; grid-template-columns: 1.3fr .95fr; gap:20px; align-items:start; }
-@media (max-width: 980px){ .grid-2{ grid-template-columns:1fr; } }
-
-.section-title{ font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color: var(--text-muted); margin-bottom:14px; display:flex; align-items:center; gap:8px;}
-
-/* ---- Banner sync module ---- */
-.banner-card{
-  border-radius: var(--radius); padding:18px 20px; margin-bottom:20px;
-  background: linear-gradient(135deg, var(--azul-hondo), var(--azul-upana));
-  color:#fff; display:flex; align-items:center; justify-content:space-between; gap:16px;
-  box-shadow: var(--shadow);
-}
-.banner-card .radar-pulse{ margin-top:0; opacity:1; }
-.banner-card .bt{ font-size:13px; font-weight:600; }
-.banner-card .bd{ font-size:12px; opacity:.8; margin-top:2px; }
-.banner-status-ok{ background: rgba(60,200,140,.18); color:#8CF0C4; font-size:11px; font-weight:700; padding:5px 11px; border-radius:99px; display:flex; align-items:center; gap:6px; }
-.banner-status-ok .dot{ width:6px; height:6px; border-radius:50%; background:#3CC88C; }
-
-/* ---- Form ---- */
-.field{ margin-bottom:16px; }
-.field label{ display:block; font-size:12.5px; font-weight:600; color: var(--text-muted); margin-bottom:6px; }
-.field .hint{ font-size:11.5px; color: var(--text-muted); margin-top:5px; }
-input[type=text], input[type=search], input[type=date], select, textarea{
-  width:100%; padding:11px 13px; border-radius: var(--radius-sm);
-  border:1px solid var(--border-strong); background: var(--surface-2); color: var(--text);
-  font-size:14px; font-family: inherit; transition: border .2s var(--ease), box-shadow .2s var(--ease);
-}
-textarea{ resize: vertical; min-height:90px; }
-input:focus, select:focus, textarea:focus{
-  outline:none; border-color: var(--azul-upana); box-shadow: 0 0 0 3px rgba(22,59,114,.15);
-}
-input:disabled, select:disabled{ opacity:.55; cursor:not-allowed; }
-
-.input-status{ position:relative; }
-.input-status .stat{
-  position:absolute; right:12px; top:50%; transform:translateY(-50%);
-  font-size:11px; font-weight:700; padding:2px 8px; border-radius:99px;
-}
-.stat-found{ background: var(--success-bg); color: var(--success); }
-.stat-search{ background: var(--warning-bg); color: var(--warning); }
-.stat-none{ background: var(--danger-bg); color: var(--danger); }
-
-.row-2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-@media (max-width:600px){ .row-2{ grid-template-columns:1fr; } }
-
-.switch-row{
-  display:flex; align-items:center; justify-content:space-between; gap:14px;
-  padding:13px 15px; border:1px solid var(--border); border-radius: var(--radius-sm);
-  background: var(--surface-2); margin-bottom:16px;
-}
-.switch-row .st{ font-size:13.5px; font-weight:600; }
-.switch-row .sd{ font-size:11.5px; color: var(--text-muted); margin-top:2px; }
-.switch{ position:relative; width:44px; height:25px; flex-shrink:0; }
-.switch input{ opacity:0; width:0; height:0; }
-.slider{
-  position:absolute; inset:0; background: var(--border-strong); border-radius:99px; cursor:pointer;
-  transition: background .25s var(--ease);
-}
-.slider::before{
-  content:""; position:absolute; width:19px; height:19px; left:3px; top:3px; background:#fff;
-  border-radius:50%; transition: transform .25s var(--ease); box-shadow: var(--shadow-sm);
-}
-.switch input:checked + .slider{ background: var(--oro-upana); }
-.switch input:checked + .slider::before{ transform: translateX(19px); }
-
-.student-preview{
-  display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius: var(--radius-sm);
-  background: var(--success-bg); border:1px solid transparent; margin-bottom:16px; animation: cardIn .3s var(--ease);
-}
-.student-preview .ico{ width:36px; height:36px; border-radius:50%; background: var(--success); color:#fff; display:grid; place-items:center; font-weight:700; font-family: var(--font-display); flex-shrink:0; }
-.student-preview .nm{ font-weight:600; font-size:14px; }
-.student-preview .id{ font-size:12px; color: var(--text-muted); font-family: var(--font-mono); }
-
-/* ---- Table ---- */
-.table-wrap{ overflow-x:auto; border-radius: var(--radius-sm); border:1px solid var(--border); }
-table{ width:100%; border-collapse: collapse; font-size:13.5px; min-width:640px; }
-thead th{
-  text-align:left; padding:11px 14px; background: var(--bg-alt); color: var(--text-muted);
-  font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:.04em;
-  border-bottom:1px solid var(--border); white-space:nowrap;
-}
-tbody td{ padding:12px 14px; border-bottom:1px solid var(--border); vertical-align:middle; }
-tbody tr{ transition: background .15s var(--ease); }
-tbody tr:hover{ background: var(--bg-alt); }
-tbody tr:last-child td{ border-bottom:none; }
-.badge{ display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; padding:3px 9px; border-radius:99px; }
-.badge-blue{ background:#E3ECFB; color:#1F4B8C; }
-.badge-gold{ background: var(--warning-bg); color: var(--warning); }
-.badge-gray{ background: var(--bg-alt); color: var(--text-muted); }
-[data-theme="dark"] .badge-blue{ background:#132444; color:#8FB2E8; }
-
-.toolbar{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px; align-items:center; }
-.toolbar .grow{ flex:1; min-width:180px; }
-.stat-cards{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
-@media (max-width:900px){ .stat-cards{ grid-template-columns:repeat(2,1fr);} }
-.stat-card{ background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:18px; box-shadow: var(--shadow-sm); }
-.stat-card .lbl{ font-size:11.5px; color: var(--text-muted); text-transform:uppercase; letter-spacing:.04em; font-weight:600; }
-.stat-card .val{ font-family: var(--font-display); font-size:28px; font-weight:700; margin-top:6px; }
-.stat-card .delta{ font-size:12px; color: var(--success); margin-top:4px; }
-
-.empty-state{ text-align:center; padding:50px 20px; color: var(--text-muted); }
-.empty-state svg{ width:42px; height:42px; margin-bottom:12px; opacity:.5; }
-.empty-state .t{ font-weight:600; color: var(--text); font-size:14.5px; }
-.empty-state .d{ font-size:13px; margin-top:4px; }
-
-/* ---- Modal ---- */
-.modal-overlay{
-  position:fixed; inset:0; background: rgba(10,18,32,.55); backdrop-filter: blur(3px);
-  display:flex; align-items:center; justify-content:center; z-index:100; padding:20px;
-  opacity:0; pointer-events:none; transition: opacity .22s var(--ease);
-}
-.modal-overlay.open{ opacity:1; pointer-events:auto; }
-.modal{
-  background: var(--surface); border-radius: var(--radius-lg); width:100%; max-width:420px;
-  box-shadow: var(--shadow-lg); padding:26px; transform: translateY(14px) scale(.97); transition: transform .22s var(--ease);
-}
-.modal-overlay.open .modal{ transform:none; }
-.modal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
-.modal-head h3{ font-size:17px; }
-.avatar-edit{ display:flex; flex-direction:column; align-items:center; gap:14px; margin-bottom:20px; }
-.avatar-edit .big-avatar{ width:88px; height:88px; border-radius:50%; object-fit:cover; border:3px solid var(--border); }
-.modal-actions{ display:flex; gap:10px; margin-top:8px; }
-.modal-actions .btn{ flex:1; }
-
-/* ---- Toast ---- */
-#toastHost{ position:fixed; bottom:22px; right:22px; display:flex; flex-direction:column; gap:10px; z-index:200; }
-.toast{
-  background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-lg); padding:13px 16px; font-size:13.5px; display:flex; align-items:center; gap:10px;
-  min-width:250px; animation: toastIn .3s var(--ease);
-}
-@keyframes toastIn{ from{ opacity:0; transform: translateX(16px);} to{ opacity:1; transform:none;} }
-.toast .dot{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-.toast.ok .dot{ background: var(--success); }
-.toast.err .dot{ background: var(--danger); }
-.toast.info .dot{ background: var(--azul-upana); }
-
-/* ---- Mobile sidebar ---- */
-.hamburger{ display:none; }
-@media (max-width: 880px){
-  .hamburger{ display:grid; }
-  .sidebar{ position:fixed; left:0; top:0; z-index:60; transform: translateX(-100%); box-shadow: var(--shadow-lg); }
-  .sidebar.open{ transform:none; }
-  .sidebar-overlay{ position:fixed; inset:0; background:rgba(10,18,32,.5); z-index:55; display:none; }
-  .sidebar-overlay.open{ display:block; }
-}
-
-.chart-box{ position:relative; height:280px; }
-.two-col-charts{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
-@media (max-width:900px){ .two-col-charts{ grid-template-columns:1fr; } }
-
-.loading-veil{
-  position:fixed; inset:0; background: var(--bg); display:flex; align-items:center; justify-content:center; z-index:300;
-  transition: opacity .3s var(--ease);
-}
-.spinner{ width:34px; height:34px; border-radius:50%; border:3px solid var(--border); border-top-color: var(--azul-upana); animation: spin 0.8s linear infinite; }
+.toast{ animation: fadeUp .25s cubic-bezier(.22,.61,.36,1); }
+.loading-veil{ position:fixed; inset:0; background:#EEF2F7; display:flex; align-items:center; justify-content:center; z-index:300; transition:opacity .3s ease; }
+.spinner{ width:34px; height:34px; border-radius:50%; border:3px solid #E1E5EC; border-top-color:#163B72; animation: spin .8s linear infinite; }
 @keyframes spin{ to{ transform: rotate(360deg); } }
 </style>
 </head>
-<body>
+<body class="font-body">
 
 <div id="loadingVeil" class="loading-veil"><div class="spinner"></div></div>
 
 <!-- ================= LOGIN ================= -->
-<div id="loginScreen" class="hidden">
-  <div class="login-aside">
-    <div class="brand-row">
-      <img src="https://es-academic.com/pictures/eswiki/76/Logo_Universidad_Panamericana.png" alt="UPANA">
+<div id="loginScreen" class="hidden-imp min-h-screen flex items-center justify-center p-6">
+  <div class="glass-strong w-full max-w-md rounded-3xl shadow-lift p-9 anim-in">
+    <div class="flex items-center gap-3 mb-8">
+      <img src="https://es-academic.com/pictures/eswiki/76/Logo_Universidad_Panamericana.png" class="w-11 h-11 rounded-xl bg-white p-1 shadow-soft" alt="UPANA">
       <div>
-        <div class="brand-name">Bitácora</div>
-        <div class="brand-sub">Call Center · UPANA Guatemala</div>
+        <div class="font-display font-bold text-lg text-upana-700 leading-tight">Call Center UPANA</div>
+        <div class="text-[11px] tracking-wider uppercase text-slate-500">Panel operativo · UPLOOK</div>
       </div>
     </div>
-    <div class="login-hero">
-      <span class="eyebrow">Servicio al estudiante</span>
-      <h1>Cada llamada, registrada con precisión.</h1>
-      <p>Bitácora conecta a los agentes del call center con Banner (Ellucian Application Navigator) para documentar cada interacción con los estudiantes de UPANA de forma trazable y auditable.</p>
-      <div class="radar-pulse"><span class="radar-dot"></span> Escucha activa hacia Application Navigator</div>
-    </div>
-    <div style="position:relative; z-index:1; font-size:12px; opacity:.6;">© <span id="yearTag"></span> Universidad Panamericana de Guatemala</div>
-  </div>
-  <div class="login-main">
-    <div class="login-card">
-      <h2>Iniciar sesión</h2>
-      <div class="sub">Ingresa con tu cuenta institucional de Microsoft para continuar.</div>
-      <button id="btnMicrosoftLogin" class="btn btn-ms">
-        <span class="ms-logo"><span style="background:#F25022;"></span><span style="background:#7FBA00;"></span><span style="background:#00A4EF;"></span><span style="background:#FFB900;"></span></span>
-        Continuar con Microsoft
-      </button>
-      <div id="loginError" class="hint" style="color:var(--danger); margin-top:12px; display:none;"></div>
-      <div class="login-foot">Acceso exclusivo para personal autorizado del call center de UPANA.</div>
-    </div>
+    <h2 class="font-display font-bold text-2xl text-slate-800">Iniciar sesión</h2>
+    <p class="text-sm text-slate-500 mt-1 mb-7">Ingresa con tu cuenta institucional de Microsoft.</p>
+    <button id="btnMicrosoftLogin" class="w-full bg-white border border-slate-300 rounded-xl py-3 px-4 flex items-center justify-center gap-3 font-semibold text-sm text-slate-700 hover:shadow-soft transition-all active:scale-[.99]">
+      <span class="grid grid-cols-2 gap-[2px] w-[18px] h-[18px]">
+        <span class="bg-[#F25022]"></span><span class="bg-[#7FBA00]"></span><span class="bg-[#00A4EF]"></span><span class="bg-[#FFB900]"></span>
+      </span>
+      Continuar con Microsoft
+    </button>
+    <div id="loginError" class="hidden-imp text-xs text-red-600 mt-3"></div>
+    <div class="text-center text-[11px] text-slate-400 mt-7">Acceso exclusivo para personal autorizado del call center de UPANA.</div>
   </div>
 </div>
 
-<!-- ================= APP SHELL ================= -->
-<div id="appShell" class="hidden">
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-  <aside class="sidebar" id="sidebar">
-    <div class="brand-row">
-      <img src="https://es-academic.com/pictures/eswiki/76/Logo_Universidad_Panamericana.png" alt="UPANA">
-      <div>
-        <div class="brand-name">Bitácora</div>
-        <div class="brand-sub">UPANA Call Center</div>
-      </div>
-    </div>
+<!-- ================= APP ================= -->
+<div id="appShell" class="hidden-imp min-h-screen">
 
-    <div class="nav-group">
-      <div class="nav-label">Operación</div>
-      <div class="nav-item" data-view="nueva-llamada">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5a2 2 0 0 1 2 2M15 1a6 6 0 0 1 6 6M10.5 13.5c-4-4-5-7-5.3-8.3a1.5 1.5 0 0 1 .4-1.5l1.6-1.6a1 1 0 0 1 1.5.1l2 2.7a1 1 0 0 1-.1 1.3L9.2 7.6c.6 1.6 3.6 4.6 5.2 5.2l1.4-1.4a1 1 0 0 1 1.3-.1l2.7 2a1 1 0 0 1 .1 1.5l-1.6 1.6a1.5 1.5 0 0 1-1.5.4c-1.3-.3-4.3-1.3-8.3-5.3Z"/></svg>
-        Nueva llamada
-      </div>
-      <div class="nav-item" data-view="historial">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/><path d="M12 7v5l3 3"/></svg>
-        Mi historial
-      </div>
-    </div>
-
-    <div class="nav-group" id="navSupervisor">
-      <div class="nav-label">Supervisión</div>
-      <div class="nav-item" data-view="buscar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        Buscar registros
-      </div>
-      <div class="nav-item" data-view="metricas">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6"/><rect x="12" y="7" width="3" height="10"/><rect x="17" y="13" width="3" height="4"/></svg>
-        Métricas
-      </div>
-    </div>
-
-    <div class="nav-group" id="navJefe">
-      <div class="nav-label">Dirección</div>
-      <div class="nav-item" data-view="reportes">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v9h-9"/></svg>
-        Reportes
-      </div>
-      <div class="nav-item" data-view="auditoria">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M12 3a9 9 0 1 0 9 9"/><path d="M21 3v6h-6"/></svg>
-        Auditoría
-      </div>
-      <div class="nav-item" data-view="exportar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
-        Exportar datos
-      </div>
-    </div>
-
-    <div class="sidebar-foot">
-      <div class="nav-item" id="btnThemeToggle">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4m11.4-11.4 1.4-1.4"/></svg>
-        <span id="themeLabel">Modo oscuro</span>
-      </div>
-      <div class="nav-item" id="btnLogout" style="color:var(--danger);">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
-        Cerrar sesión
-      </div>
-    </div>
-  </aside>
-
-  <div class="main-col">
-    <div class="topbar">
-      <div style="display:flex; align-items:center; gap:14px;">
-        <div class="icon-btn hamburger" id="btnHamburger">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-        </div>
-        <div class="topbar-title" id="viewTitle">Nueva llamada
-          <span class="muted" id="viewSubtitle">Registra la atención brindada al estudiante</span>
+  <!-- NAVBAR -->
+  <nav class="glass-strong sticky top-0 z-40 shadow-soft">
+    <div class="max-w-7xl mx-auto px-5 py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <img src="https://es-academic.com/pictures/eswiki/76/Logo_Universidad_Panamericana.png" class="w-9 h-9 rounded-lg bg-white p-1 shadow-soft" alt="UPANA">
+        <div class="hidden sm:block">
+          <div class="font-display font-bold text-sm text-upana-700 leading-tight">Call Center UPANA</div>
+          <div class="text-[10px] tracking-wider uppercase text-slate-500">Panel operativo</div>
         </div>
       </div>
-      <div class="topbar-right">
-        <div class="icon-btn" id="btnRefresh" title="Actualizar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 15.3-6.5L21 8M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.3 6.5L3 16m0 5v-5h5"/></svg>
+
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div id="extBadge" class="hidden sm:flex items-center gap-1.5 text-xs font-semibold bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full font-mono">Ext. —</div>
+
+        <div id="statusPill" class="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-100 text-slate-600">
+          <span class="w-2 h-2 rounded-full bg-slate-400 pulse-dot" id="statusDot"></span>
+          <span id="statusPillText">Sin estado</span>
+          <span class="font-mono opacity-70" id="statusPillTime">00:00</span>
         </div>
-        <div class="user-menu-wrap">
-          <img id="topAvatar" class="avatar" src="" alt="Perfil">
-          <div class="user-menu" id="userMenu">
-            <div class="user-menu-head">
-              <div class="name" id="menuName">—</div>
-              <div class="mail" id="menuMail">—</div>
-              <span class="role-badge" id="menuRoleBadge">Agente</span>
+
+        <button id="btnSwitchView" class="hidden-imp items-center gap-2 text-xs font-bold px-3.5 py-2 rounded-full bg-upana text-white hover:bg-upana-600 transition-all shadow-soft">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <span id="switchViewLabel">Ver Supervisor</span>
+        </button>
+
+        <button id="btnVisualConfig" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 grid place-items-center transition-all" title="Personalizar fondo">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="7.5" cy="10.5" r="1.2" fill="currentColor"/><circle cx="12" cy="7" r="1.2" fill="currentColor"/><circle cx="16.5" cy="10.5" r="1.2" fill="currentColor"/><circle cx="9" cy="15.5" r="1.2" fill="currentColor"/></svg>
+        </button>
+
+        <div class="relative">
+          <img id="topAvatar" src="" class="w-9 h-9 rounded-full object-cover cursor-pointer ring-2 ring-white shadow-soft" alt="Perfil">
+          <div id="userMenu" class="hidden-imp absolute right-0 top-11 w-64 glass-strong rounded-2xl shadow-lift p-2 z-50">
+            <div class="px-3 py-2.5 border-b border-slate-200 mb-1">
+              <div class="font-semibold text-sm text-slate-800" id="menuName">—</div>
+              <div class="text-xs text-slate-500" id="menuPuesto">—</div>
+              <div class="text-xs text-slate-400 font-mono" id="menuCorreo">—</div>
             </div>
-            <div class="user-menu-item" id="btnOpenProfile">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="m3 8 8.4 5.3a2 2 0 0 0 2.2 0L22 8"/></svg>
-              Editar foto de perfil
-            </div>
-            <div class="user-menu-item" id="btnLogout2">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+            <div class="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg cursor-pointer" id="btnLogout">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
               Cerrar sesión
             </div>
           </div>
         </div>
       </div>
     </div>
+  </nav>
 
-    <div id="viewsHost" class="scroll-thin" style="overflow-y:auto;">
+  <!-- HERO / SALUDO (texto directo sobre el fondo, sin card) -->
+  <div class="max-w-7xl mx-auto px-5 pt-8 pb-2">
+    <h1 class="font-display font-bold text-2xl sm:text-3xl on-bg-text" id="saludoNombre">Hola 👋</h1>
+    <p class="text-sm sm:text-[15px] on-bg-sub mt-1" id="saludoPuesto">Panel operativo del call center</p>
+  </div>
 
-      <!-- ---- VIEW: Nueva llamada ---- -->
-      <section class="view" id="view-nueva-llamada">
-        <div class="banner-card">
-          <div>
-            <div class="bt">Sincronización con Banner (Application Navigator)</div>
-            <div class="bd">Escuchando eventos <code class="mono">postMessage</code> desde appnav.upana.edu.gt para autocompletar la llamada.</div>
+  <main class="max-w-7xl mx-auto px-5 pb-16">
+
+    <!-- ============ VISTA AGENTE ============ -->
+    <section id="vistaAgente" class="anim-in">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-4">
+
+        <!-- Softphone -->
+        <div class="glass rounded-2xl shadow-soft p-5 lg:col-span-1">
+          <div class="text-xs font-bold uppercase tracking-wide text-slate-500 mb-4">Softphone · Mi estado</div>
+          <div class="grid grid-cols-1 gap-2.5" id="botonesEstado">
+            <button data-estado="Disponible" data-color="green" class="btn-estado flex items-center justify-between px-4 py-3 rounded-xl bg-green-50 text-green-700 font-semibold text-sm hover:bg-green-100 transition-all border border-green-100">
+              Disponible <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+            </button>
+            <button data-estado="En Llamada" data-color="red" class="btn-estado flex items-center justify-between px-4 py-3 rounded-xl bg-red-50 text-red-700 font-semibold text-sm hover:bg-red-100 transition-all border border-red-100">
+              En llamada <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+            </button>
+            <button data-estado="Break" data-color="yellow" class="btn-estado flex items-center justify-between px-4 py-3 rounded-xl bg-yellow-50 text-yellow-700 font-semibold text-sm hover:bg-yellow-100 transition-all border border-yellow-100">
+              Break / Café <span class="w-2.5 h-2.5 rounded-full bg-yellow-500"></span>
+            </button>
+            <button data-estado="Almuerzo" data-color="orange" class="btn-estado flex items-center justify-between px-4 py-3 rounded-xl bg-orange-50 text-orange-700 font-semibold text-sm hover:bg-orange-100 transition-all border border-orange-100">
+              Almuerzo <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
+            </button>
+            <button data-estado="Backoffice" data-color="gray" class="btn-estado flex items-center justify-between px-4 py-3 rounded-xl bg-slate-100 text-slate-600 font-semibold text-sm hover:bg-slate-200 transition-all border border-slate-200">
+              Gestión interna / Backoffice <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+            </button>
           </div>
-          <div class="banner-status-ok"><span class="dot"></span> <span id="bannerStatusText">En espera</span></div>
+          <div class="mt-4 pt-4 border-t border-slate-200 flex items-center justify-between text-sm">
+            <span class="text-slate-500">Extensión asignada</span>
+            <span class="font-mono font-bold text-upana-700" id="extAgente">—</span>
+          </div>
         </div>
 
-        <div class="grid-2">
-          <div class="card">
-            <div class="section-title">Datos de la llamada</div>
-            <form id="formLlamada">
-              <div class="switch-row">
-                <div>
-                  <div class="st">No es estudiante</div>
-                  <div class="sd">Actívalo si la llamada no corresponde a un estudiante de UPANA</div>
-                </div>
-                <label class="switch">
-                  <input type="checkbox" id="chkNoEstudiante">
-                  <span class="slider"></span>
-                </label>
-              </div>
-
-              <div id="bloqueEstudiante">
-                <div class="field">
-                  <label for="inputCarnet">Carnet / ID de estudiante</label>
-                  <div class="input-status">
-                    <input type="text" id="inputCarnet" placeholder="Ej. 1234-20-12345" class="mono" autocomplete="off">
-                    <span class="stat" id="carnetStat"></span>
-                  </div>
-                  <div class="hint">Se autocompleta al recibir el evento de Banner o al escribir un carnet registrado.</div>
-                </div>
-                <div id="studentPreview"></div>
-                <div class="field">
-                  <label for="inputNombre">Nombre completo del estudiante</label>
-                  <input type="text" id="inputNombre" placeholder="Se autocompleta automáticamente" disabled>
-                </div>
-              </div>
-
-              <div id="bloqueExterno" class="hidden">
-                <div class="field">
-                  <label for="selectAsuntoExterno">¿De qué trató la llamada?</label>
-                  <select id="selectAsuntoExterno">
-                    <option value="">Selecciona una opción…</option>
-                    <option value="Proveedor">Proveedor / gestión administrativa</option>
-                    <option value="Aspirante">Aspirante (aún no inscrito)</option>
-                    <option value="Padre_Familia">Padre o encargado de familia</option>
-                    <option value="Informacion_General">Información general institucional</option>
-                    <option value="Otro">Otro asunto externo</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="inputNombreExterno">Nombre de quien llama</label>
-                  <input type="text" id="inputNombreExterno" placeholder="Nombre completo">
-                </div>
-              </div>
-
-              <div class="row-2">
-                <div class="field">
-                  <label for="selectTipoLlamada">Tipo de llamada</label>
-                  <select id="selectTipoLlamada">
-                    <option value="Entrante">Entrante</option>
-                    <option value="Saliente">Saliente</option>
-                    <option value="Whatsapp">WhatsApp</option>
-                    <option value="Correo">Correo / ticket</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="selectMotivo">Motivo principal</label>
-                  <select id="selectMotivo">
-                    <option value="Pagos">Pagos y facturación</option>
-                    <option value="Inscripcion">Inscripción</option>
-                    <option value="Notas">Notas y expediente</option>
-                    <option value="Constancias">Constancias y documentos</option>
-                    <option value="Soporte_Tecnico">Soporte técnico / plataforma</option>
-                    <option value="Otro">Otro</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="field">
-                <label for="inputDetalles">Detalles de la atención</label>
-                <textarea id="inputDetalles" placeholder="Describe brevemente la solicitud y la solución brindada…"></textarea>
-              </div>
-
-              <button type="submit" class="btn btn-primary btn-block" id="btnGuardarLlamada">Guardar registro</button>
-            </form>
-          </div>
-
-          <div class="card">
-            <div class="section-title">Registros de hoy</div>
-            <div id="hoyResumen" class="stat-cards" style="grid-template-columns:1fr 1fr; margin-bottom:18px;">
-              <div class="stat-card"><div class="lbl">Llamadas hoy</div><div class="val" id="statHoyTotal">0</div></div>
-              <div class="stat-card"><div class="lbl">Último registro</div><div class="val" style="font-size:15px;" id="statHoyUltimo">—</div></div>
+        <!-- Buscador Banner + Buzón -->
+        <div class="lg:col-span-2 flex flex-col gap-5">
+          <div class="glass rounded-2xl shadow-soft p-5">
+            <div class="flex items-center justify-between mb-4">
+              <div class="text-xs font-bold uppercase tracking-wide text-slate-500">Consulta de estudiante · Banner (TSAAREV)</div>
+              <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-600">Simulación</span>
             </div>
-            <div id="listaRapida"></div>
+            <div class="flex gap-2">
+              <input id="inputBuscarEstudiante" type="text" placeholder="Buscar por carné o nombre…" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-upana/30 focus:border-upana bg-white/90">
+              <button id="btnBuscarEstudiante" class="px-4 py-2.5 rounded-xl bg-upana text-white text-sm font-semibold hover:bg-upana-600 transition-all">Buscar</button>
+            </div>
+            <div id="resultadoBusqueda" class="mt-4"></div>
+          </div>
+
+          <div class="glass rounded-2xl shadow-soft p-5 flex-1">
+            <div class="text-xs font-bold uppercase tracking-wide text-slate-500 mb-4">Buzón de retroalimentación</div>
+            <div id="buzonFeedback" class="flex flex-col gap-3 max-h-[320px] overflow-y-auto scroll-thin pr-1"></div>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- ---- VIEW: Historial ---- -->
-      <section class="view hidden" id="view-historial">
-        <div class="card">
-          <div class="toolbar">
-            <div class="section-title" style="margin-bottom:0;">Mi historial de hoy</div>
-            <div style="flex:1;"></div>
-            <input type="date" id="filtroFechaHistorial" style="max-width:170px;">
+    <!-- ============ VISTA SUPERVISOR ============ -->
+    <section id="vistaSupervisor" class="hidden-imp anim-in mt-4">
+      <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+        <div class="xl:col-span-2">
+          <div class="flex items-center justify-between mb-3">
+            <div class="text-xs font-bold uppercase tracking-wide on-bg-text">Floor Monitor · Estado en vivo</div>
+            <span class="text-[11px] on-bg-sub" id="floorResumen">— agentes</span>
           </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Hora</th><th>Estudiante / Contacto</th><th>ID</th><th>Tipo</th><th>Motivo</th><th>Detalles</th></tr></thead>
-              <tbody id="tablaHistorial"></tbody>
-            </table>
-          </div>
-          <div id="historialEmpty"></div>
+          <div id="floorGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"></div>
         </div>
-      </section>
 
-      <!-- ---- VIEW: Buscar (Supervisor) ---- -->
-      <section class="view hidden" id="view-buscar">
-        <div class="card">
-          <div class="toolbar">
-            <input type="text" id="buscarAgente" class="grow" placeholder="Filtrar por agente…">
-            <input type="text" id="buscarCarnet" class="grow mono" placeholder="Filtrar por carnet…">
-            <input type="date" id="buscarFecha">
-            <button class="btn btn-ghost btn-sm" id="btnLimpiarBusqueda">Limpiar</button>
+        <div class="glass rounded-2xl shadow-soft p-5 h-fit">
+          <div class="text-xs font-bold uppercase tracking-wide text-slate-500 mb-4">Auditoría y feedback</div>
+          <div class="mb-3">
+            <label class="text-xs font-semibold text-slate-500 block mb-1.5">Agente</label>
+            <select id="selectAgenteFeedback" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm bg-white/90 focus:outline-none focus:ring-2 focus:ring-upana/30"></select>
           </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Fecha</th><th>Agente</th><th>Estudiante / Contacto</th><th>ID</th><th>Tipo</th><th>Motivo</th><th>Detalles</th><th></th></tr></thead>
-              <tbody id="tablaBuscar"></tbody>
-            </table>
+          <div class="mb-4">
+            <label class="text-xs font-semibold text-slate-500 block mb-2">Puntuación</label>
+            <div class="flex gap-1" id="starsInput">
+              <svg data-val="1" class="star-btn w-7 h-7 text-slate-300" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2z"/></svg>
+              <svg data-val="2" class="star-btn w-7 h-7 text-slate-300" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2z"/></svg>
+              <svg data-val="3" class="star-btn w-7 h-7 text-slate-300" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2z"/></svg>
+              <svg data-val="4" class="star-btn w-7 h-7 text-slate-300" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2z"/></svg>
+              <svg data-val="5" class="star-btn w-7 h-7 text-slate-300" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2z"/></svg>
+            </div>
           </div>
-          <div id="buscarEmpty"></div>
-        </div>
-      </section>
-
-      <!-- ---- VIEW: Métricas (Supervisor) ---- -->
-      <section class="view hidden" id="view-metricas">
-        <div class="stat-cards" id="metricasCards"></div>
-        <div class="card">
-          <div class="section-title">Llamadas por agente (hoy)</div>
-          <div class="chart-box"><canvas id="chartAgentes"></canvas></div>
-        </div>
-      </section>
-
-      <!-- ---- VIEW: Reportes (Jefe) ---- -->
-      <section class="view hidden" id="view-reportes">
-        <div class="stat-cards" id="reportesCards"></div>
-        <div class="two-col-charts">
-          <div class="card">
-            <div class="section-title">Volumen de llamadas (últimos 7 días)</div>
-            <div class="chart-box"><canvas id="chartVolumen"></canvas></div>
+          <div class="mb-4">
+            <label class="text-xs font-semibold text-slate-500 block mb-1.5">Comentario</label>
+            <textarea id="inputComentarioFeedback" rows="4" placeholder="Escribe una observación cualitativa…" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm bg-white/90 focus:outline-none focus:ring-2 focus:ring-upana/30 resize-none"></textarea>
           </div>
-          <div class="card">
-            <div class="section-title">Distribución por motivo</div>
-            <div class="chart-box"><canvas id="chartMotivos"></canvas></div>
-          </div>
+          <button id="btnEnviarFeedback" class="w-full py-3 rounded-xl bg-oro text-[#2A2103] font-bold text-sm hover:brightness-105 transition-all shadow-soft">Enviar feedback</button>
         </div>
-      </section>
+      </div>
+    </section>
+  </main>
+</div>
 
-      <!-- ---- VIEW: Auditoría (Jefe) ---- -->
-      <section class="view hidden" id="view-auditoria">
-        <div class="card">
-          <div class="section-title">Registro de auditoría</div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Registro</th><th>Detalle del cambio</th></tr></thead>
-              <tbody id="tablaAuditoria"></tbody>
-            </table>
-          </div>
-          <div id="auditoriaEmpty"></div>
-        </div>
-      </section>
-
-      <!-- ---- VIEW: Exportar (Jefe) ---- -->
-      <section class="view hidden" id="view-exportar">
-        <div class="card">
-          <div class="section-title">Exportar datos</div>
-          <p style="color:var(--text-muted); font-size:13.5px; margin-bottom:18px;">Descarga el total de registros de la bitácora en formato CSV para análisis externo o respaldo institucional.</p>
-          <button class="btn btn-gold" id="btnExportarCSV">Descargar CSV de todos los registros</button>
-        </div>
-      </section>
-
+<!-- ================= PANEL CONFIGURACIÓN VISUAL ================= -->
+<div id="visualConfigOverlay" class="hidden-imp fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-5">
+  <div class="glass-strong rounded-3xl shadow-lift w-full max-w-md p-6 anim-in">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-display font-bold text-lg text-slate-800">Personalizar fondo</h3>
+      <button id="btnCerrarVisualConfig" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 grid place-items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
     </div>
+
+    <div class="mb-5">
+      <label class="text-xs font-semibold text-slate-500 block mb-2.5">Colores predefinidos</label>
+      <div class="flex flex-wrap gap-2.5" id="swatchesHost"></div>
+    </div>
+
+    <div class="mb-5">
+      <label class="text-xs font-semibold text-slate-500 block mb-2">Color personalizado</label>
+      <div class="flex items-center gap-3">
+        <input type="color" id="inputColorPersonalizado" value="#EEF2F7">
+        <span class="text-xs text-slate-500">Elige cualquier tono claro para el fondo</span>
+      </div>
+    </div>
+
+    <div class="mb-5">
+      <label class="text-xs font-semibold text-slate-500 block mb-2">Imagen de fondo (URL)</label>
+      <div class="flex gap-2">
+        <input type="text" id="inputUrlFondo" placeholder="https://…" class="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white/90">
+        <button id="btnAplicarUrlFondo" class="px-3.5 py-2 rounded-xl bg-upana text-white text-xs font-semibold hover:bg-upana-600">Aplicar</button>
+      </div>
+    </div>
+
+    <div class="mb-6">
+      <label class="text-xs font-semibold text-slate-500 block mb-2">Cargar imagen local</label>
+      <input type="file" id="inputArchivoFondo" accept="image/*" class="text-xs w-full">
+    </div>
+
+    <button id="btnRestaurarFondo" class="w-full py-2.5 rounded-xl border border-slate-300 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all">Restaurar fondo por defecto</button>
   </div>
 </div>
 
-<!-- ================= MODAL PERFIL ================= -->
-<div class="modal-overlay" id="modalPerfil">
-  <div class="modal">
-    <div class="modal-head">
-      <h3>Editar foto de perfil</h3>
-      <div class="icon-btn" id="btnCerrarModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
-    </div>
-    <div class="avatar-edit">
-      <img id="previewAvatar" class="big-avatar" src="" alt="Vista previa">
-      <input type="file" id="inputFotoPerfil" accept="image/*">
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost btn-block" id="btnCancelarFoto">Cancelar</button>
-      <button class="btn btn-primary btn-block" id="btnGuardarFoto">Guardar foto</button>
-    </div>
-  </div>
-</div>
-
-<div id="toastHost"></div>
+<div id="toastHost" class="fixed bottom-5 right-5 flex flex-col gap-2.5 z-[200]"></div>
 
 <script>
-/* ================================================================
-   BITÁCORA · UPANA — Lógica de aplicación
-   ================================================================ */
+/* =====================================================================
+   CALL CENTER UPANA · Lógica de aplicación
+   ===================================================================== */
 
-// ---------- Firebase init ----------
+// ---------- Firebase ----------
 const firebaseConfig = {
   apiKey: "AIzaSyAdLGsavsans6OmLeyD_9TndcrAObDQgqA",
   authDomain: "bitacora-3fc27.firebaseapp.com",
@@ -835,674 +340,517 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const storage = firebase.storage();
 
 const msProvider = new firebase.auth.OAuthProvider('microsoft.com');
 msProvider.setCustomParameters({ tenant: 'common', prompt: 'select_account' });
 msProvider.addScope('User.Read');
 
-// ---------- Estado global ----------
+// ---------- Listado oficial de personal (roles y accesos duales) ----------
+const usuariosUPANA = [
+  { nombre:"Magister Joselyn Maria Anita Juárez Girón", ext:"1111", correo:"jmjuarez@upana.edu.gt", puesto:"Coordinadora de Atracción Estudiantil, admisiones y Comunicación Interna", permisoDual:true },
+  { nombre:"Mayra Maribel Arévalo Ruiz", ext:"8033", correo:"mmarevalo@upana.edu.gt", puesto:"Asistente de Call Center y Servicio al Cliente", permisoDual:true },
+  { nombre:"José Pablo Ibáñez Ibáñez", ext:"8029", correo:"jibanez@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:true },
+  { nombre:"Nestor Daniel Ozuna Galvez", ext:"8015", correo:"nozuna@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:true },
+  { nombre:"Merlin Carolina Bajan Ibañez", ext:"8004", correo:"mbajan@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"César Daniel Coyoy", ext:"8014", correo:"ccoyoy@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"Josabeth Mishell de León Flores", ext:"8021", correo:"jmdeleon@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"Jackeline Stephanie Castillo Calderón", ext:"8008", correo:"jcastilloc@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"José Alejandro Vasquez Alvarez", ext:"8006", correo:"javasquez@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"Evelin Saraí Churumia Gómez", ext:"8001", correo:"echurumia@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"Tania Izamar de León Quiñonez", ext:"8010", correo:"tdeleon@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"Marta Julia Morales Solorzano", ext:"8028", correo:"mmoraless@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"Jonatan Rafael Sanchez Tinti", ext:"8027", correo:"jsanchezt@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"Justa Gabriela Jaes Sánchez", ext:"8002", correo:"jjaes@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"Bryan Christopher Hernández Cruz", ext:"8026", correo:"bhernandez@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"Diego Rolando Chiché Pineda", ext:"8017", correo:"dchiche@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"Jorge Mario Veliz Acajabón", ext:"8013", correo:"jveliz@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"Joselyne Andrea Velásquez Padilla", ext:"8007", correo:"javelasquez@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"Andrea María Jiménez Orellana", ext:"8016", correo:"amjimenez@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"Javier Sebastian Alvarez Ruano", ext:"8003", correo:"jsalvarez@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"Synndy Elizabeth Sanchez Salazar", ext:"8020", correo:"sesanchez@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"Anthony Ismar García Revolorio", ext:"8011", correo:"aigarcia@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"Mildred Gabriela Cordero Canté", ext:"8009", correo:"mcordero@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"Madelin Gabriela Ovando Franco", ext:"8023", correo:"movando@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"Mónica Paola Ordóñez Morales", ext:"8005", correo:"mpordonez@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"Maria José Perdomo Castañeda", ext:"8030", correo:"mperdomo@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false },
+  { nombre:"Ashley Dinora Mishelle Alvarado López", ext:"8018", correo:"aalvarado@upana.edu.gt", puesto:"Agente de Call Center y Servicio al Cliente", permisoDual:false }
+];
+
+// ---------- Simulación Banner TSAAREV (mock local) ----------
+const MOCK_ESTUDIANTES = {
+  "1234-20-12345": { nombre:"María Fernanda López Castillo", carrera:"Ingeniería en Sistemas", saldo:"Q 1,250.00", alertas:["Pendiente de pago de laboratorio"] },
+  "5678-19-98765": { nombre:"Carlos Andrés Ramírez Solís", carrera:"Administración de Empresas", saldo:"Q 0.00", alertas:[] },
+  "9988-21-11223": { nombre:"Ana Lucía Morales Pérez", carrera:"Derecho", saldo:"Q 480.00", alertas:["Documentación incompleta"] },
+  "4455-18-33445": { nombre:"José Manuel Girón Estrada", carrera:"Psicología Clínica", saldo:"Q 0.00", alertas:["Constancia de EPS pendiente"] },
+  "7766-22-55667": { nombre:"Paola Nicté Hernández Ajú", carrera:"Arquitectura", saldo:"Q 2,100.00", alertas:["Mora administrativa"] },
+  "3322-20-77889": { nombre:"Diego Alejandro Sam Cifuentes", carrera:"Ingeniería Industrial", saldo:"Q 0.00", alertas:[] },
+  "6611-19-44556": { nombre:"Gabriela Isabel Roca Mazariegos", carrera:"Mercadotecnia", saldo:"Q 350.00", alertas:[] }
+};
+
+const ESTADO_META = {
+  "Disponible": { color:"#16A34A", dot:"bg-green-500" },
+  "En Llamada": { color:"#DC2626", dot:"bg-red-500" },
+  "Break": { color:"#D97706", dot:"bg-yellow-500" },
+  "Almuerzo": { color:"#EA580C", dot:"bg-orange-500" },
+  "Backoffice": { color:"#64748B", dot:"bg-slate-400" }
+};
+
 const state = {
   user: null,
-  rol: 'agente',           // agente | supervisor | jefe
-  perfilDoc: null,
-  currentView: 'nueva-llamada',
-  estudianteSeleccionado: null,
-  todosLosRegistros: [],   // cache para vistas de supervisor/jefe
-  misRegistrosHoy: []
+  perfil: null,          // registro en usuariosUPANA (o fallback)
+  vista: 'agente',        // agente | supervisor
+  miEstadoDesde: null,
+  timerInterval: null,
+  floorDocs: {},
+  starsSeleccionadas: 0
 };
 
 const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/initials/svg?backgroundType=gradientLinear&fontWeight=600&seed=';
-
-// ---------- Mock Data de contingencia (estudiantes UPANA) ----------
-const MOCK_ESTUDIANTES = {
-  "1234-20-12345": { nombre: "María Fernanda López Castillo", carrera: "Ingeniería en Sistemas" },
-  "5678-19-98765": { nombre: "Carlos Andrés Ramírez Solís", carrera: "Administración de Empresas" },
-  "9988-21-11223": { nombre: "Ana Lucía Morales Pérez", carrera: "Derecho" },
-  "4455-18-33445": { nombre: "José Manuel Girón Estrada", carrera: "Psicología Clínica" },
-  "7766-22-55667": { nombre: "Paola Nicté Hernández Ajú", carrera: "Arquitectura" },
-  "3322-20-77889": { nombre: "Diego Alejandro Sam Cifuentes", carrera: "Ingeniería Industrial" },
-  "6611-19-44556": { nombre: "Gabriela Isabel Roca Mazariegos", carrera: "Mercadotecnia" }
-};
+const correoKey = (c)=> (c||'').toLowerCase().replace(/[@.]/g,'_');
 
 // ================================================================
-// UTILIDADES
+// TOAST
 // ================================================================
 function toast(msg, type='info'){
+  const colors = { ok:'bg-green-50 text-green-700 border-green-200', err:'bg-red-50 text-red-700 border-red-200', info:'bg-blue-50 text-blue-700 border-blue-200' };
   const host = document.getElementById('toastHost');
   const el = document.createElement('div');
-  el.className = `toast ${type}`;
-  el.innerHTML = `<span class="dot"></span><span>${msg}</span>`;
+  el.className = `toast glass-strong border ${colors[type]||colors.info} rounded-xl px-4 py-3 text-sm font-medium shadow-lift min-w-[240px]`;
+  el.textContent = msg;
   host.appendChild(el);
-  setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateX(16px)'; setTimeout(()=>el.remove(), 250); }, 3600);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .25s'; setTimeout(()=> el.remove(), 250); }, 3500);
 }
-function fmtFecha(d){
-  if(!d) return '—';
-  const date = d.toDate ? d.toDate() : new Date(d);
-  return date.toLocaleString('es-GT', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-}
-function fmtHora(d){
-  if(!d) return '—';
-  const date = d.toDate ? d.toDate() : new Date(d);
-  return date.toLocaleTimeString('es-GT', { hour:'2-digit', minute:'2-digit' });
-}
-function esHoy(d){
-  if(!d) return false;
-  const date = d.toDate ? d.toDate() : new Date(d);
-  const now = new Date();
-  return date.toDateString() === now.toDateString();
-}
-function iniciales(nombre){
-  return (nombre||'??').split(' ').filter(Boolean).slice(0,2).map(s=>s[0]).join('').toUpperCase();
-}
-
-// ================================================================
-// TEMA (claro / oscuro)
-// ================================================================
-function initTheme(){
-  const saved = localStorage.getItem('bitacora_theme') || 'light';
-  applyTheme(saved);
-}
-function applyTheme(mode){
-  document.documentElement.setAttribute('data-theme', mode === 'dark' ? 'dark' : 'light');
-  localStorage.setItem('bitacora_theme', mode);
-  document.getElementById('themeLabel').textContent = mode === 'dark' ? 'Modo claro' : 'Modo oscuro';
-}
-document.getElementById('btnThemeToggle').addEventListener('click', ()=>{
-  const cur = document.documentElement.getAttribute('data-theme');
-  applyTheme(cur === 'dark' ? 'light' : 'dark');
-});
 
 // ================================================================
 // AUTENTICACIÓN
 // ================================================================
 document.getElementById('btnMicrosoftLogin').addEventListener('click', async ()=>{
   const errEl = document.getElementById('loginError');
-  errEl.style.display = 'none';
+  errEl.classList.add('hidden-imp');
   try{
     await auth.signInWithPopup(msProvider);
   }catch(err){
     console.error(err);
-    errEl.textContent = 'No se pudo iniciar sesión con Microsoft: ' + (err.message || err.code);
-    errEl.style.display = 'block';
+    errEl.textContent = 'No se pudo iniciar sesión: ' + (err.message || err.code);
+    errEl.classList.remove('hidden-imp');
   }
 });
-
 function cerrarSesion(){
-  auth.signOut().then(()=> toast('Sesión cerrada', 'info'));
+  detenerMiTimer();
+  auth.signOut().then(()=> toast('Sesión cerrada','info'));
 }
 document.getElementById('btnLogout').addEventListener('click', cerrarSesion);
-document.getElementById('btnLogout2').addEventListener('click', cerrarSesion);
 
 auth.onAuthStateChanged(async (user)=>{
   const veil = document.getElementById('loadingVeil');
   if(user){
     state.user = user;
-    await cargarOCrearPerfil(user);
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('appShell').classList.remove('hidden');
+    resolverPerfil(user);
+    document.getElementById('loginScreen').classList.add('hidden-imp');
+    document.getElementById('appShell').classList.remove('hidden-imp');
     pintarUsuario();
-    aplicarPermisosDeRol();
-    cambiarVista('nueva-llamada');
-    suscribirMisRegistrosHoy();
+    aplicarPermisos();
+    suscribirMiEstado();
+    suscribirBuzon();
+    poblarSelectAgentes();
   } else {
-    state.user = null;
-    document.getElementById('appShell').classList.add('hidden');
-    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('appShell').classList.add('hidden-imp');
+    document.getElementById('loginScreen').classList.remove('hidden-imp');
   }
-  veil.style.opacity = '0';
-  setTimeout(()=> veil.classList.add('hidden'), 300);
+  veil.style.opacity='0';
+  setTimeout(()=> veil.classList.add('hidden-imp'), 300);
 });
 
-async function cargarOCrearPerfil(user){
-  const ref = db.collection('usuarios').doc(user.uid);
-  const snap = await ref.get();
-  if(snap.exists){
-    state.perfilDoc = snap.data();
-  } else {
-    state.perfilDoc = {
-      nombre: user.displayName || user.email,
-      correo: user.email,
-      rol: 'agente',
-      fotoURL: user.photoURL || null,
-      creadoEn: firebase.firestore.FieldValue.serverTimestamp()
-    };
-    await ref.set(state.perfilDoc);
-  }
-  state.rol = state.perfilDoc.rol || 'agente';
+function resolverPerfil(user){
+  const encontrado = usuariosUPANA.find(u=> u.correo.toLowerCase() === (user.email||'').toLowerCase());
+  state.perfil = encontrado || { nombre: user.displayName || user.email, ext:'S/N', correo: user.email, puesto:'Agente de Call Center y Servicio al Cliente', permisoDual:false };
 }
 
 function pintarUsuario(){
-  const u = state.user;
-  const foto = (state.perfilDoc && state.perfilDoc.fotoURL) || u.photoURL || (DEFAULT_AVATAR + encodeURIComponent(u.displayName || u.email));
+  const u = state.user, p = state.perfil;
+  const foto = u.photoURL || (DEFAULT_AVATAR + encodeURIComponent(p.nombre));
   document.getElementById('topAvatar').src = foto;
-  document.getElementById('menuName').textContent = u.displayName || state.perfilDoc.nombre || 'Usuario';
-  document.getElementById('menuMail').textContent = u.email || state.perfilDoc.correo || '';
-  const badge = document.getElementById('menuRoleBadge');
-  const labels = { agente:'Agente', supervisor:'Supervisor', jefe:'Jefe de Área' };
-  badge.textContent = labels[state.rol] || 'Agente';
-  badge.className = 'role-badge ' + (state.rol === 'jefe' ? 'rol-jefe' : state.rol === 'supervisor' ? 'rol-supervisor' : '');
+  document.getElementById('menuName').textContent = p.nombre;
+  document.getElementById('menuPuesto').textContent = p.puesto;
+  document.getElementById('menuCorreo').textContent = p.correo;
+  document.getElementById('extAgente').textContent = p.ext;
+  document.getElementById('extBadge').textContent = 'Ext. ' + p.ext;
+  document.getElementById('saludoNombre').textContent = 'Hola, ' + p.nombre.split(' ')[0] + ' 👋';
+  document.getElementById('saludoPuesto').textContent = p.puesto;
 }
 
-function aplicarPermisosDeRol(){
-  const esSupervisor = state.rol === 'supervisor' || state.rol === 'jefe';
-  const esJefe = state.rol === 'jefe';
-  document.getElementById('navSupervisor').style.display = esSupervisor ? '' : 'none';
-  document.getElementById('navJefe').style.display = esJefe ? '' : 'none';
+function aplicarPermisos(){
+  const btn = document.getElementById('btnSwitchView');
+  if(state.perfil.permisoDual){
+    btn.classList.remove('hidden-imp');
+    btn.classList.add('flex');
+  } else {
+    btn.classList.add('hidden-imp');
+  }
+  cambiarVista('agente');
 }
 
 // ================================================================
-// MENÚS Y NAVEGACIÓN
+// MENÚ USUARIO
 // ================================================================
 const userMenu = document.getElementById('userMenu');
-document.getElementById('topAvatar').addEventListener('click', (e)=>{ e.stopPropagation(); userMenu.classList.toggle('open'); });
-document.addEventListener('click', ()=> userMenu.classList.remove('open'));
-
-const VIEW_META = {
-  'nueva-llamada': { title:'Nueva llamada', sub:'Registra la atención brindada al estudiante' },
-  'historial': { title:'Mi historial', sub:'Registros que has capturado hoy' },
-  'buscar': { title:'Buscar registros', sub:'Consulta llamadas de cualquier agente' },
-  'metricas': { title:'Métricas', sub:'Panorama operativo del call center' },
-  'reportes': { title:'Reportes', sub:'Indicadores generales de atención' },
-  'auditoria': { title:'Auditoría', sub:'Trazabilidad de cambios en los registros' },
-  'exportar': { title:'Exportar datos', sub:'Descarga los registros del call center' }
-};
-
-function cambiarVista(view){
-  state.currentView = view;
-  document.querySelectorAll('.view').forEach(v=> v.classList.add('hidden'));
-  const target = document.getElementById('view-' + view);
-  if(target) target.classList.remove('hidden');
-  document.querySelectorAll('.nav-item[data-view]').forEach(n=>{
-    n.classList.toggle('active', n.dataset.view === view);
-  });
-  const meta = VIEW_META[view] || {};
-  document.getElementById('viewTitle').childNodes[0].nodeValue = meta.title || '';
-  document.getElementById('viewSubtitle').textContent = meta.sub || '';
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebarOverlay').classList.remove('open');
-
-  if(view === 'historial') renderHistorial();
-  if(view === 'buscar') cargarTodosRegistros(renderBuscar);
-  if(view === 'metricas') cargarTodosRegistros(renderMetricas);
-  if(view === 'reportes') cargarTodosRegistros(renderReportes);
-  if(view === 'auditoria') renderAuditoria();
-}
-document.querySelectorAll('.nav-item[data-view]').forEach(item=>{
-  item.addEventListener('click', ()=> cambiarVista(item.dataset.view));
-});
-
-document.getElementById('btnHamburger').addEventListener('click', ()=>{
-  document.getElementById('sidebar').classList.add('open');
-  document.getElementById('sidebarOverlay').classList.add('open');
-});
-document.getElementById('sidebarOverlay').addEventListener('click', ()=>{
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebarOverlay').classList.remove('open');
-});
-document.getElementById('btnRefresh').addEventListener('click', ()=> cambiarVista(state.currentView));
+document.getElementById('topAvatar').addEventListener('click', (e)=>{ e.stopPropagation(); userMenu.classList.toggle('hidden-imp'); });
+document.addEventListener('click', ()=> userMenu.classList.add('hidden-imp'));
 
 // ================================================================
-// MODAL DE PERFIL / FOTO
+// CAMBIO DE VISTA (Agente <-> Supervisor)
 // ================================================================
-const modalPerfil = document.getElementById('modalPerfil');
-function abrirModalPerfil(){
-  const foto = document.getElementById('topAvatar').src;
-  document.getElementById('previewAvatar').src = foto;
-  modalPerfil.classList.add('open');
-  userMenu.classList.remove('open');
+function cambiarVista(vista){
+  state.vista = vista;
+  document.getElementById('vistaAgente').classList.toggle('hidden-imp', vista !== 'agente');
+  document.getElementById('vistaSupervisor').classList.toggle('hidden-imp', vista !== 'supervisor');
+  document.getElementById('switchViewLabel').textContent = vista === 'agente' ? 'Ver Supervisor' : 'Ver Agente';
+  if(vista === 'supervisor') suscribirFloorMonitor();
 }
-document.getElementById('btnOpenProfile').addEventListener('click', abrirModalPerfil);
-document.getElementById('btnCerrarModal').addEventListener('click', ()=> modalPerfil.classList.remove('open'));
-document.getElementById('btnCancelarFoto').addEventListener('click', ()=> modalPerfil.classList.remove('open'));
-
-let archivoFotoSeleccionado = null;
-document.getElementById('inputFotoPerfil').addEventListener('change', (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  archivoFotoSeleccionado = file;
-  const reader = new FileReader();
-  reader.onload = (ev)=> document.getElementById('previewAvatar').src = ev.target.result;
-  reader.readAsDataURL(file);
+document.getElementById('btnSwitchView').addEventListener('click', ()=>{
+  cambiarVista(state.vista === 'agente' ? 'supervisor' : 'agente');
 });
 
-document.getElementById('btnGuardarFoto').addEventListener('click', async ()=>{
-  if(!archivoFotoSeleccionado){ toast('Selecciona una imagen primero', 'err'); return; }
-  const btn = document.getElementById('btnGuardarFoto');
-  btn.disabled = true; btn.textContent = 'Subiendo…';
+// ================================================================
+// SOFTPHONE — CONTROL DE ESTADOS
+// ================================================================
+document.querySelectorAll('.btn-estado').forEach(btn=>{
+  btn.addEventListener('click', ()=> actualizarMiEstado(btn.dataset.estado));
+});
+
+async function actualizarMiEstado(estado){
   try{
-    const ref = storage.ref().child(`fotos_perfil/${state.user.uid}_${Date.now()}`);
-    await ref.put(archivoFotoSeleccionado);
-    const url = await ref.getDownloadURL();
-    await state.user.updateProfile({ photoURL: url });
-    await db.collection('usuarios').doc(state.user.uid).update({ fotoURL: url });
-    state.perfilDoc.fotoURL = url;
-    document.getElementById('topAvatar').src = url;
-    toast('Foto de perfil actualizada', 'ok');
-    modalPerfil.classList.remove('open');
-  }catch(err){
-    console.error(err);
-    toast('No se pudo actualizar la foto: ' + (err.message||err.code), 'err');
-  }finally{
-    btn.disabled = false; btn.textContent = 'Guardar foto';
-  }
-});
-
-// ================================================================
-// SINCRONIZACIÓN BANNER (Application Navigator)
-// ================================================================
-// A) Escucha real de mensajes que un script inyectado en Banner
-//    enviaría vía postMessage con { source:'banner-upana', carnet, nombre }
-window.addEventListener('message', (event)=>{
-  const data = event.data;
-  if(!data || data.source !== 'banner-upana') return;
-  document.getElementById('bannerStatusText').textContent = 'Sincronizado';
-  aplicarEstudiante(data.carnet, data.nombre, true);
-  toast('Datos recibidos desde Banner Application Navigator', 'ok');
-});
-
-// Simulador manual para pruebas (dispara un evento como si viniera de Banner)
-function simularEventoBanner(carnet){
-  const est = MOCK_ESTUDIANTES[carnet];
-  window.postMessage({ source:'banner-upana', carnet, nombre: est ? est.nombre : null }, '*');
-}
-
-// B) Búsqueda local de contingencia por carnet
-const inputCarnet = document.getElementById('inputCarnet');
-inputCarnet.addEventListener('input', ()=>{
-  const val = inputCarnet.value.trim();
-  const statEl = document.getElementById('carnetStat');
-  if(val.length < 4){ statEl.textContent=''; document.getElementById('studentPreview').innerHTML=''; return; }
-  const est = MOCK_ESTUDIANTES[val];
-  if(est){
-    statEl.textContent = 'Encontrado'; statEl.className = 'stat stat-found';
-    aplicarEstudiante(val, est.nombre, false, est.carrera);
-  } else {
-    statEl.textContent = 'Buscando…'; statEl.className = 'stat stat-search';
-    document.getElementById('inputNombre').value = '';
-    document.getElementById('studentPreview').innerHTML = '';
-    state.estudianteSeleccionado = null;
-    setTimeout(()=>{
-      if(inputCarnet.value.trim() === val && !MOCK_ESTUDIANTES[val]){
-        statEl.textContent = 'No encontrado'; statEl.className = 'stat stat-none';
-      }
-    }, 500);
-  }
-});
-
-function aplicarEstudiante(carnet, nombre, viaBanner, carrera){
-  document.getElementById('inputCarnet').value = carnet;
-  document.getElementById('inputNombre').value = nombre || '';
-  state.estudianteSeleccionado = { carnet, nombre, carrera: carrera||'' };
-  const statEl = document.getElementById('carnetStat');
-  statEl.textContent = 'Encontrado'; statEl.className = 'stat stat-found';
-  document.getElementById('studentPreview').innerHTML = nombre ? `
-    <div class="student-preview">
-      <div class="ico">${iniciales(nombre)}</div>
-      <div>
-        <div class="nm">${nombre}${viaBanner ? ' · <span style=\"color:var(--success);font-weight:700;\">Banner</span>':''}</div>
-        <div class="id">${carnet}${carrera ? ' · '+carrera : ''}</div>
-      </div>
-    </div>` : '';
-}
-
-// ================================================================
-// TOGGLE "NO ES ESTUDIANTE"
-// ================================================================
-const chkNoEstudiante = document.getElementById('chkNoEstudiante');
-chkNoEstudiante.addEventListener('change', ()=>{
-  const activo = chkNoEstudiante.checked;
-  document.getElementById('bloqueEstudiante').classList.toggle('hidden', activo);
-  document.getElementById('bloqueExterno').classList.toggle('hidden', !activo);
-  document.getElementById('inputCarnet').disabled = activo;
-  if(activo){
-    document.getElementById('selectAsuntoExterno').required = true;
-    document.getElementById('inputNombreExterno').required = true;
-  }
-});
-
-// ================================================================
-// GUARDAR LLAMADA (Firestore)
-// ================================================================
-document.getElementById('formLlamada').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const esExterno = chkNoEstudiante.checked;
-  const btn = document.getElementById('btnGuardarLlamada');
-
-  if(!esExterno && !state.estudianteSeleccionado){
-    toast('Ingresa un carnet válido o activa "No es estudiante"', 'err'); return;
-  }
-  if(esExterno && (!document.getElementById('selectAsuntoExterno').value || !document.getElementById('inputNombreExterno').value.trim())){
-    toast('Completa el asunto y el nombre de quien llama', 'err'); return;
-  }
-
-  const registro = {
-    EsEstudiante: !esExterno,
-    ID_Estudiante: esExterno ? null : state.estudianteSeleccionado.carnet,
-    Nombre: esExterno ? document.getElementById('inputNombreExterno').value.trim() : state.estudianteSeleccionado.nombre,
-    AsuntoExterno: esExterno ? document.getElementById('selectAsuntoExterno').value : null,
-    Tipo_Llamada: document.getElementById('selectTipoLlamada').value,
-    Motivo: document.getElementById('selectMotivo').value,
-    Detalles: document.getElementById('inputDetalles').value.trim(),
-    Agente: state.user.uid,
-    AgenteNombre: state.user.displayName || state.perfilDoc.nombre,
-    Rol: state.rol,
-    Fecha_Hora: firebase.firestore.FieldValue.serverTimestamp()
-  };
-
-  btn.disabled = true; btn.textContent = 'Guardando…';
-  try{
-    const ref = await db.collection('registros').add(registro);
-    await db.collection('auditoria').add({
-      registroId: ref.id,
-      accion: 'Creación de registro',
-      usuario: state.user.displayName || state.perfilDoc.nombre,
-      usuarioUid: state.user.uid,
-      fecha: firebase.firestore.FieldValue.serverTimestamp(),
-      cambios: `Nuevo registro para ${registro.Nombre}`
+    await db.collection('estadosAgentes').doc(correoKey(state.perfil.correo)).set({
+      correo: state.perfil.correo,
+      nombre: state.perfil.nombre,
+      ext: state.perfil.ext,
+      estado: estado,
+      desde: firebase.firestore.FieldValue.serverTimestamp()
     });
-    toast('Registro guardado correctamente', 'ok');
-    document.getElementById('formLlamada').reset();
-    chkNoEstudiante.dispatchEvent(new Event('change'));
-    document.getElementById('studentPreview').innerHTML = '';
-    document.getElementById('carnetStat').textContent = '';
-    state.estudianteSeleccionado = null;
+    toast('Estado actualizado a "' + estado + '"', 'ok');
   }catch(err){
-    console.error(err);
-    toast('Error al guardar: ' + (err.message||err.code), 'err');
-  }finally{
-    btn.disabled = false; btn.textContent = 'Guardar registro';
+    toast('No se pudo actualizar el estado: ' + (err.message||err.code), 'err');
   }
-});
+}
 
-// ================================================================
-// MIS REGISTROS DE HOY (Agente) — suscripción en vivo
-// ================================================================
-function suscribirMisRegistrosHoy(){
-  db.collection('registros')
-    .where('Agente', '==', state.user.uid)
-    .orderBy('Fecha_Hora', 'desc')
-    .limit(50)
-    .onSnapshot(snap=>{
-      const regs = [];
-      snap.forEach(doc=> regs.push({ id: doc.id, ...doc.data() }));
-      state.misRegistrosHoy = regs.filter(r=> esHoy(r.Fecha_Hora));
-      renderResumenHoy();
-      if(state.currentView === 'historial') renderHistorial();
+function suscribirMiEstado(){
+  db.collection('estadosAgentes').doc(correoKey(state.perfil.correo))
+    .onSnapshot(doc=>{
+      if(!doc.exists){ return; }
+      const d = doc.data();
+      pintarPillEstado(d.estado, d.desde);
     }, err=> console.error(err));
 }
 
-function renderResumenHoy(){
-  const regs = state.misRegistrosHoy;
-  document.getElementById('statHoyTotal').textContent = regs.length;
-  document.getElementById('statHoyUltimo').textContent = regs.length ? fmtHora(regs[0].Fecha_Hora) : '—';
-  const host = document.getElementById('listaRapida');
-  if(!regs.length){
-    host.innerHTML = `<div class="empty-state">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M12 7v5l3 3"/></svg>
-      <div class="t">Aún no registras llamadas hoy</div>
-      <div class="d">Completa el formulario para ver aquí tu actividad reciente.</div>
-    </div>`;
-    return;
-  }
-  host.innerHTML = regs.slice(0,6).map(r=> `
-    <div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border);">
-      <div class="student-preview" style="background:none; padding:0; margin:0; flex:1;">
-        <div class="ico" style="background:var(--azul-upana);">${iniciales(r.Nombre)}</div>
-        <div>
-          <div class="nm">${r.Nombre}</div>
-          <div class="id">${r.EsEstudiante ? (r.ID_Estudiante||'—') : (r.AsuntoExterno||'Externo')}</div>
-        </div>
-      </div>
-      <span class="badge badge-gray">${fmtHora(r.Fecha_Hora)}</span>
-    </div>`).join('');
+function pintarPillEstado(estado, desde){
+  const meta = ESTADO_META[estado] || { color:'#64748B', dot:'bg-slate-400' };
+  document.getElementById('statusPillText').textContent = estado;
+  const dot = document.getElementById('statusDot');
+  dot.className = 'w-2 h-2 rounded-full pulse-dot ' + meta.dot;
+  dot.style.color = meta.color;
+  state.miEstadoDesde = desde ? (desde.toDate ? desde.toDate() : new Date(desde)) : new Date();
+  detenerMiTimer();
+  state.timerInterval = setInterval(actualizarMiCronometro, 1000);
+  actualizarMiCronometro();
 }
-
-function renderHistorial(){
-  const tbody = document.getElementById('tablaHistorial');
-  const regs = state.misRegistrosHoy;
-  const emptyHost = document.getElementById('historialEmpty');
-  if(!regs.length){
-    tbody.innerHTML = '';
-    emptyHost.innerHTML = `<div class="empty-state">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg>
-      <div class="t">Sin registros el día de hoy</div>
-      <div class="d">Tus llamadas registradas aparecerán aquí en tiempo real.</div>
-    </div>`;
-    return;
-  }
-  emptyHost.innerHTML = '';
-  tbody.innerHTML = regs.map(r=> `
-    <tr>
-      <td>${fmtHora(r.Fecha_Hora)}</td>
-      <td>${r.Nombre}</td>
-      <td class="mono">${r.EsEstudiante ? (r.ID_Estudiante||'—') : '—'}</td>
-      <td><span class="badge badge-blue">${r.Tipo_Llamada||'—'}</span></td>
-      <td>${r.EsEstudiante ? (r.Motivo||'—') : (r.AsuntoExterno||'Externo')}</td>
-      <td>${r.Detalles||'—'}</td>
-    </tr>`).join('');
+function detenerMiTimer(){ if(state.timerInterval) clearInterval(state.timerInterval); }
+function actualizarMiCronometro(){
+  if(!state.miEstadoDesde) return;
+  const secs = Math.max(0, Math.floor((Date.now() - state.miEstadoDesde.getTime())/1000));
+  document.getElementById('statusPillTime').textContent = formatoTiempo(secs);
+}
+function formatoTiempo(totalSecs){
+  const h = Math.floor(totalSecs/3600), m = Math.floor((totalSecs%3600)/60), s = totalSecs%60;
+  const pad = n=> String(n).padStart(2,'0');
+  return h>0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
 }
 
 // ================================================================
-// SUPERVISOR / JEFE — carga completa de registros
+// BUSCADOR DE ESTUDIANTES (Banner simulado + fallback Firebase)
 // ================================================================
-function cargarTodosRegistros(callback){
-  db.collection('registros').orderBy('Fecha_Hora','desc').limit(500).get().then(snap=>{
-    const regs = [];
-    snap.forEach(doc=> regs.push({ id: doc.id, ...doc.data() }));
-    state.todosLosRegistros = regs;
-    callback(regs);
-  }).catch(err=>{
-    console.error(err);
-    toast('Error al cargar registros: '+(err.message||err.code), 'err');
-  });
-}
+document.getElementById('btnBuscarEstudiante').addEventListener('click', buscarEstudiante);
+document.getElementById('inputBuscarEstudiante').addEventListener('keydown', e=>{ if(e.key==='Enter') buscarEstudiante(); });
 
-function renderBuscar(regs){
-  aplicarFiltrosBuscar();
-}
-function aplicarFiltrosBuscar(){
-  const agente = document.getElementById('buscarAgente').value.toLowerCase().trim();
-  const carnet = document.getElementById('buscarCarnet').value.toLowerCase().trim();
-  const fecha = document.getElementById('buscarFecha').value;
-  let regs = state.todosLosRegistros.filter(r=>{
-    let ok = true;
-    if(agente) ok = ok && (r.AgenteNombre||'').toLowerCase().includes(agente);
-    if(carnet) ok = ok && ((r.ID_Estudiante||'').toLowerCase().includes(carnet) || (r.Nombre||'').toLowerCase().includes(carnet));
-    if(fecha){
-      const d = r.Fecha_Hora ? (r.Fecha_Hora.toDate ? r.Fecha_Hora.toDate() : new Date(r.Fecha_Hora)) : null;
-      ok = ok && d && d.toISOString().slice(0,10) === fecha;
-    }
-    return ok;
-  });
-  const tbody = document.getElementById('tablaBuscar');
-  const emptyHost = document.getElementById('buscarEmpty');
-  if(!regs.length){
-    tbody.innerHTML = '';
-    emptyHost.innerHTML = `<div class="empty-state">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <div class="t">Sin resultados</div><div class="d">Ajusta los filtros de búsqueda.</div>
-    </div>`;
+async function buscarEstudiante(){
+  const q = document.getElementById('inputBuscarEstudiante').value.trim().toLowerCase();
+  const host = document.getElementById('resultadoBusqueda');
+  if(!q){ host.innerHTML=''; return; }
+  host.innerHTML = `<div class="text-sm text-slate-400 py-2">Consultando Banner…</div>`;
+
+  // 1) Buscar en mock local (simulación TSAAREV) por carné o nombre
+  let carnetMatch = Object.keys(MOCK_ESTUDIANTES).find(c=> c.toLowerCase()===q);
+  if(!carnetMatch){
+    carnetMatch = Object.keys(MOCK_ESTUDIANTES).find(c=> MOCK_ESTUDIANTES[c].nombre.toLowerCase().includes(q));
+  }
+  if(carnetMatch){
+    renderResultadoEstudiante(carnetMatch, MOCK_ESTUDIANTES[carnetMatch], 'Banner (simulado)');
     return;
   }
-  emptyHost.innerHTML = '';
-  tbody.innerHTML = regs.map(r=> `
-    <tr>
-      <td>${fmtFecha(r.Fecha_Hora)}</td>
-      <td>${r.AgenteNombre||'—'}</td>
-      <td>${r.Nombre||'—'}</td>
-      <td class="mono">${r.ID_Estudiante||'—'}</td>
-      <td><span class="badge badge-blue">${r.Tipo_Llamada||'—'}</span></td>
-      <td>${r.Motivo||r.AsuntoExterno||'—'}</td>
-      <td>${r.Detalles||'—'}</td>
-      <td><button class="btn btn-ghost btn-sm" onclick="editarDetalle('${r.id}')">Editar</button></td>
-    </tr>`).join('');
-}
-['buscarAgente','buscarCarnet','buscarFecha'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', aplicarFiltrosBuscar);
-});
-document.getElementById('btnLimpiarBusqueda').addEventListener('click', ()=>{
-  document.getElementById('buscarAgente').value='';
-  document.getElementById('buscarCarnet').value='';
-  document.getElementById('buscarFecha').value='';
-  aplicarFiltrosBuscar();
-});
 
-async function editarDetalle(id){
-  const nuevo = prompt('Editar detalles del registro:');
-  if(nuevo === null) return;
+  // 2) Fallback: búsqueda manual ágil en Firebase
   try{
-    await db.collection('registros').doc(id).update({ Detalles: nuevo });
-    await db.collection('auditoria').add({
-      registroId: id,
-      accion: 'Edición de detalles',
-      usuario: state.user.displayName || state.perfilDoc.nombre,
-      usuarioUid: state.user.uid,
-      fecha: firebase.firestore.FieldValue.serverTimestamp(),
-      cambios: `Detalles actualizados a: "${nuevo}"`
-    });
-    toast('Registro actualizado', 'ok');
-    cargarTodosRegistros(renderBuscar);
-  }catch(err){
-    toast('No se pudo actualizar: '+(err.message||err.code), 'err');
-  }
-}
-
-// ---------- Métricas (Supervisor) ----------
-let chartAgentesRef = null;
-function renderMetricas(regs){
-  const hoy = regs.filter(r=> esHoy(r.Fecha_Hora));
-  const porAgente = {};
-  hoy.forEach(r=>{ porAgente[r.AgenteNombre||'Sin nombre'] = (porAgente[r.AgenteNombre||'Sin nombre']||0)+1; });
-
-  const cardsHost = document.getElementById('metricasCards');
-  const agentesActivos = Object.keys(porAgente).length;
-  const promedio = agentesActivos ? (hoy.length/agentesActivos).toFixed(1) : 0;
-  cardsHost.innerHTML = `
-    <div class="stat-card"><div class="lbl">Llamadas hoy</div><div class="val">${hoy.length}</div></div>
-    <div class="stat-card"><div class="lbl">Agentes activos</div><div class="val">${agentesActivos}</div></div>
-    <div class="stat-card"><div class="lbl">Promedio / agente</div><div class="val">${promedio}</div></div>
-    <div class="stat-card"><div class="lbl">Total histórico</div><div class="val">${regs.length}</div></div>
-  `;
-
-  const ctx = document.getElementById('chartAgentes');
-  const labels = Object.keys(porAgente);
-  const data = Object.values(porAgente);
-  if(chartAgentesRef) chartAgentesRef.destroy();
-  chartAgentesRef = new Chart(ctx, {
-    type:'bar',
-    data:{ labels, datasets:[{ label:'Llamadas', data, backgroundColor:'#163B72', borderRadius:6, maxBarThickness:42 }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } } } }
-  });
-}
-
-// ---------- Reportes (Jefe) ----------
-let chartVolumenRef = null, chartMotivosRef = null;
-function renderReportes(regs){
-  const cardsHost = document.getElementById('reportesCards');
-  const hoy = regs.filter(r=> esHoy(r.Fecha_Hora));
-  const externos = regs.filter(r=> r.EsEstudiante === false).length;
-  cardsHost.innerHTML = `
-    <div class="stat-card"><div class="lbl">Total registros</div><div class="val">${regs.length}</div></div>
-    <div class="stat-card"><div class="lbl">Llamadas hoy</div><div class="val">${hoy.length}</div></div>
-    <div class="stat-card"><div class="lbl">Contactos externos</div><div class="val">${externos}</div></div>
-    <div class="stat-card"><div class="lbl">Estudiantes atendidos</div><div class="val">${regs.length - externos}</div></div>
-  `;
-
-  // Volumen últimos 7 días
-  const dias = [];
-  for(let i=6;i>=0;i--){
-    const d = new Date(); d.setDate(d.getDate()-i);
-    dias.push(d);
-  }
-  const conteoDias = dias.map(d=> regs.filter(r=>{
-    if(!r.Fecha_Hora) return false;
-    const rd = r.Fecha_Hora.toDate ? r.Fecha_Hora.toDate() : new Date(r.Fecha_Hora);
-    return rd.toDateString() === d.toDateString();
-  }).length);
-  const labelsDias = dias.map(d=> d.toLocaleDateString('es-GT',{ weekday:'short', day:'numeric' }));
-
-  const ctxVol = document.getElementById('chartVolumen');
-  if(chartVolumenRef) chartVolumenRef.destroy();
-  chartVolumenRef = new Chart(ctxVol, {
-    type:'line',
-    data:{ labels: labelsDias, datasets:[{ label:'Llamadas', data: conteoDias, borderColor:'#C9A227', backgroundColor:'rgba(201,162,39,.15)', fill:true, tension:.35 }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } } } }
-  });
-
-  // Distribución por motivo
-  const porMotivo = {};
-  regs.forEach(r=>{ const m = r.Motivo || r.AsuntoExterno || 'Otro'; porMotivo[m] = (porMotivo[m]||0)+1; });
-  const ctxMot = document.getElementById('chartMotivos');
-  if(chartMotivosRef) chartMotivosRef.destroy();
-  chartMotivosRef = new Chart(ctxMot, {
-    type:'doughnut',
-    data:{ labels:Object.keys(porMotivo), datasets:[{ data:Object.values(porMotivo), backgroundColor:['#163B72','#C9A227','#1F4B8C','#22764F','#A8710A','#B23A32','#616B7A'] }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, font:{ size:11 } } } } }
-  });
-}
-
-// ---------- Auditoría (Jefe) ----------
-function renderAuditoria(){
-  db.collection('auditoria').orderBy('fecha','desc').limit(200).get().then(snap=>{
-    const tbody = document.getElementById('tablaAuditoria');
-    const emptyHost = document.getElementById('auditoriaEmpty');
-    if(snap.empty){
-      tbody.innerHTML='';
-      emptyHost.innerHTML = `<div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
-        <div class="t">Sin actividad registrada</div><div class="d">Los cambios sobre los registros aparecerán aquí.</div>
-      </div>`;
+    const snap = await db.collection('estudiantesManual').doc(q).get();
+    if(snap.exists){
+      renderResultadoEstudiante(q, snap.data(), 'Registro manual (Firebase)');
       return;
     }
-    emptyHost.innerHTML = '';
-    let rows = '';
-    snap.forEach(doc=>{
-      const a = doc.data();
-      rows += `<tr>
-        <td>${fmtFecha(a.fecha)}</td>
-        <td>${a.usuario||'—'}</td>
-        <td><span class="badge badge-gold">${a.accion||'—'}</span></td>
-        <td class="mono">${(a.registroId||'').slice(0,8)}</td>
-        <td>${a.cambios||'—'}</td>
-      </tr>`;
-    });
-    tbody.innerHTML = rows;
-  }).catch(err=> console.error(err));
+  }catch(err){ console.error(err); }
+
+  host.innerHTML = `
+    <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">
+      <div class="text-sm font-semibold text-amber-800">No se encontró en Banner ni en registros manuales.</div>
+      <div class="text-xs text-amber-700 mt-1 mb-3">Puedes agregarlo rápidamente para futuras búsquedas.</div>
+      <div class="grid grid-cols-2 gap-2 mb-2">
+        <input id="mCarnet" value="${q.includes('-') ? q : ''}" placeholder="Carné" class="px-3 py-2 rounded-lg border border-slate-300 text-xs col-span-1">
+        <input id="mNombre" value="${!q.includes('-') ? q : ''}" placeholder="Nombre completo" class="px-3 py-2 rounded-lg border border-slate-300 text-xs col-span-1">
+        <input id="mCarrera" placeholder="Carrera" class="px-3 py-2 rounded-lg border border-slate-300 text-xs col-span-1">
+        <input id="mSaldo" placeholder="Saldo (Q)" class="px-3 py-2 rounded-lg border border-slate-300 text-xs col-span-1">
+      </div>
+      <button id="btnGuardarManual" class="text-xs font-semibold bg-upana text-white px-3 py-2 rounded-lg hover:bg-upana-600">Guardar registro manual</button>
+    </div>`;
+  document.getElementById('btnGuardarManual').addEventListener('click', guardarEstudianteManual);
 }
 
-// ---------- Exportar CSV (Jefe) ----------
-document.getElementById('btnExportarCSV').addEventListener('click', async ()=>{
-  const btn = document.getElementById('btnExportarCSV');
-  btn.disabled = true; btn.textContent = 'Generando…';
+async function guardarEstudianteManual(){
+  const carnet = document.getElementById('mCarnet').value.trim();
+  const nombre = document.getElementById('mNombre').value.trim();
+  const carrera = document.getElementById('mCarrera').value.trim();
+  const saldo = document.getElementById('mSaldo').value.trim();
+  if(!carnet || !nombre){ toast('Ingresa al menos carné y nombre', 'err'); return; }
   try{
-    const snap = await db.collection('registros').orderBy('Fecha_Hora','desc').get();
-    const filas = [['Fecha','Agente','Rol','ID_Estudiante','Nombre','EsEstudiante','Tipo_Llamada','Motivo','AsuntoExterno','Detalles']];
-    snap.forEach(doc=>{
-      const r = doc.data();
-      filas.push([
-        fmtFecha(r.Fecha_Hora), r.AgenteNombre||'', r.Rol||'', r.ID_Estudiante||'', r.Nombre||'',
-        r.EsEstudiante ? 'Sí':'No', r.Tipo_Llamada||'', r.Motivo||'', r.AsuntoExterno||'', (r.Detalles||'').replace(/(\r\n|\n|\r)/g,' ')
-      ]);
+    await db.collection('estudiantesManual').doc(carnet).set({
+      nombre, carrera: carrera||'—', saldo: saldo||'Q 0.00', alertas:[], creadoPor: state.perfil.correo,
+      creadoEn: firebase.firestore.FieldValue.serverTimestamp()
     });
-    const csv = filas.map(f=> f.map(v=> `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-    const blob = new Blob(['\ufeff'+csv], { type:'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `bitacora_upana_${new Date().toISOString().slice(0,10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast('Archivo CSV generado', 'ok');
+    toast('Registro manual guardado', 'ok');
+    renderResultadoEstudiante(carnet, { nombre, carrera, saldo, alertas:[] }, 'Registro manual (Firebase)');
   }catch(err){
-    toast('Error al exportar: '+(err.message||err.code), 'err');
+    toast('Error al guardar: '+(err.message||err.code), 'err');
+  }
+}
+
+function renderResultadoEstudiante(carnet, data, fuente){
+  const host = document.getElementById('resultadoBusqueda');
+  const alertasHtml = (data.alertas && data.alertas.length)
+    ? data.alertas.map(a=> `<span class="text-[11px] font-semibold bg-red-50 text-red-600 px-2 py-1 rounded-full">${a}</span>`).join(' ')
+    : `<span class="text-[11px] font-semibold bg-green-50 text-green-600 px-2 py-1 rounded-full">Sin alertas</span>`;
+  host.innerHTML = `
+    <div class="rounded-xl border border-slate-200 bg-white/90 p-4 anim-in">
+      <div class="flex items-center justify-between mb-2">
+        <div class="font-semibold text-slate-800">${data.nombre}</div>
+        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">${fuente}</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2 text-xs text-slate-500 mb-3">
+        <div><span class="font-semibold text-slate-700">Carné:</span> <span class="font-mono">${carnet}</span></div>
+        <div><span class="font-semibold text-slate-700">Carrera:</span> ${data.carrera||'—'}</div>
+        <div><span class="font-semibold text-slate-700">Saldo:</span> ${data.saldo||'—'}</div>
+      </div>
+      <div class="flex flex-wrap gap-1.5">${alertasHtml}</div>
+    </div>`;
+}
+
+// ================================================================
+// BUZÓN DE RETROALIMENTACIÓN (Agente)
+// ================================================================
+function suscribirBuzon(){
+  db.collection('feedback').where('agenteCorreo','==', state.perfil.correo).orderBy('fecha','desc').limit(30)
+    .onSnapshot(snap=>{
+      const host = document.getElementById('buzonFeedback');
+      if(snap.empty){
+        host.innerHTML = `<div class="text-sm text-slate-400 py-6 text-center">Aún no tienes retroalimentación registrada.</div>`;
+        return;
+      }
+      let html = '';
+      snap.forEach(doc=>{
+        const f = doc.data();
+        const estrellas = '★'.repeat(f.estrellas||0) + '☆'.repeat(5-(f.estrellas||0));
+        html += `
+          <div class="rounded-xl border border-slate-200 bg-white/85 p-3.5">
+            <div class="flex items-center justify-between">
+              <span class="text-amber-500 text-sm tracking-wide">${estrellas}</span>
+              <span class="text-[11px] text-slate-400">${fmtFecha(f.fecha)}</span>
+            </div>
+            <div class="text-sm text-slate-700 mt-1.5">${f.comentario||''}</div>
+            <div class="text-[11px] text-slate-400 mt-1.5">— ${f.supervisorNombre||'Coordinación'}</div>
+          </div>`;
+      });
+      host.innerHTML = html;
+    }, err=> console.error(err));
+}
+function fmtFecha(d){
+  if(!d) return '—';
+  const date = d.toDate ? d.toDate() : new Date(d);
+  return date.toLocaleDateString('es-GT', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+}
+
+// ================================================================
+// FLOOR MONITOR (Supervisor)
+// ================================================================
+let unsubFloor = null;
+function suscribirFloorMonitor(){
+  if(unsubFloor) return;
+  unsubFloor = db.collection('estadosAgentes').onSnapshot(snap=>{
+    state.floorDocs = {};
+    snap.forEach(doc=> state.floorDocs[doc.id] = doc.data());
+    renderFloorGrid();
+  }, err=> console.error(err));
+}
+function renderFloorGrid(){
+  const host = document.getElementById('floorGrid');
+  const cards = usuariosUPANA.map(u=>{
+    const d = state.floorDocs[correoKey(u.correo)];
+    const estado = d ? d.estado : 'Sin conexión';
+    const meta = ESTADO_META[estado] || { color:'#94A3B8', dot:'bg-slate-300' };
+    const desde = d && d.desde ? (d.desde.toDate ? d.desde.toDate() : new Date(d.desde)) : null;
+    return `
+      <div class="status-card glass rounded-2xl shadow-soft p-4">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="font-semibold text-sm text-slate-800">${u.nombre}</div>
+            <div class="text-[11px] text-slate-400 font-mono mt-0.5">Ext. ${u.ext}</div>
+          </div>
+          <span class="w-2.5 h-2.5 rounded-full pulse-dot ${meta.dot} mt-1"></span>
+        </div>
+        <div class="mt-3 flex items-center justify-between">
+          <span class="text-xs font-bold" style="color:${meta.color}">${estado}</span>
+          <span class="text-[11px] font-mono text-slate-400 tiempo-floor" data-desde="${desde ? desde.getTime() : ''}">${desde ? formatoTiempo(Math.floor((Date.now()-desde.getTime())/1000)) : '—'}</span>
+        </div>
+      </div>`;
+  }).join('');
+  host.innerHTML = cards;
+  document.getElementById('floorResumen').textContent = usuariosUPANA.length + ' agentes registrados';
+}
+setInterval(()=>{
+  if(state.vista !== 'supervisor') return;
+  document.querySelectorAll('.tiempo-floor').forEach(el=>{
+    const desde = el.dataset.desde;
+    if(!desde) return;
+    el.textContent = formatoTiempo(Math.floor((Date.now()-Number(desde))/1000));
+  });
+}, 1000);
+
+// ================================================================
+// MÓDULO DE AUDITORÍA Y FEEDBACK (Supervisor)
+// ================================================================
+function poblarSelectAgentes(){
+  const sel = document.getElementById('selectAgenteFeedback');
+  sel.innerHTML = usuariosUPANA.map(u=> `<option value="${u.correo}">${u.nombre} · Ext. ${u.ext}</option>`).join('');
+}
+document.querySelectorAll('#starsInput .star-btn').forEach(star=>{
+  star.addEventListener('click', ()=>{
+    state.starsSeleccionadas = Number(star.dataset.val);
+    document.querySelectorAll('#starsInput .star-btn').forEach(s=>{
+      s.classList.toggle('text-amber-400', Number(s.dataset.val) <= state.starsSeleccionadas);
+      s.classList.toggle('text-slate-300', Number(s.dataset.val) > state.starsSeleccionadas);
+    });
+  });
+});
+document.getElementById('btnEnviarFeedback').addEventListener('click', async ()=>{
+  const correoAgente = document.getElementById('selectAgenteFeedback').value;
+  const agente = usuariosUPANA.find(u=> u.correo === correoAgente);
+  const comentario = document.getElementById('inputComentarioFeedback').value.trim();
+  if(!state.starsSeleccionadas){ toast('Selecciona una puntuación', 'err'); return; }
+  if(!comentario){ toast('Escribe un comentario', 'err'); return; }
+  const btn = document.getElementById('btnEnviarFeedback');
+  btn.disabled = true; btn.textContent = 'Enviando…';
+  try{
+    await db.collection('feedback').add({
+      agenteCorreo: correoAgente,
+      agenteNombre: agente ? agente.nombre : correoAgente,
+      supervisorNombre: state.perfil.nombre,
+      supervisorCorreo: state.perfil.correo,
+      estrellas: state.starsSeleccionadas,
+      comentario,
+      fecha: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    toast('Feedback enviado a ' + (agente ? agente.nombre.split(' ')[0] : 'agente'), 'ok');
+    document.getElementById('inputComentarioFeedback').value = '';
+    state.starsSeleccionadas = 0;
+    document.querySelectorAll('#starsInput .star-btn').forEach(s=> s.classList.remove('text-amber-400'));
+    document.querySelectorAll('#starsInput .star-btn').forEach(s=> s.classList.add('text-slate-300'));
+  }catch(err){
+    toast('Error al enviar feedback: '+(err.message||err.code), 'err');
   }finally{
-    btn.disabled = false; btn.textContent = 'Descargar CSV de todos los registros';
+    btn.disabled = false; btn.textContent = 'Enviar feedback';
   }
 });
 
-// ---------- Inicialización general ----------
-document.getElementById('yearTag').textContent = new Date().getFullYear();
-initTheme();
+// ================================================================
+// PANEL DE CONFIGURACIÓN VISUAL (fondo personalizable)
+// ================================================================
+const SWATCHES = [
+  { name:'Gris azulado', value:'#EEF2F7' },
+  { name:'Marfil cálido', value:'#FBF7F0' },
+  { name:'Menta suave', value:'#EFF6F3' },
+  { name:'Oro pálido', value:'#FBF3E1' },
+  { name:'Lavanda', value:'#F3F0FA' },
+  { name:'Blanco puro', value:'#FFFFFF' }
+];
+function pintarSwatches(){
+  const host = document.getElementById('swatchesHost');
+  host.innerHTML = SWATCHES.map(s=> `<div class="swatch" data-color="${s.value}" style="background:${s.value}" title="${s.name}"></div>`).join('');
+  host.querySelectorAll('.swatch').forEach(sw=>{
+    sw.addEventListener('click', ()=> aplicarFondoColor(sw.dataset.color));
+  });
+}
+pintarSwatches();
+
+document.getElementById('btnVisualConfig').addEventListener('click', ()=> document.getElementById('visualConfigOverlay').classList.remove('hidden-imp'));
+document.getElementById('btnCerrarVisualConfig').addEventListener('click', ()=> document.getElementById('visualConfigOverlay').classList.add('hidden-imp'));
+document.getElementById('inputColorPersonalizado').addEventListener('input', (e)=> aplicarFondoColor(e.target.value));
+document.getElementById('btnAplicarUrlFondo').addEventListener('click', ()=>{
+  const url = document.getElementById('inputUrlFondo').value.trim();
+  if(url) aplicarFondoImagen(url);
+});
+document.getElementById('inputArchivoFondo').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const url = URL.createObjectURL(file);
+  aplicarFondoImagen(url, true);
+});
+document.getElementById('btnRestaurarFondo').addEventListener('click', ()=>{
+  localStorage.removeItem('cc_upana_bg');
+  aplicarFondoColor('#EEF2F7');
+});
+
+function aplicarFondoColor(hex){
+  document.documentElement.style.setProperty('--bg-solid', hex);
+  document.documentElement.style.setProperty('--bg-image', 'none');
+  localStorage.setItem('cc_upana_bg', JSON.stringify({ type:'color', value: hex }));
+  actualizarContrasteTexto(hex);
+}
+function aplicarFondoImagen(url, esLocal){
+  document.documentElement.style.setProperty('--bg-image', `url("${url}")`);
+  if(!esLocal){
+    localStorage.setItem('cc_upana_bg', JSON.stringify({ type:'image', value: url }));
+  }
+  // Para imágenes no podemos calcular luminancia real por píxel: usamos texto oscuro
+  // con más contraste asumido, ya que las tarjetas de vidrio garantizan legibilidad.
+  document.documentElement.style.setProperty('--on-bg', '#12203a');
+}
+
+function luminanciaHex(hex){
+  const c = hex.replace('#','');
+  const r = parseInt(c.substring(0,2),16)/255;
+  const g = parseInt(c.substring(2,4),16)/255;
+  const b = parseInt(c.substring(4,6),16)/255;
+  return 0.2126*r + 0.7152*g + 0.0722*b;
+}
+function actualizarContrasteTexto(hex){
+  const lum = luminanciaHex(hex);
+  document.documentElement.style.setProperty('--on-bg', lum > 0.6 ? '#12203a' : '#F8FAFC');
+}
+
+function restaurarFondoGuardado(){
+  const raw = localStorage.getItem('cc_upana_bg');
+  if(!raw) return;
+  try{
+    const pref = JSON.parse(raw);
+    if(pref.type === 'color') aplicarFondoColor(pref.value);
+    else if(pref.type === 'image') aplicarFondoImagen(pref.value, false);
+  }catch(e){}
+}
+restaurarFondoGuardado();
 </script>
 </body>
 </html>
