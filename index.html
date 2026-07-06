@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -186,6 +187,15 @@ a{ color: inherit; }
 @keyframes cardIn{ from{ opacity:0; transform: translateY(14px) scale(.98);} to{ opacity:1; transform:none; } }
 .login-card h2{ font-size:24px; font-weight:700; }
 .login-card .sub{ color: var(--text-muted); font-size:13.5px; margin-top:6px; margin-bottom:30px; }
+
+.login-card-logo{ display:flex; justify-content:center; margin-bottom:22px; }
+.login-card-logo img{
+  width:64px; height:64px; border-radius:16px; background:#fff;
+  padding:9px; object-fit:contain;
+  border:1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  animation: cardIn .6s var(--ease);
+}
 
 .btn{
   border:none; cursor:pointer; border-radius: var(--radius-sm);
@@ -494,6 +504,9 @@ tbody tr:last-child td{ border-bottom:none; }
   </div>
   <div class="login-main">
     <div class="login-card">
+      <div class="login-card-logo">
+        <img src="https://es-academic.com/pictures/eswiki/76/Logo_Universidad_Panamericana.png" alt="Universidad Panamericana de Guatemala">
+      </div>
       <h2>Iniciar sesión</h2>
       <div class="sub">Ingresa con tu cuenta institucional de Microsoft para continuar.</div>
       <button id="btnMicrosoftLogin" class="btn btn-ms">
