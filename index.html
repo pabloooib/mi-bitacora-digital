@@ -1,7 +1,7 @@
 
 
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -34,8 +34,8 @@
      --tinta        #1B2230  (texto principal)
      --grafito      #616B7A  (texto secundario)
    Tipografía: Sora (display, títulos) + Inter (cuerpo) + JetBrains Mono (datos/IDs)
-   Firma visual: el "Radar Banner" — un pulso de sincronización en vivo que
-   representa la escucha activa hacia Ellucian Application Navigator.
+   Firma visual: el "Radar" — un pulso que transmite conexión segura e
+   inicio de sesión institucional en tiempo real.
    ============================================================ */
 
 :root{
@@ -253,6 +253,7 @@ a{ color: inherit; }
   color: var(--text-muted); font-size:14px; font-weight:500; cursor:pointer;
   transition: background .2s var(--ease), color .2s var(--ease);
   margin-bottom:2px; border:1px solid transparent;
+  text-decoration:none;
 }
 .nav-item svg{ width:18px; height:18px; flex-shrink:0; }
 .nav-item:hover{ background: var(--bg-alt); color: var(--text); }
@@ -329,19 +330,6 @@ a{ color: inherit; }
 @media (max-width: 980px){ .grid-2{ grid-template-columns:1fr; } }
 
 .section-title{ font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color: var(--text-muted); margin-bottom:14px; display:flex; align-items:center; gap:8px;}
-
-/* ---- Banner sync module ---- */
-.banner-card{
-  border-radius: var(--radius); padding:18px 20px; margin-bottom:20px;
-  background: linear-gradient(135deg, var(--azul-hondo), var(--azul-upana));
-  color:#fff; display:flex; align-items:center; justify-content:space-between; gap:16px;
-  box-shadow: var(--shadow);
-}
-.banner-card .radar-pulse{ margin-top:0; opacity:1; }
-.banner-card .bt{ font-size:13px; font-weight:600; }
-.banner-card .bd{ font-size:12px; opacity:.8; margin-top:2px; }
-.banner-status-ok{ background: rgba(60,200,140,.18); color:#8CF0C4; font-size:11px; font-weight:700; padding:5px 11px; border-radius:99px; display:flex; align-items:center; gap:6px; }
-.banner-status-ok .dot{ width:6px; height:6px; border-radius:50%; background:#3CC88C; }
 
 /* ---- Form ---- */
 .field{ margin-bottom:16px; }
@@ -498,41 +486,6 @@ tbody tr:last-child td{ border-bottom:none; }
 .btn-modo svg{ width:16px; height:16px; }
 
 /* ============================================================
-   ESTADOS TELEFÓNICOS (Softphone simulado)
-   ============================================================ */
-.estado-actual-card{
-  border-radius: var(--radius-lg); padding:26px; margin-bottom:22px;
-  display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
-  color:#fff; box-shadow: var(--shadow); transition: background .4s var(--ease);
-}
-.estado-actual-card .eac-label{ font-size:12px; text-transform:uppercase; letter-spacing:.08em; opacity:.85; font-weight:700; }
-.estado-actual-card .eac-name{ font-family: var(--font-display); font-size:26px; font-weight:700; margin-top:4px; }
-.estado-actual-card .eac-timer{ font-family: var(--font-mono); font-size:34px; font-weight:600; letter-spacing:.02em; }
-.estado-actual-card .eac-ext{ font-size:12.5px; opacity:.85; margin-top:6px; }
-
-.estado-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
-@media (max-width:880px){ .estado-grid{ grid-template-columns:repeat(2,1fr); } }
-.estado-btn{
-  display:flex; flex-direction:column; align-items:center; gap:8px;
-  padding:18px 10px; border-radius: var(--radius); border:1.5px solid var(--border);
-  background: var(--surface); cursor:pointer; transition: all .2s var(--ease); text-align:center;
-}
-.estado-btn:hover{ transform: translateY(-2px); box-shadow: var(--shadow); }
-.estado-btn .dot{ width:14px; height:14px; border-radius:50%; }
-.estado-btn .lbl{ font-size:12.5px; font-weight:700; }
-.estado-btn.activo{ border-color: transparent; box-shadow: var(--shadow); }
-.estado-btn[data-estado="disponible"] .dot{ background: var(--success); }
-.estado-btn[data-estado="disponible"].activo{ background: var(--success-bg); border-color: var(--success); }
-.estado-btn[data-estado="llamada"] .dot{ background: var(--danger); }
-.estado-btn[data-estado="llamada"].activo{ background: var(--danger-bg); border-color: var(--danger); }
-.estado-btn[data-estado="break"] .dot{ background: var(--warning); }
-.estado-btn[data-estado="break"].activo{ background: var(--warning-bg); border-color: var(--warning); }
-.estado-btn[data-estado="almuerzo"] .dot{ background: var(--naranja); }
-.estado-btn[data-estado="almuerzo"].activo{ background: var(--naranja-bg); border-color: var(--naranja); }
-.estado-btn[data-estado="backoffice"] .dot{ background: var(--gris-estado); }
-.estado-btn[data-estado="backoffice"].activo{ background: var(--gris-estado-bg); border-color: var(--gris-estado); }
-
-/* ============================================================
    ESTRELLAS (Feedback / Auditoría de calidad)
    ============================================================ */
 .star-rating{ display:inline-flex; gap:3px; }
@@ -547,24 +500,6 @@ tbody tr:last-child td{ border-bottom:none; }
 .feedback-item .fi-de{ font-size:12.5px; font-weight:700; color: var(--text-muted); }
 .feedback-item .fi-fecha{ font-size:11.5px; color: var(--text-muted); }
 .feedback-item .fi-comentario{ font-size:13.5px; line-height:1.5; }
-
-/* ============================================================
-   FLOOR MONITOR (Supervisor)
-   ============================================================ */
-.floor-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px; }
-.floor-card{
-  border:1px solid var(--border); border-radius: var(--radius); padding:16px; background: var(--surface);
-  box-shadow: var(--shadow-sm); position:relative; overflow:hidden;
-}
-.floor-card .fc-top{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
-.floor-card .fc-ini{ width:38px; height:38px; border-radius:50%; display:grid; place-items:center; font-weight:700; font-family: var(--font-display); color:#fff; flex-shrink:0; background: var(--azul-upana); }
-.floor-card .fc-nombre{ font-weight:700; font-size:13.5px; line-height:1.25; }
-.floor-card .fc-ext{ font-size:11.5px; color: var(--text-muted); font-family: var(--font-mono); }
-.floor-card .fc-estado-row{ display:flex; align-items:center; gap:8px; padding:9px 11px; border-radius: var(--radius-sm); }
-.floor-card .fc-estado-row .dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
-.floor-card .fc-estado-row .fc-e-txt{ font-size:12.5px; font-weight:700; flex:1; }
-.floor-card .fc-tiempo{ font-family: var(--font-mono); font-size:12px; opacity:.85; }
-.floor-card.offline{ opacity:.55; }
 
 /* ============================================================
    PANEL DE CONFIGURACIÓN VISUAL (Fondo)
@@ -590,18 +525,13 @@ html.custom-bg-active .sidebar,
 html.custom-bg-active .topbar,
 html.custom-bg-active .card,
 html.custom-bg-active .stat-card,
-html.custom-bg-active .floor-card,
 html.custom-bg-active .feedback-item,
-html.custom-bg-active .estado-btn,
 html.custom-bg-active .modal,
-html.custom-bg-active #toastHost .toast,
-html.custom-bg-active .banner-card{
-  background-color: rgba(255,255,255,.75) !important;
-  backdrop-filter: blur(14px) saturate(160%);
-  -webkit-backdrop-filter: blur(14px) saturate(160%);
+html.custom-bg-active #toastHost .toast{
+  background-color: rgba(17,24,39,.68) !important;
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
 }
-html.custom-bg-active .banner-card{ background-image: linear-gradient(135deg, rgba(14,42,84,.82), rgba(22,59,114,.82)) !important; }
-html.custom-bg-active .estado-actual-card{ backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%); }
 </style>
 </head>
 <body>
@@ -621,8 +551,8 @@ html.custom-bg-active .estado-actual-card{ backdrop-filter: blur(14px) saturate(
     <div class="login-hero">
       <span class="eyebrow">Servicio al estudiante</span>
       <h1>Cada llamada, registrada con precisión.</h1>
-      <p>Bitácora conecta a los agentes del call center con Banner (Ellucian Application Navigator) para documentar cada interacción con los estudiantes de UPANA de forma trazable y auditable.</p>
-      <div class="radar-pulse"><span class="radar-dot"></span> Escucha activa hacia Application Navigator</div>
+      <p>Bitácora acompaña a los agentes del call center de UPANA para documentar cada interacción con los estudiantes de forma trazable, auditable y segura.</p>
+      <div class="radar-pulse"><span class="radar-dot"></span> Conexión segura con inicio de sesión institucional</div>
     </div>
     <div style="position:relative; z-index:1; font-size:12px; opacity:.6;">© <span id="yearTag"></span> Universidad Panamericana de Guatemala</div>
   </div>
@@ -665,22 +595,26 @@ html.custom-bg-active .estado-actual-card{ backdrop-filter: blur(14px) saturate(
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/><path d="M12 7v5l3 3"/></svg>
         Mi historial
       </div>
-      <div class="nav-item" data-view="estado">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
-        Mi estado
-      </div>
       <div class="nav-item" data-view="buzon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
         Buzón de retroalimentación
       </div>
     </div>
 
+    <div class="nav-group" id="navRecursos">
+      <div class="nav-label">Recursos</div>
+      <a class="nav-item" href="https://danielozu233-cmyk.github.io/Auxiliares/Index.html" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        Estados de agentes
+      </a>
+      <a class="nav-item" href="https://helpdesk.upana.edu.gt/publicaciones/" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7v6c0 5 4 8 9 9 5-1 9-4 9-9V7l-9-5Z"/><path d="M9.5 12.5 11 14l3.5-3.5"/></svg>
+        Recursos internos
+      </a>
+    </div>
+
     <div class="nav-group" id="navSupervisor">
       <div class="nav-label">Supervisión</div>
-      <div class="nav-item" data-view="floor">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-        Floor Monitor
-      </div>
       <div class="nav-item" data-view="feedback-agentes">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 17l-5.6 3.1 1.4-6.3-4.8-4.3 6.4-.6z"/></svg>
         Feedback a agentes
@@ -747,6 +681,7 @@ html.custom-bg-active .estado-actual-card{ backdrop-filter: blur(14px) saturate(
             <div class="user-menu-head">
               <div class="name" id="menuName">—</div>
               <div class="mail" id="menuMail">—</div>
+              <div class="mail mono" id="menuExt" style="margin-top:2px;">Ext. —</div>
               <span class="role-badge" id="menuRoleBadge">Agente</span>
             </div>
             <div class="user-menu-item" id="btnOpenProfile">
@@ -766,14 +701,6 @@ html.custom-bg-active .estado-actual-card{ backdrop-filter: blur(14px) saturate(
 
       <!-- ---- VIEW: Nueva llamada ---- -->
       <section class="view" id="view-nueva-llamada">
-        <div class="banner-card">
-          <div>
-            <div class="bt">Sincronización con Banner (Application Navigator)</div>
-            <div class="bd">Escuchando eventos <code class="mono">postMessage</code> desde appnav.upana.edu.gt para autocompletar la llamada.</div>
-          </div>
-          <div class="banner-status-ok"><span class="dot"></span> <span id="bannerStatusText">En espera</span></div>
-        </div>
-
         <div class="grid-2">
           <div class="card">
             <div class="section-title">Datos de la llamada</div>
@@ -793,10 +720,10 @@ html.custom-bg-active .estado-actual-card{ backdrop-filter: blur(14px) saturate(
                 <div class="field">
                   <label for="inputCarnet">Carnet / ID de estudiante</label>
                   <div class="input-status">
-                    <input type="text" id="inputCarnet" placeholder="Ej. 1234-20-12345" class="mono" autocomplete="off">
+                    <input type="text" id="inputCarnet" placeholder="Ej. 12345 (sin ceros a la izquierda)" class="mono" autocomplete="off" inputmode="numeric" maxlength="9">
                     <span class="stat" id="carnetStat"></span>
                   </div>
-                  <div class="hint">Se autocompleta al recibir el evento de Banner o al escribir un carnet registrado.</div>
+                  <div class="hint">El ID siempre tiene 9 dígitos. Escribe solo los números, sin los ceros iniciales, y se autocompleta.</div>
                 </div>
                 <div id="studentPreview"></div>
                 <div class="field">
@@ -884,42 +811,12 @@ html.custom-bg-active .estado-actual-card{ backdrop-filter: blur(14px) saturate(
         </div>
       </section>
 
-      <!-- ---- VIEW: Mi estado (Agente) ---- -->
-      <section class="view hidden" id="view-estado">
-        <div class="estado-actual-card" id="estadoActualCard" style="background: linear-gradient(135deg, var(--azul-hondo), var(--azul-upana));">
-          <div>
-            <div class="eac-label">Estado actual</div>
-            <div class="eac-name" id="estadoActualNombre">Disponible</div>
-            <div class="eac-ext">Extensión asignada: <span class="mono" id="estadoActualExt">—</span></div>
-          </div>
-          <div class="eac-timer" id="estadoActualTimer">00:00:00</div>
-        </div>
-        <div class="card">
-          <div class="section-title">Cambiar mi estado telefónico</div>
-          <div class="estado-grid">
-            <div class="estado-btn" data-estado="disponible"><span class="dot"></span><span class="lbl">Disponible</span></div>
-            <div class="estado-btn" data-estado="llamada"><span class="dot"></span><span class="lbl">En llamada</span></div>
-            <div class="estado-btn" data-estado="break"><span class="dot"></span><span class="lbl">Break / Café</span></div>
-            <div class="estado-btn" data-estado="almuerzo"><span class="dot"></span><span class="lbl">Almuerzo</span></div>
-            <div class="estado-btn" data-estado="backoffice"><span class="dot"></span><span class="lbl">Gestión interna</span></div>
-          </div>
-        </div>
-      </section>
-
       <!-- ---- VIEW: Buzón de retroalimentación (Agente) ---- -->
       <section class="view hidden" id="view-buzon">
         <div class="card">
           <div class="section-title">Retroalimentación recibida</div>
           <div id="listaBuzon"></div>
           <div id="buzonEmpty"></div>
-        </div>
-      </section>
-
-      <!-- ---- VIEW: Floor Monitor (Supervisor) ---- -->
-      <section class="view hidden" id="view-floor">
-        <div class="card">
-          <div class="section-title">Estado del floor en tiempo real</div>
-          <div class="floor-grid" id="floorGrid"></div>
         </div>
       </section>
 
@@ -1076,6 +973,21 @@ html.custom-bg-active .estado-actual-card{ backdrop-filter: blur(14px) saturate(
   </div>
 </div>
 
+<!-- ================= MODAL SELECTOR DE ROL AL INICIO (acceso dual) ================= -->
+<div class="modal-overlay" id="modalRolInicio">
+  <div class="modal" style="max-width:380px; text-align:center;">
+    <div class="login-card-logo" style="margin-bottom:6px;">
+      <img src="https://es-academic.com/pictures/eswiki/76/Logo_Universidad_Panamericana.png" alt="Universidad Panamericana de Guatemala">
+    </div>
+    <h3 style="font-size:19px;">¿Cómo deseas ingresar hoy?</h3>
+    <p style="color:var(--text-muted); font-size:13px; margin:8px 0 22px; line-height:1.5;">Tu cuenta tiene acceso dual. Podrás alternar de vista en cualquier momento desde la barra superior.</p>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <button class="btn btn-primary btn-block" id="btnEntrarComoAgente">Ingresar como Agente</button>
+      <button class="btn btn-gold btn-block" id="btnEntrarComoSupervisor">Ingresar como Supervisor</button>
+    </div>
+  </div>
+</div>
+
 <div id="toastHost"></div>
 
 <script>
@@ -1113,18 +1025,7 @@ const state = {
   currentView: 'nueva-llamada',
   estudianteSeleccionado: null,
   todosLosRegistros: [],   // cache para vistas de supervisor/jefe
-  misRegistrosHoy: [],
-  miEstado: 'disponible',
-  miEstadoDesde: Date.now(),
-  floorRoster: {}          // correo -> {estado, desde} en tiempo real
-};
-
-const ESTADOS_DEF = {
-  disponible: { label:'Disponible', color:'#22764F' },
-  llamada: { label:'En llamada', color:'#B23A32' },
-  break: { label:'Break / Café', color:'#A8710A' },
-  almuerzo: { label:'Almuerzo', color:'#C2540C' },
-  backoffice: { label:'Gestión interna', color:'#4B5563' }
+  misRegistrosHoy: []
 };
 
 const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/initials/svg?backgroundType=gradientLinear&fontWeight=600&seed=';
@@ -1166,14 +1067,16 @@ function buscarUsuarioUPANA(correo){
 }
 
 // ---------- Mock Data de contingencia (estudiantes UPANA) ----------
+// Los IDs siempre tienen 9 dígitos. El agente escribe sin ceros a la
+// izquierda y el sistema autocompleta la clave real con padStart(9,'0').
 const MOCK_ESTUDIANTES = {
-  "1234-20-12345": { nombre: "María Fernanda López Castillo", carrera: "Ingeniería en Sistemas" },
-  "5678-19-98765": { nombre: "Carlos Andrés Ramírez Solís", carrera: "Administración de Empresas" },
-  "9988-21-11223": { nombre: "Ana Lucía Morales Pérez", carrera: "Derecho" },
-  "4455-18-33445": { nombre: "José Manuel Girón Estrada", carrera: "Psicología Clínica" },
-  "7766-22-55667": { nombre: "Paola Nicté Hernández Ajú", carrera: "Arquitectura" },
-  "3322-20-77889": { nombre: "Diego Alejandro Sam Cifuentes", carrera: "Ingeniería Industrial" },
-  "6611-19-44556": { nombre: "Gabriela Isabel Roca Mazariegos", carrera: "Mercadotecnia" }
+  "000123456": { nombre: "María Fernanda López Castillo", carrera: "Ingeniería en Sistemas" },
+  "000598765": { nombre: "Carlos Andrés Ramírez Solís", carrera: "Administración de Empresas" },
+  "000988112": { nombre: "Ana Lucía Morales Pérez", carrera: "Derecho" },
+  "000445533": { nombre: "José Manuel Girón Estrada", carrera: "Psicología Clínica" },
+  "077665544": { nombre: "Paola Nicté Hernández Ajú", carrera: "Arquitectura" },
+  "033227788": { nombre: "Diego Alejandro Sam Cifuentes", carrera: "Ingeniería Industrial" },
+  "006611445": { nombre: "Gabriela Isabel Roca Mazariegos", carrera: "Mercadotecnia" }
 };
 
 // ================================================================
@@ -1208,11 +1111,11 @@ function iniciales(nombre){
 }
 
 // ================================================================
-// TEMA — la aplicación usa siempre el tema claro corporativo.
-// El tema oscuro fue retirado; en su lugar, el usuario personaliza
-// el fondo desde el Panel de Configuración Visual (ver más abajo).
+// TEMA — la aplicación usa por defecto un tema oscuro elegante.
+// El usuario personaliza el fondo (color oscuro o imagen a pantalla
+// completa) desde el Panel de Configuración Visual (ver más abajo).
 // ================================================================
-document.documentElement.setAttribute('data-theme', 'light');
+document.documentElement.setAttribute('data-theme', 'dark');
 
 // ================================================================
 // AUTENTICACIÓN
@@ -1240,24 +1143,48 @@ auth.onAuthStateChanged(async (user)=>{
   if(user){
     state.user = user;
     await cargarOCrearPerfil(user);
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('appShell').classList.remove('hidden');
-    pintarUsuario();
-    aplicarPermisosDeRol();
-    cambiarVista(vistaEfectiva() === 'agente' ? 'nueva-llamada' : 'floor');
-    suscribirMisRegistrosHoy();
-    iniciarEstadoTelefonico();
-    suscribirBuzon();
-    suscribirFloorMonitor();
-    initBackground();
+    if(state.permisoDual){
+      mostrarSelectorRolInicio();
+    } else {
+      entrarAlPanel();
+    }
   } else {
     state.user = null;
     document.getElementById('appShell').classList.add('hidden');
     document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('modalRolInicio').classList.remove('open');
   }
   veil.style.opacity = '0';
   setTimeout(()=> veil.classList.add('hidden'), 300);
 });
+
+// ----------------------------------------------------------------
+// Selector de rol al iniciar sesión (solo cuentas con acceso dual)
+// ----------------------------------------------------------------
+function mostrarSelectorRolInicio(){
+  document.getElementById('modalRolInicio').classList.add('open');
+}
+document.getElementById('btnEntrarComoAgente').addEventListener('click', ()=>{
+  state.modoVista = 'agente';
+  document.getElementById('modalRolInicio').classList.remove('open');
+  entrarAlPanel();
+});
+document.getElementById('btnEntrarComoSupervisor').addEventListener('click', ()=>{
+  state.modoVista = 'supervisor';
+  document.getElementById('modalRolInicio').classList.remove('open');
+  entrarAlPanel();
+});
+
+function entrarAlPanel(){
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appShell').classList.remove('hidden');
+  pintarUsuario();
+  aplicarPermisosDeRol();
+  cambiarVista(vistaEfectiva() === 'agente' ? 'nueva-llamada' : 'feedback-agentes');
+  suscribirMisRegistrosHoy();
+  suscribirBuzon();
+  initBackground();
+}
 
 async function cargarOCrearPerfil(user){
   const ref = db.collection('usuarios').doc(user.uid);
@@ -1304,6 +1231,7 @@ function pintarUsuario(){
   document.getElementById('topAvatar').src = foto;
   document.getElementById('menuName').textContent = u.displayName || state.perfilDoc.nombre || 'Usuario';
   document.getElementById('menuMail').textContent = u.email || state.perfilDoc.correo || '';
+  document.getElementById('menuExt').textContent = 'Ext. ' + (state.ext || '—');
   const badge = document.getElementById('menuRoleBadge');
   const labels = { agente:'Agente', supervisor:'Supervisor', jefe:'Jefe de Área' };
   badge.textContent = labels[state.rol] || 'Agente';
@@ -1345,7 +1273,7 @@ function cambiarModoVista(){
   if(!state.permisoDual) return;
   state.modoVista = (state.modoVista === 'agente') ? 'supervisor' : 'agente';
   aplicarPermisosDeRol();
-  cambiarVista(state.modoVista === 'agente' ? 'nueva-llamada' : 'floor');
+  cambiarVista(state.modoVista === 'agente' ? 'nueva-llamada' : 'feedback-agentes');
   toast(`Cambiaste a la vista de ${state.modoVista === 'agente' ? 'Agente' : 'Supervisor'}`, 'info');
 }
 document.getElementById('btnCambiarModo').addEventListener('click', cambiarModoVista);
@@ -1360,9 +1288,7 @@ document.addEventListener('click', ()=> userMenu.classList.remove('open'));
 const VIEW_META = {
   'nueva-llamada': { title:'Nueva llamada', sub:'Registra la atención brindada al estudiante' },
   'historial': { title:'Mi historial', sub:'Registros que has capturado hoy' },
-  'estado': { title:'Mi estado', sub:'Controla tu disponibilidad telefónica en tiempo real' },
   'buzon': { title:'Buzón de retroalimentación', sub:'Evaluaciones y comentarios de tu coordinación' },
-  'floor': { title:'Floor Monitor', sub:'Estado en vivo de todos los agentes' },
   'feedback-agentes': { title:'Feedback a agentes', sub:'Envía una evaluación cualitativa en tiempo real' },
   'buscar': { title:'Buscar registros', sub:'Consulta llamadas de cualquier agente' },
   'metricas': { title:'Métricas', sub:'Panorama operativo del call center' },
@@ -1390,9 +1316,7 @@ function cambiarVista(view){
   if(view === 'metricas') cargarTodosRegistros(renderMetricas);
   if(view === 'reportes') cargarTodosRegistros(renderReportes);
   if(view === 'auditoria') renderAuditoria();
-  if(view === 'estado') renderEstadoTelefonico();
   if(view === 'buzon') renderBuzon();
-  if(view === 'floor') renderFloorMonitor();
   if(view === 'feedback-agentes') renderFeedbackAgentesForm();
 }
 document.querySelectorAll('.nav-item[data-view]').forEach(item=>{
@@ -1456,48 +1380,46 @@ document.getElementById('btnGuardarFoto').addEventListener('click', async ()=>{
 });
 
 // ================================================================
-// SINCRONIZACIÓN BANNER (Application Navigator)
+// BÚSQUEDA DE ESTUDIANTE POR CARNET (ID de 9 dígitos, autocompletado)
 // ================================================================
-// A) Escucha real de mensajes que un script inyectado en Banner
-//    enviaría vía postMessage con { source:'banner-upana', carnet, nombre }
-window.addEventListener('message', (event)=>{
-  const data = event.data;
-  if(!data || data.source !== 'banner-upana') return;
-  document.getElementById('bannerStatusText').textContent = 'Sincronizado';
-  aplicarEstudiante(data.carnet, data.nombre, true);
-  toast('Datos recibidos desde Banner Application Navigator', 'ok');
-});
-
-// Simulador manual para pruebas (dispara un evento como si viniera de Banner)
-function simularEventoBanner(carnet){
-  const est = MOCK_ESTUDIANTES[carnet];
-  window.postMessage({ source:'banner-upana', carnet, nombre: est ? est.nombre : null }, '*');
-}
-
-// B) Búsqueda local de contingencia por carnet
 const inputCarnet = document.getElementById('inputCarnet');
+
+function soloDigitos(v){ return (v||'').replace(/\D/g,'').slice(0,9); }
+function carnetPadded(v){ const d = soloDigitos(v); return d ? d.padStart(9,'0') : ''; }
+
 inputCarnet.addEventListener('input', ()=>{
-  const val = inputCarnet.value.trim();
+  // Solo se permiten dígitos mientras se escribe
+  const digitos = soloDigitos(inputCarnet.value);
+  if(inputCarnet.value !== digitos) inputCarnet.value = digitos;
+
   const statEl = document.getElementById('carnetStat');
-  if(val.length < 4){ statEl.textContent=''; document.getElementById('studentPreview').innerHTML=''; return; }
-  const est = MOCK_ESTUDIANTES[val];
+  if(!digitos.length){ statEl.textContent=''; document.getElementById('studentPreview').innerHTML=''; state.estudianteSeleccionado=null; return; }
+
+  const padded = carnetPadded(digitos);
+  const est = MOCK_ESTUDIANTES[padded];
   if(est){
     statEl.textContent = 'Encontrado'; statEl.className = 'stat stat-found';
-    aplicarEstudiante(val, est.nombre, false, est.carrera);
+    aplicarEstudiante(padded, est.nombre, est.carrera);
   } else {
     statEl.textContent = 'Buscando…'; statEl.className = 'stat stat-search';
     document.getElementById('inputNombre').value = '';
     document.getElementById('studentPreview').innerHTML = '';
     state.estudianteSeleccionado = null;
     setTimeout(()=>{
-      if(inputCarnet.value.trim() === val && !MOCK_ESTUDIANTES[val]){
+      if(soloDigitos(inputCarnet.value) === digitos && !MOCK_ESTUDIANTES[carnetPadded(digitos)]){
         statEl.textContent = 'No encontrado'; statEl.className = 'stat stat-none';
       }
     }, 500);
   }
 });
 
-function aplicarEstudiante(carnet, nombre, viaBanner, carrera){
+// Al salir del campo, se autocompleta visualmente con los 9 dígitos completos
+inputCarnet.addEventListener('blur', ()=>{
+  if(!inputCarnet.value.trim()) return;
+  inputCarnet.value = carnetPadded(inputCarnet.value);
+});
+
+function aplicarEstudiante(carnet, nombre, carrera){
   document.getElementById('inputCarnet').value = carnet;
   document.getElementById('inputNombre').value = nombre || '';
   state.estudianteSeleccionado = { carnet, nombre, carrera: carrera||'' };
@@ -1507,7 +1429,7 @@ function aplicarEstudiante(carnet, nombre, viaBanner, carrera){
     <div class="student-preview">
       <div class="ico">${iniciales(nombre)}</div>
       <div>
-        <div class="nm">${nombre}${viaBanner ? ' · <span style=\"color:var(--success);font-weight:700;\">Banner</span>':''}</div>
+        <div class="nm">${nombre}</div>
         <div class="id">${carnet}${carrera ? ' · '+carrera : ''}</div>
       </div>
     </div>` : '';
@@ -1868,83 +1790,6 @@ document.getElementById('btnExportarCSV').addEventListener('click', async ()=>{
 });
 
 // ================================================================
-// ESTADOS TELEFÓNICOS (Softphone simulado) — Vista Agente
-// ================================================================
-let estadoTimerHandle = null;
-
-function refEstado(){
-  // Se usa el correo como ID de documento para que el Floor Monitor pueda
-  // asociar el estado sin depender del uid interno de Firebase Auth.
-  return db.collection('estados').doc(state.user.email);
-}
-
-async function iniciarEstadoTelefonico(){
-  try{
-    const snap = await refEstado().get();
-    if(snap.exists && snap.data().estado){
-      state.miEstado = snap.data().estado;
-      const desde = snap.data().desde;
-      state.miEstadoDesde = desde && desde.toMillis ? desde.toMillis() : Date.now();
-    } else {
-      await cambiarEstadoTelefonico('disponible', true);
-    }
-  }catch(err){
-    console.error(err);
-    state.miEstado = 'disponible';
-    state.miEstadoDesde = Date.now();
-  }
-  if(estadoTimerHandle) clearInterval(estadoTimerHandle);
-  estadoTimerHandle = setInterval(actualizarRelojEstado, 1000);
-  actualizarRelojEstado();
-}
-
-async function cambiarEstadoTelefonico(estado, silencioso){
-  state.miEstado = estado;
-  state.miEstadoDesde = Date.now();
-  try{
-    await refEstado().set({
-      correo: state.user.email,
-      nombre: state.user.displayName || state.perfilDoc.nombre,
-      ext: state.ext,
-      estado: estado,
-      desde: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    if(!silencioso) toast(`Estado cambiado a "${ESTADOS_DEF[estado].label}"`, 'ok');
-  }catch(err){
-    console.error(err);
-    if(!silencioso) toast('No se pudo actualizar el estado: '+(err.message||err.code), 'err');
-  }
-  if(state.currentView === 'estado') renderEstadoTelefonico();
-}
-
-function formatearDuracion(ms){
-  const total = Math.max(0, Math.floor(ms/1000));
-  const h = String(Math.floor(total/3600)).padStart(2,'0');
-  const m = String(Math.floor((total%3600)/60)).padStart(2,'0');
-  const s = String(total%60).padStart(2,'0');
-  return `${h}:${m}:${s}`;
-}
-
-function actualizarRelojEstado(){
-  const el = document.getElementById('estadoActualTimer');
-  if(el) el.textContent = formatearDuracion(Date.now() - state.miEstadoDesde);
-}
-
-function renderEstadoTelefonico(){
-  const def = ESTADOS_DEF[state.miEstado] || ESTADOS_DEF.disponible;
-  document.getElementById('estadoActualNombre').textContent = def.label;
-  document.getElementById('estadoActualExt').textContent = state.ext || '—';
-  document.getElementById('estadoActualCard').style.background = `linear-gradient(135deg, ${def.color}, ${def.color}CC)`;
-  document.querySelectorAll('.estado-btn').forEach(btn=>{
-    btn.classList.toggle('activo', btn.dataset.estado === state.miEstado);
-  });
-  actualizarRelojEstado();
-}
-document.querySelectorAll('.estado-btn').forEach(btn=>{
-  btn.addEventListener('click', ()=> cambiarEstadoTelefonico(btn.dataset.estado));
-});
-
-// ================================================================
 // BUZÓN DE RETROALIMENTACIÓN — Vista Agente
 // ================================================================
 let misFeedbacks = [];
@@ -1988,46 +1833,6 @@ function renderBuzon(){
       <div class="fi-comentario">${f.comentario || '—'}</div>
       <div class="fi-fecha" style="margin-top:8px;">${fmtFecha(f.fecha)}</div>
     </div>`).join('');
-}
-
-// ================================================================
-// FLOOR MONITOR — Vista Supervisor
-// ================================================================
-let floorTimerHandle = null;
-function suscribirFloorMonitor(){
-  db.collection('estados').onSnapshot(snap=>{
-    const roster = {};
-    snap.forEach(doc=> roster[doc.id] = doc.data());
-    state.floorRoster = roster;
-    if(state.currentView === 'floor') renderFloorMonitor();
-  }, err=> console.error(err));
-  if(floorTimerHandle) clearInterval(floorTimerHandle);
-  floorTimerHandle = setInterval(()=>{ if(state.currentView === 'floor') renderFloorMonitor(); }, 1000);
-}
-function renderFloorMonitor(){
-  const host = document.getElementById('floorGrid');
-  host.innerHTML = usuariosUPANA.map(u=>{
-    const doc = state.floorRoster[u.correo];
-    const estadoKey = doc && doc.estado ? doc.estado : null;
-    const def = estadoKey ? ESTADOS_DEF[estadoKey] : null;
-    const desdeMs = doc && doc.desde && doc.desde.toMillis ? doc.desde.toMillis() : null;
-    const tiempo = desdeMs ? formatearDuracion(Date.now() - desdeMs) : '—';
-    return `
-      <div class="floor-card ${def ? '' : 'offline'}">
-        <div class="fc-top">
-          <div class="fc-ini" style="background:${def ? def.color : 'var(--gris-estado)'};">${iniciales(u.nombre)}</div>
-          <div>
-            <div class="fc-nombre">${u.nombre}</div>
-            <div class="fc-ext">Ext. ${u.ext}</div>
-          </div>
-        </div>
-        <div class="fc-estado-row" style="background:${def ? def.color+'1A' : 'var(--gris-estado-bg)'};">
-          <span class="dot" style="background:${def ? def.color : 'var(--gris-estado)'};"></span>
-          <span class="fc-e-txt" style="color:${def ? def.color : 'var(--text-muted)'};">${def ? def.label : 'Sin conexión'}</span>
-          <span class="fc-tiempo">${tiempo}</span>
-        </div>
-      </div>`;
-  }).join('');
 }
 
 // ================================================================
@@ -2120,7 +1925,7 @@ function suscribirFeedbackEnviado(){
 // ================================================================
 // PANEL DE CONFIGURACIÓN VISUAL — Personalización de fondo
 // ================================================================
-const COLORES_PREDEFINIDOS = ['#F5F6F8','#FFFFFF','#EAF1FB','#EAF7EF','#FDF3E3','#F3EEF9','#F0F4F1'];
+const COLORES_PREDEFINIDOS = ['#0D1524','#12161F','#0E2A54','#1B2230','#101A2C','#1C1414','#141A16','#241521'];
 const modalConfigVisual = document.getElementById('modalConfigVisual');
 
 function pintarSwatches(seleccionActual){
