@@ -60,6 +60,10 @@
   --danger-bg: #FBEAE8;
   --warning: #A8710A;
   --warning-bg: #FBF0DA;
+  --naranja: #C2540C;
+  --naranja-bg: #FCE7D6;
+  --gris-estado: #4B5563;
+  --gris-estado-bg: #E9EBEF;
 
   --radius-sm: 8px;
   --radius: 14px;
@@ -478,6 +482,126 @@ tbody tr:last-child td{ border-bottom:none; }
 }
 .spinner{ width:34px; height:34px; border-radius:50%; border:3px solid var(--border); border-top-color: var(--azul-upana); animation: spin 0.8s linear infinite; }
 @keyframes spin{ to{ transform: rotate(360deg); } }
+
+/* ============================================================
+   BOTÓN "CAMBIAR MODO" (Acceso dual Agente / Supervisor)
+   ============================================================ */
+.btn-modo{
+  display:flex; align-items:center; gap:9px; padding:8px 14px 8px 10px;
+  border-radius:99px; border:1px solid var(--border-strong);
+  background: linear-gradient(180deg, var(--oro-suave), var(--oro-upana));
+  color:#2A2103; font-weight:700; font-size:12.5px; cursor:pointer;
+  box-shadow: var(--shadow-sm); transition: transform .18s var(--ease), box-shadow .18s var(--ease);
+  white-space:nowrap;
+}
+.btn-modo:hover{ transform: translateY(-1px); box-shadow: var(--shadow); }
+.btn-modo svg{ width:16px; height:16px; }
+
+/* ============================================================
+   ESTADOS TELEFÓNICOS (Softphone simulado)
+   ============================================================ */
+.estado-actual-card{
+  border-radius: var(--radius-lg); padding:26px; margin-bottom:22px;
+  display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
+  color:#fff; box-shadow: var(--shadow); transition: background .4s var(--ease);
+}
+.estado-actual-card .eac-label{ font-size:12px; text-transform:uppercase; letter-spacing:.08em; opacity:.85; font-weight:700; }
+.estado-actual-card .eac-name{ font-family: var(--font-display); font-size:26px; font-weight:700; margin-top:4px; }
+.estado-actual-card .eac-timer{ font-family: var(--font-mono); font-size:34px; font-weight:600; letter-spacing:.02em; }
+.estado-actual-card .eac-ext{ font-size:12.5px; opacity:.85; margin-top:6px; }
+
+.estado-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
+@media (max-width:880px){ .estado-grid{ grid-template-columns:repeat(2,1fr); } }
+.estado-btn{
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  padding:18px 10px; border-radius: var(--radius); border:1.5px solid var(--border);
+  background: var(--surface); cursor:pointer; transition: all .2s var(--ease); text-align:center;
+}
+.estado-btn:hover{ transform: translateY(-2px); box-shadow: var(--shadow); }
+.estado-btn .dot{ width:14px; height:14px; border-radius:50%; }
+.estado-btn .lbl{ font-size:12.5px; font-weight:700; }
+.estado-btn.activo{ border-color: transparent; box-shadow: var(--shadow); }
+.estado-btn[data-estado="disponible"] .dot{ background: var(--success); }
+.estado-btn[data-estado="disponible"].activo{ background: var(--success-bg); border-color: var(--success); }
+.estado-btn[data-estado="llamada"] .dot{ background: var(--danger); }
+.estado-btn[data-estado="llamada"].activo{ background: var(--danger-bg); border-color: var(--danger); }
+.estado-btn[data-estado="break"] .dot{ background: var(--warning); }
+.estado-btn[data-estado="break"].activo{ background: var(--warning-bg); border-color: var(--warning); }
+.estado-btn[data-estado="almuerzo"] .dot{ background: var(--naranja); }
+.estado-btn[data-estado="almuerzo"].activo{ background: var(--naranja-bg); border-color: var(--naranja); }
+.estado-btn[data-estado="backoffice"] .dot{ background: var(--gris-estado); }
+.estado-btn[data-estado="backoffice"].activo{ background: var(--gris-estado-bg); border-color: var(--gris-estado); }
+
+/* ============================================================
+   ESTRELLAS (Feedback / Auditoría de calidad)
+   ============================================================ */
+.star-rating{ display:inline-flex; gap:3px; }
+.star-rating svg{ width:20px; height:20px; fill: var(--border-strong); stroke:none; transition: fill .15s var(--ease); }
+.star-rating.interactive svg{ cursor:pointer; }
+.star-rating svg.filled{ fill: var(--oro-upana); }
+.feedback-item{
+  border:1px solid var(--border); border-radius: var(--radius); padding:16px 18px; margin-bottom:12px;
+  background: var(--surface-2);
+}
+.feedback-item .fi-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
+.feedback-item .fi-de{ font-size:12.5px; font-weight:700; color: var(--text-muted); }
+.feedback-item .fi-fecha{ font-size:11.5px; color: var(--text-muted); }
+.feedback-item .fi-comentario{ font-size:13.5px; line-height:1.5; }
+
+/* ============================================================
+   FLOOR MONITOR (Supervisor)
+   ============================================================ */
+.floor-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px; }
+.floor-card{
+  border:1px solid var(--border); border-radius: var(--radius); padding:16px; background: var(--surface);
+  box-shadow: var(--shadow-sm); position:relative; overflow:hidden;
+}
+.floor-card .fc-top{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.floor-card .fc-ini{ width:38px; height:38px; border-radius:50%; display:grid; place-items:center; font-weight:700; font-family: var(--font-display); color:#fff; flex-shrink:0; background: var(--azul-upana); }
+.floor-card .fc-nombre{ font-weight:700; font-size:13.5px; line-height:1.25; }
+.floor-card .fc-ext{ font-size:11.5px; color: var(--text-muted); font-family: var(--font-mono); }
+.floor-card .fc-estado-row{ display:flex; align-items:center; gap:8px; padding:9px 11px; border-radius: var(--radius-sm); }
+.floor-card .fc-estado-row .dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+.floor-card .fc-estado-row .fc-e-txt{ font-size:12.5px; font-weight:700; flex:1; }
+.floor-card .fc-tiempo{ font-family: var(--font-mono); font-size:12px; opacity:.85; }
+.floor-card.offline{ opacity:.55; }
+
+/* ============================================================
+   PANEL DE CONFIGURACIÓN VISUAL (Fondo)
+   ============================================================ */
+.config-swatches{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
+.config-swatch{
+  width:36px; height:36px; border-radius:50%; cursor:pointer; border:2px solid var(--border-strong);
+  transition: transform .15s var(--ease), border-color .15s var(--ease);
+}
+.config-swatch:hover{ transform: scale(1.08); }
+.config-swatch.selected{ border-color: var(--azul-upana); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--azul-upana); }
+.config-color-custom{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+.config-color-custom input[type=color]{ width:44px; height:36px; border-radius:8px; border:1px solid var(--border-strong); padding:2px; cursor:pointer; background:none; }
+.config-divider{ height:1px; background: var(--border); margin:18px 0; }
+.config-preview-thumb{
+  width:100%; height:64px; border-radius: var(--radius-sm); border:1px solid var(--border);
+  background-size:cover; background-position:center; margin-top:10px;
+}
+
+/* Modo "cristal" activo cuando hay un fondo personalizado */
+html.custom-bg-active body{ background-attachment: fixed; background-size: cover; background-position:center; }
+html.custom-bg-active .sidebar,
+html.custom-bg-active .topbar,
+html.custom-bg-active .card,
+html.custom-bg-active .stat-card,
+html.custom-bg-active .floor-card,
+html.custom-bg-active .feedback-item,
+html.custom-bg-active .estado-btn,
+html.custom-bg-active .modal,
+html.custom-bg-active #toastHost .toast,
+html.custom-bg-active .banner-card{
+  background-color: rgba(255,255,255,.75) !important;
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+}
+html.custom-bg-active .banner-card{ background-image: linear-gradient(135deg, rgba(14,42,84,.82), rgba(22,59,114,.82)) !important; }
+html.custom-bg-active .estado-actual-card{ backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%); }
 </style>
 </head>
 <body>
@@ -531,7 +655,7 @@ tbody tr:last-child td{ border-bottom:none; }
       </div>
     </div>
 
-    <div class="nav-group">
+    <div class="nav-group" id="navAgente">
       <div class="nav-label">Operación</div>
       <div class="nav-item" data-view="nueva-llamada">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5a2 2 0 0 1 2 2M15 1a6 6 0 0 1 6 6M10.5 13.5c-4-4-5-7-5.3-8.3a1.5 1.5 0 0 1 .4-1.5l1.6-1.6a1 1 0 0 1 1.5.1l2 2.7a1 1 0 0 1-.1 1.3L9.2 7.6c.6 1.6 3.6 4.6 5.2 5.2l1.4-1.4a1 1 0 0 1 1.3-.1l2.7 2a1 1 0 0 1 .1 1.5l-1.6 1.6a1.5 1.5 0 0 1-1.5.4c-1.3-.3-4.3-1.3-8.3-5.3Z"/></svg>
@@ -541,10 +665,26 @@ tbody tr:last-child td{ border-bottom:none; }
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/><path d="M12 7v5l3 3"/></svg>
         Mi historial
       </div>
+      <div class="nav-item" data-view="estado">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+        Mi estado
+      </div>
+      <div class="nav-item" data-view="buzon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+        Buzón de retroalimentación
+      </div>
     </div>
 
     <div class="nav-group" id="navSupervisor">
       <div class="nav-label">Supervisión</div>
+      <div class="nav-item" data-view="floor">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        Floor Monitor
+      </div>
+      <div class="nav-item" data-view="feedback-agentes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 17l-5.6 3.1 1.4-6.3-4.8-4.3 6.4-.6z"/></svg>
+        Feedback a agentes
+      </div>
       <div class="nav-item" data-view="buscar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         Buscar registros
@@ -572,9 +712,9 @@ tbody tr:last-child td{ border-bottom:none; }
     </div>
 
     <div class="sidebar-foot">
-      <div class="nav-item" id="btnThemeToggle">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4m11.4-11.4 1.4-1.4"/></svg>
-        <span id="themeLabel">Modo oscuro</span>
+      <div class="nav-item" id="btnConfigVisual">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+        Personalizar fondo
       </div>
       <div class="nav-item" id="btnLogout" style="color:var(--danger);">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
@@ -594,6 +734,10 @@ tbody tr:last-child td{ border-bottom:none; }
         </div>
       </div>
       <div class="topbar-right">
+        <button class="btn-modo hidden" id="btnCambiarModo" title="Alternar entre vista de Agente y Supervisor">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <span id="btnCambiarModoLabel">Ver como Supervisor</span>
+        </button>
         <div class="icon-btn" id="btnRefresh" title="Actualizar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 15.3-6.5L21 8M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.3 6.5L3 16m0 5v-5h5"/></svg>
         </div>
@@ -740,6 +884,72 @@ tbody tr:last-child td{ border-bottom:none; }
         </div>
       </section>
 
+      <!-- ---- VIEW: Mi estado (Agente) ---- -->
+      <section class="view hidden" id="view-estado">
+        <div class="estado-actual-card" id="estadoActualCard" style="background: linear-gradient(135deg, var(--azul-hondo), var(--azul-upana));">
+          <div>
+            <div class="eac-label">Estado actual</div>
+            <div class="eac-name" id="estadoActualNombre">Disponible</div>
+            <div class="eac-ext">Extensión asignada: <span class="mono" id="estadoActualExt">—</span></div>
+          </div>
+          <div class="eac-timer" id="estadoActualTimer">00:00:00</div>
+        </div>
+        <div class="card">
+          <div class="section-title">Cambiar mi estado telefónico</div>
+          <div class="estado-grid">
+            <div class="estado-btn" data-estado="disponible"><span class="dot"></span><span class="lbl">Disponible</span></div>
+            <div class="estado-btn" data-estado="llamada"><span class="dot"></span><span class="lbl">En llamada</span></div>
+            <div class="estado-btn" data-estado="break"><span class="dot"></span><span class="lbl">Break / Café</span></div>
+            <div class="estado-btn" data-estado="almuerzo"><span class="dot"></span><span class="lbl">Almuerzo</span></div>
+            <div class="estado-btn" data-estado="backoffice"><span class="dot"></span><span class="lbl">Gestión interna</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---- VIEW: Buzón de retroalimentación (Agente) ---- -->
+      <section class="view hidden" id="view-buzon">
+        <div class="card">
+          <div class="section-title">Retroalimentación recibida</div>
+          <div id="listaBuzon"></div>
+          <div id="buzonEmpty"></div>
+        </div>
+      </section>
+
+      <!-- ---- VIEW: Floor Monitor (Supervisor) ---- -->
+      <section class="view hidden" id="view-floor">
+        <div class="card">
+          <div class="section-title">Estado del floor en tiempo real</div>
+          <div class="floor-grid" id="floorGrid"></div>
+        </div>
+      </section>
+
+      <!-- ---- VIEW: Feedback a agentes (Supervisor) ---- -->
+      <section class="view hidden" id="view-feedback-agentes">
+        <div class="grid-2">
+          <div class="card">
+            <div class="section-title">Enviar retroalimentación</div>
+            <div class="field">
+              <label>Agente</label>
+              <select id="selectAgenteFeedback"></select>
+            </div>
+            <div class="field">
+              <label>Calificación</label>
+              <div class="star-rating interactive" id="starPickerFeedback"></div>
+            </div>
+            <div class="field">
+              <label>Comentario</label>
+              <textarea id="textareaFeedback" placeholder="Escribe un comentario cualitativo para el agente…"></textarea>
+            </div>
+            <button class="btn btn-primary btn-block" id="btnEnviarFeedback">Enviar al buzón del agente</button>
+          </div>
+          <div class="card">
+            <div class="section-title">Últimos envíos</div>
+            <div id="listaFeedbackEnviado"></div>
+            <div id="feedbackEnviadoEmpty"></div>
+          </div>
+        </div>
+      </section>
+
       <!-- ---- VIEW: Buscar (Supervisor) ---- -->
       <section class="view hidden" id="view-buscar">
         <div class="card">
@@ -828,6 +1038,44 @@ tbody tr:last-child td{ border-bottom:none; }
   </div>
 </div>
 
+<!-- ================= MODAL CONFIGURACIÓN VISUAL ================= -->
+<div class="modal-overlay" id="modalConfigVisual">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-head">
+      <h3>Personalizar fondo</h3>
+      <div class="icon-btn" id="btnCerrarConfigVisual"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+    </div>
+
+    <div class="section-title">Colores predefinidos</div>
+    <div class="config-swatches" id="configSwatches"></div>
+
+    <div class="section-title">Color personalizado</div>
+    <div class="config-color-custom">
+      <input type="color" id="inputColorCustom" value="#F5F6F8">
+      <button class="btn btn-ghost btn-sm" id="btnAplicarColorCustom">Aplicar color</button>
+    </div>
+
+    <div class="config-divider"></div>
+
+    <div class="section-title">Imagen de fondo</div>
+    <div class="field">
+      <label>Pegar URL de una imagen</label>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="inputUrlFondo" placeholder="https://ejemplo.com/imagen.jpg">
+        <button class="btn btn-primary btn-sm" id="btnAplicarUrlFondo" style="flex-shrink:0;">Aplicar</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>O cargar una imagen desde tu equipo</label>
+      <input type="file" id="inputImagenLocal" accept="image/*">
+    </div>
+    <div class="config-preview-thumb hidden" id="configPreviewThumb"></div>
+
+    <div class="config-divider"></div>
+    <button class="btn btn-ghost btn-block" id="btnResetFondo">Restablecer fondo predeterminado</button>
+  </div>
+</div>
+
 <div id="toastHost"></div>
 
 <script>
@@ -859,13 +1107,63 @@ const state = {
   user: null,
   rol: 'agente',           // agente | supervisor | jefe
   perfilDoc: null,
+  permisoDual: false,
+  modoVista: 'agente',     // agente | supervisor (solo relevante si permisoDual === true)
+  ext: '—',
   currentView: 'nueva-llamada',
   estudianteSeleccionado: null,
   todosLosRegistros: [],   // cache para vistas de supervisor/jefe
-  misRegistrosHoy: []
+  misRegistrosHoy: [],
+  miEstado: 'disponible',
+  miEstadoDesde: Date.now(),
+  floorRoster: {}          // correo -> {estado, desde} en tiempo real
+};
+
+const ESTADOS_DEF = {
+  disponible: { label:'Disponible', color:'#22764F' },
+  llamada: { label:'En llamada', color:'#B23A32' },
+  break: { label:'Break / Café', color:'#A8710A' },
+  almuerzo: { label:'Almuerzo', color:'#C2540C' },
+  backoffice: { label:'Gestión interna', color:'#4B5563' }
 };
 
 const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/initials/svg?backgroundType=gradientLinear&fontWeight=600&seed=';
+
+// ---------- Listado oficial de personal UPANA (roles y accesos duales) ----------
+const usuariosUPANA = [
+  { nombre: "Magister Joselyn Maria Anita Juárez Girón", ext: "1111", correo: "jmjuarez@upana.edu.gt", puesto: "Coordinadora de Atracción Estudiantil, admisiones y Comunicación Interna", permisoDual: true, rolBase: "jefe" },
+  { nombre: "Mayra Maribel Arévalo Ruiz", ext: "8033", correo: "mmarevalo@upana.edu.gt", puesto: "Asistente de Call Center y Servicio al Cliente", permisoDual: true, rolBase: "supervisor" },
+  { nombre: "José Pablo Ibáñez Ibáñez", ext: "8029", correo: "jibanez@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: true, rolBase: "agente" },
+  { nombre: "Nestor Daniel Ozuna Galvez", ext: "8015", correo: "nozuna@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: true, rolBase: "agente" },
+  { nombre: "Merlin Carolina Bajan Ibañez", ext: "8004", correo: "mbajan@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "César Daniel Coyoy", ext: "8014", correo: "ccoyoy@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "Josabeth Mishell de León Flores", ext: "8021", correo: "jmdeleon@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "Jackeline Stephanie Castillo Calderón", ext: "8008", correo: "jcastilloc@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "José Alejandro Vasquez Alvarez", ext: "8006", correo: "javasquez@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "Evelin Saraí Churumia Gómez", ext: "8001", correo: "echurumia@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "Tania Izamar de León Quiñonez", ext: "8010", correo: "tdeleon@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "Marta Julia Morales Solorzano", ext: "8028", correo: "mmoraless@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "Jonatan Rafael Sanchez Tinti", ext: "8027", correo: "jsanchezt@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "Justa Gabriela Jaes Sánchez", ext: "8002", correo: "jjaes@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "Bryan Christopher Hernández Cruz", ext: "8026", correo: "bhernandez@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "Diego Rolando Chiché Pineda", ext: "8017", correo: "dchiche@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "Jorge Mario Veliz Acajabón", ext: "8013", correo: "jveliz@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "Joselyne Andrea Velásquez Padilla", ext: "8007", correo: "javelasquez@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "Andrea María Jiménez Orellana", ext: "8016", correo: "amjimenez@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "Javier Sebastian Alvarez Ruano", ext: "8003", correo: "jsalvarez@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "Synndy Elizabeth Sanchez Salazar", ext: "8020", correo: "sesanchez@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "Anthony Ismar García Revolorio", ext: "8011", correo: "aigarcia@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "Mildred Gabriela Cordero Canté", ext: "8009", correo: "mcordero@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "Madelin Gabriela Ovando Franco", ext: "8023", correo: "movando@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "Mónica Paola Ordóñez Morales", ext: "8005", correo: "mpordonez@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "Maria José Perdomo Castañeda", ext: "8030", correo: "mperdomo@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
+  { nombre: "Ashley Dinora Mishelle Alvarado López", ext: "8018", correo: "aalvarado@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" }
+];
+function buscarUsuarioUPANA(correo){
+  if(!correo) return null;
+  const c = correo.trim().toLowerCase();
+  return usuariosUPANA.find(u=> u.correo.toLowerCase() === c) || null;
+}
 
 // ---------- Mock Data de contingencia (estudiantes UPANA) ----------
 const MOCK_ESTUDIANTES = {
@@ -910,21 +1208,11 @@ function iniciales(nombre){
 }
 
 // ================================================================
-// TEMA (claro / oscuro)
+// TEMA — la aplicación usa siempre el tema claro corporativo.
+// El tema oscuro fue retirado; en su lugar, el usuario personaliza
+// el fondo desde el Panel de Configuración Visual (ver más abajo).
 // ================================================================
-function initTheme(){
-  const saved = localStorage.getItem('bitacora_theme') || 'light';
-  applyTheme(saved);
-}
-function applyTheme(mode){
-  document.documentElement.setAttribute('data-theme', mode === 'dark' ? 'dark' : 'light');
-  localStorage.setItem('bitacora_theme', mode);
-  document.getElementById('themeLabel').textContent = mode === 'dark' ? 'Modo claro' : 'Modo oscuro';
-}
-document.getElementById('btnThemeToggle').addEventListener('click', ()=>{
-  const cur = document.documentElement.getAttribute('data-theme');
-  applyTheme(cur === 'dark' ? 'light' : 'dark');
-});
+document.documentElement.setAttribute('data-theme', 'light');
 
 // ================================================================
 // AUTENTICACIÓN
@@ -956,8 +1244,12 @@ auth.onAuthStateChanged(async (user)=>{
     document.getElementById('appShell').classList.remove('hidden');
     pintarUsuario();
     aplicarPermisosDeRol();
-    cambiarVista('nueva-llamada');
+    cambiarVista(vistaEfectiva() === 'agente' ? 'nueva-llamada' : 'floor');
     suscribirMisRegistrosHoy();
+    iniciarEstadoTelefonico();
+    suscribirBuzon();
+    suscribirFloorMonitor();
+    initBackground();
   } else {
     state.user = null;
     document.getElementById('appShell').classList.add('hidden');
@@ -970,19 +1262,40 @@ auth.onAuthStateChanged(async (user)=>{
 async function cargarOCrearPerfil(user){
   const ref = db.collection('usuarios').doc(user.uid);
   const snap = await ref.get();
+  const oficial = buscarUsuarioUPANA(user.email);
+
   if(snap.exists){
     state.perfilDoc = snap.data();
   } else {
     state.perfilDoc = {
-      nombre: user.displayName || user.email,
+      nombre: (oficial && oficial.nombre) || user.displayName || user.email,
       correo: user.email,
-      rol: 'agente',
+      rol: (oficial && oficial.rolBase) || 'agente',
+      ext: (oficial && oficial.ext) || null,
+      permisoDual: !!(oficial && oficial.permisoDual),
+      puesto: (oficial && oficial.puesto) || null,
       fotoURL: user.photoURL || null,
       creadoEn: firebase.firestore.FieldValue.serverTimestamp()
     };
     await ref.set(state.perfilDoc);
   }
+
+  // Sincroniza siempre extensión, permiso dual y puesto con la lista oficial vigente
+  if(oficial){
+    const cambios = {};
+    if(state.perfilDoc.ext !== oficial.ext) cambios.ext = oficial.ext;
+    if(state.perfilDoc.permisoDual !== oficial.permisoDual) cambios.permisoDual = oficial.permisoDual;
+    if(state.perfilDoc.puesto !== oficial.puesto) cambios.puesto = oficial.puesto;
+    if(Object.keys(cambios).length){
+      Object.assign(state.perfilDoc, cambios);
+      await ref.set(cambios, { merge:true });
+    }
+  }
+
   state.rol = state.perfilDoc.rol || 'agente';
+  state.permisoDual = !!state.perfilDoc.permisoDual;
+  state.ext = state.perfilDoc.ext || '—';
+  state.modoVista = 'agente';
 }
 
 function pintarUsuario(){
@@ -997,12 +1310,45 @@ function pintarUsuario(){
   badge.className = 'role-badge ' + (state.rol === 'jefe' ? 'rol-jefe' : state.rol === 'supervisor' ? 'rol-supervisor' : '');
 }
 
-function aplicarPermisosDeRol(){
-  const esSupervisor = state.rol === 'supervisor' || state.rol === 'jefe';
-  const esJefe = state.rol === 'jefe';
-  document.getElementById('navSupervisor').style.display = esSupervisor ? '' : 'none';
-  document.getElementById('navJefe').style.display = esJefe ? '' : 'none';
+// Determina si, en este momento, el usuario debe ver la interfaz de Agente o de Supervisor
+function vistaEfectiva(){
+  if(state.permisoDual) return state.modoVista;
+  return (state.rol === 'supervisor' || state.rol === 'jefe') ? 'supervisor' : 'agente';
 }
+
+function aplicarPermisosDeRol(){
+  const esSupervisorReal = state.rol === 'supervisor' || state.rol === 'jefe';
+  const esJefe = state.rol === 'jefe';
+  const efectiva = vistaEfectiva();
+
+  // Grupo "Operación" (vista Agente): visible si el modo efectivo actual es Agente
+  document.getElementById('navAgente').style.display = (efectiva === 'agente') ? '' : 'none';
+
+  // Grupo "Supervisión": visible si el modo efectivo es Supervisor Y el usuario tiene permiso real (supervisor/jefe/dual)
+  const puedeVerSupervision = esSupervisorReal || state.permisoDual;
+  document.getElementById('navSupervisor').style.display = (efectiva === 'supervisor' && puedeVerSupervision) ? '' : 'none';
+
+  // Grupo "Dirección": exclusivo de jefes reales, independiente del modo de vista
+  document.getElementById('navJefe').style.display = esJefe ? '' : 'none';
+
+  // Botón "Cambiar modo" (Switch View): solo para accesos duales / jefaturas
+  const btnModo = document.getElementById('btnCambiarModo');
+  if(state.permisoDual){
+    btnModo.classList.remove('hidden');
+    document.getElementById('btnCambiarModoLabel').textContent = (state.modoVista === 'agente') ? 'Ver como Supervisor' : 'Ver como Agente';
+  } else {
+    btnModo.classList.add('hidden');
+  }
+}
+
+function cambiarModoVista(){
+  if(!state.permisoDual) return;
+  state.modoVista = (state.modoVista === 'agente') ? 'supervisor' : 'agente';
+  aplicarPermisosDeRol();
+  cambiarVista(state.modoVista === 'agente' ? 'nueva-llamada' : 'floor');
+  toast(`Cambiaste a la vista de ${state.modoVista === 'agente' ? 'Agente' : 'Supervisor'}`, 'info');
+}
+document.getElementById('btnCambiarModo').addEventListener('click', cambiarModoVista);
 
 // ================================================================
 // MENÚS Y NAVEGACIÓN
@@ -1014,6 +1360,10 @@ document.addEventListener('click', ()=> userMenu.classList.remove('open'));
 const VIEW_META = {
   'nueva-llamada': { title:'Nueva llamada', sub:'Registra la atención brindada al estudiante' },
   'historial': { title:'Mi historial', sub:'Registros que has capturado hoy' },
+  'estado': { title:'Mi estado', sub:'Controla tu disponibilidad telefónica en tiempo real' },
+  'buzon': { title:'Buzón de retroalimentación', sub:'Evaluaciones y comentarios de tu coordinación' },
+  'floor': { title:'Floor Monitor', sub:'Estado en vivo de todos los agentes' },
+  'feedback-agentes': { title:'Feedback a agentes', sub:'Envía una evaluación cualitativa en tiempo real' },
   'buscar': { title:'Buscar registros', sub:'Consulta llamadas de cualquier agente' },
   'metricas': { title:'Métricas', sub:'Panorama operativo del call center' },
   'reportes': { title:'Reportes', sub:'Indicadores generales de atención' },
@@ -1040,6 +1390,10 @@ function cambiarVista(view){
   if(view === 'metricas') cargarTodosRegistros(renderMetricas);
   if(view === 'reportes') cargarTodosRegistros(renderReportes);
   if(view === 'auditoria') renderAuditoria();
+  if(view === 'estado') renderEstadoTelefonico();
+  if(view === 'buzon') renderBuzon();
+  if(view === 'floor') renderFloorMonitor();
+  if(view === 'feedback-agentes') renderFeedbackAgentesForm();
 }
 document.querySelectorAll('.nav-item[data-view]').forEach(item=>{
   item.addEventListener('click', ()=> cambiarVista(item.dataset.view));
@@ -1513,9 +1867,361 @@ document.getElementById('btnExportarCSV').addEventListener('click', async ()=>{
   }
 });
 
+// ================================================================
+// ESTADOS TELEFÓNICOS (Softphone simulado) — Vista Agente
+// ================================================================
+let estadoTimerHandle = null;
+
+function refEstado(){
+  // Se usa el correo como ID de documento para que el Floor Monitor pueda
+  // asociar el estado sin depender del uid interno de Firebase Auth.
+  return db.collection('estados').doc(state.user.email);
+}
+
+async function iniciarEstadoTelefonico(){
+  try{
+    const snap = await refEstado().get();
+    if(snap.exists && snap.data().estado){
+      state.miEstado = snap.data().estado;
+      const desde = snap.data().desde;
+      state.miEstadoDesde = desde && desde.toMillis ? desde.toMillis() : Date.now();
+    } else {
+      await cambiarEstadoTelefonico('disponible', true);
+    }
+  }catch(err){
+    console.error(err);
+    state.miEstado = 'disponible';
+    state.miEstadoDesde = Date.now();
+  }
+  if(estadoTimerHandle) clearInterval(estadoTimerHandle);
+  estadoTimerHandle = setInterval(actualizarRelojEstado, 1000);
+  actualizarRelojEstado();
+}
+
+async function cambiarEstadoTelefonico(estado, silencioso){
+  state.miEstado = estado;
+  state.miEstadoDesde = Date.now();
+  try{
+    await refEstado().set({
+      correo: state.user.email,
+      nombre: state.user.displayName || state.perfilDoc.nombre,
+      ext: state.ext,
+      estado: estado,
+      desde: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    if(!silencioso) toast(`Estado cambiado a "${ESTADOS_DEF[estado].label}"`, 'ok');
+  }catch(err){
+    console.error(err);
+    if(!silencioso) toast('No se pudo actualizar el estado: '+(err.message||err.code), 'err');
+  }
+  if(state.currentView === 'estado') renderEstadoTelefonico();
+}
+
+function formatearDuracion(ms){
+  const total = Math.max(0, Math.floor(ms/1000));
+  const h = String(Math.floor(total/3600)).padStart(2,'0');
+  const m = String(Math.floor((total%3600)/60)).padStart(2,'0');
+  const s = String(total%60).padStart(2,'0');
+  return `${h}:${m}:${s}`;
+}
+
+function actualizarRelojEstado(){
+  const el = document.getElementById('estadoActualTimer');
+  if(el) el.textContent = formatearDuracion(Date.now() - state.miEstadoDesde);
+}
+
+function renderEstadoTelefonico(){
+  const def = ESTADOS_DEF[state.miEstado] || ESTADOS_DEF.disponible;
+  document.getElementById('estadoActualNombre').textContent = def.label;
+  document.getElementById('estadoActualExt').textContent = state.ext || '—';
+  document.getElementById('estadoActualCard').style.background = `linear-gradient(135deg, ${def.color}, ${def.color}CC)`;
+  document.querySelectorAll('.estado-btn').forEach(btn=>{
+    btn.classList.toggle('activo', btn.dataset.estado === state.miEstado);
+  });
+  actualizarRelojEstado();
+}
+document.querySelectorAll('.estado-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=> cambiarEstadoTelefonico(btn.dataset.estado));
+});
+
+// ================================================================
+// BUZÓN DE RETROALIMENTACIÓN — Vista Agente
+// ================================================================
+let misFeedbacks = [];
+function suscribirBuzon(){
+  db.collection('feedback')
+    .where('paraCorreo', '==', state.user.email)
+    .orderBy('fecha', 'desc')
+    .limit(100)
+    .onSnapshot(snap=>{
+      misFeedbacks = [];
+      snap.forEach(doc=> misFeedbacks.push({ id: doc.id, ...doc.data() }));
+      if(state.currentView === 'buzon') renderBuzon();
+    }, err=> console.error(err));
+}
+function estrellasHTML(cantidad){
+  let html = '<span class="star-rating">';
+  for(let i=1;i<=5;i++){
+    html += `<svg viewBox="0 0 24 24" class="${i<=cantidad?'filled':''}"><path d="m12 2 2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 17l-5.6 3.1 1.4-6.3-4.8-4.3 6.4-.6z"/></svg>`;
+  }
+  return html + '</span>';
+}
+function renderBuzon(){
+  const host = document.getElementById('listaBuzon');
+  const emptyHost = document.getElementById('buzonEmpty');
+  if(!misFeedbacks.length){
+    host.innerHTML = '';
+    emptyHost.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+      <div class="t">Tu buzón está vacío</div>
+      <div class="d">Aquí verás la retroalimentación que te envíe tu coordinación.</div>
+    </div>`;
+    return;
+  }
+  emptyHost.innerHTML = '';
+  host.innerHTML = misFeedbacks.map(f=> `
+    <div class="feedback-item">
+      <div class="fi-head">
+        <span class="fi-de">De: ${f.deNombre || 'Coordinación'}</span>
+        ${estrellasHTML(f.estrellas||0)}
+      </div>
+      <div class="fi-comentario">${f.comentario || '—'}</div>
+      <div class="fi-fecha" style="margin-top:8px;">${fmtFecha(f.fecha)}</div>
+    </div>`).join('');
+}
+
+// ================================================================
+// FLOOR MONITOR — Vista Supervisor
+// ================================================================
+let floorTimerHandle = null;
+function suscribirFloorMonitor(){
+  db.collection('estados').onSnapshot(snap=>{
+    const roster = {};
+    snap.forEach(doc=> roster[doc.id] = doc.data());
+    state.floorRoster = roster;
+    if(state.currentView === 'floor') renderFloorMonitor();
+  }, err=> console.error(err));
+  if(floorTimerHandle) clearInterval(floorTimerHandle);
+  floorTimerHandle = setInterval(()=>{ if(state.currentView === 'floor') renderFloorMonitor(); }, 1000);
+}
+function renderFloorMonitor(){
+  const host = document.getElementById('floorGrid');
+  host.innerHTML = usuariosUPANA.map(u=>{
+    const doc = state.floorRoster[u.correo];
+    const estadoKey = doc && doc.estado ? doc.estado : null;
+    const def = estadoKey ? ESTADOS_DEF[estadoKey] : null;
+    const desdeMs = doc && doc.desde && doc.desde.toMillis ? doc.desde.toMillis() : null;
+    const tiempo = desdeMs ? formatearDuracion(Date.now() - desdeMs) : '—';
+    return `
+      <div class="floor-card ${def ? '' : 'offline'}">
+        <div class="fc-top">
+          <div class="fc-ini" style="background:${def ? def.color : 'var(--gris-estado)'};">${iniciales(u.nombre)}</div>
+          <div>
+            <div class="fc-nombre">${u.nombre}</div>
+            <div class="fc-ext">Ext. ${u.ext}</div>
+          </div>
+        </div>
+        <div class="fc-estado-row" style="background:${def ? def.color+'1A' : 'var(--gris-estado-bg)'};">
+          <span class="dot" style="background:${def ? def.color : 'var(--gris-estado)'};"></span>
+          <span class="fc-e-txt" style="color:${def ? def.color : 'var(--text-muted)'};">${def ? def.label : 'Sin conexión'}</span>
+          <span class="fc-tiempo">${tiempo}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ================================================================
+// FEEDBACK A AGENTES — Vista Supervisor (Módulo de Auditoría y Feedback)
+// ================================================================
+let estrellasSeleccionadas = 0;
+function renderFeedbackAgentesForm(){
+  const select = document.getElementById('selectAgenteFeedback');
+  if(!select.dataset.cargado){
+    select.innerHTML = usuariosUPANA
+      .filter(u=> u.correo !== state.user.email)
+      .map(u=> `<option value="${u.correo}">${u.nombre} · Ext. ${u.ext}</option>`)
+      .join('');
+    select.dataset.cargado = '1';
+  }
+  pintarStarPicker();
+  suscribirFeedbackEnviado();
+}
+function pintarStarPicker(){
+  const host = document.getElementById('starPickerFeedback');
+  host.innerHTML = [1,2,3,4,5].map(i=>
+    `<svg viewBox="0 0 24 24" data-i="${i}" class="${i<=estrellasSeleccionadas?'filled':''}"><path d="m12 2 2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 17l-5.6 3.1 1.4-6.3-4.8-4.3 6.4-.6z"/></svg>`
+  ).join('');
+  host.querySelectorAll('svg').forEach(svg=>{
+    svg.addEventListener('click', ()=>{
+      estrellasSeleccionadas = Number(svg.dataset.i);
+      pintarStarPicker();
+    });
+  });
+}
+document.getElementById('btnEnviarFeedback').addEventListener('click', async ()=>{
+  const correoDestino = document.getElementById('selectAgenteFeedback').value;
+  const comentario = document.getElementById('textareaFeedback').value.trim();
+  const btn = document.getElementById('btnEnviarFeedback');
+  if(!correoDestino){ toast('Selecciona un agente', 'err'); return; }
+  if(!estrellasSeleccionadas){ toast('Asigna una calificación de 1 a 5 estrellas', 'err'); return; }
+  if(!comentario){ toast('Escribe un comentario para el agente', 'err'); return; }
+  btn.disabled = true; btn.textContent = 'Enviando…';
+  try{
+    await db.collection('feedback').add({
+      paraCorreo: correoDestino,
+      deNombre: state.user.displayName || state.perfilDoc.nombre,
+      deCorreo: state.user.email,
+      estrellas: estrellasSeleccionadas,
+      comentario: comentario,
+      fecha: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    toast('Retroalimentación enviada al buzón del agente', 'ok');
+    document.getElementById('textareaFeedback').value = '';
+    estrellasSeleccionadas = 0;
+    pintarStarPicker();
+  }catch(err){
+    console.error(err);
+    toast('No se pudo enviar: '+(err.message||err.code), 'err');
+  }finally{
+    btn.disabled = false; btn.textContent = 'Enviar al buzón del agente';
+  }
+});
+function suscribirFeedbackEnviado(){
+  db.collection('feedback')
+    .where('deCorreo', '==', state.user.email)
+    .orderBy('fecha', 'desc')
+    .limit(20)
+    .onSnapshot(snap=>{
+      const host = document.getElementById('listaFeedbackEnviado');
+      const emptyHost = document.getElementById('feedbackEnviadoEmpty');
+      if(snap.empty){
+        host.innerHTML = '';
+        emptyHost.innerHTML = `<div class="empty-state">
+          <div class="t">Aún no has enviado retroalimentación</div>
+          <div class="d">Tus envíos recientes aparecerán aquí.</div>
+        </div>`;
+        return;
+      }
+      emptyHost.innerHTML = '';
+      const filas = [];
+      snap.forEach(doc=> filas.push(doc.data()));
+      host.innerHTML = filas.map(f=> `
+        <div class="feedback-item">
+          <div class="fi-head">
+            <span class="fi-de">Para: ${f.paraCorreo}</span>
+            ${estrellasHTML(f.estrellas||0)}
+          </div>
+          <div class="fi-comentario">${f.comentario||'—'}</div>
+          <div class="fi-fecha" style="margin-top:8px;">${fmtFecha(f.fecha)}</div>
+        </div>`).join('');
+    }, err=> console.error(err));
+}
+
+// ================================================================
+// PANEL DE CONFIGURACIÓN VISUAL — Personalización de fondo
+// ================================================================
+const COLORES_PREDEFINIDOS = ['#F5F6F8','#FFFFFF','#EAF1FB','#EAF7EF','#FDF3E3','#F3EEF9','#F0F4F1'];
+const modalConfigVisual = document.getElementById('modalConfigVisual');
+
+function pintarSwatches(seleccionActual){
+  const host = document.getElementById('configSwatches');
+  host.innerHTML = COLORES_PREDEFINIDOS.map(c=>
+    `<div class="config-swatch ${c.toLowerCase()===String(seleccionActual).toLowerCase()?'selected':''}" style="background:${c};" data-color="${c}"></div>`
+  ).join('');
+  host.querySelectorAll('.config-swatch').forEach(sw=>{
+    sw.addEventListener('click', ()=> aplicarFondoColor(sw.dataset.color));
+  });
+}
+
+function luminancia(hex){
+  hex = hex.replace('#','');
+  const r = parseInt(hex.substr(0,2),16)/255, g = parseInt(hex.substr(2,2),16)/255, b = parseInt(hex.substr(4,2),16)/255;
+  return 0.2126*r + 0.7152*g + 0.0722*b;
+}
+
+function aplicarFondoAlDOM(pref){
+  const html = document.documentElement;
+  if(!pref || pref.tipo === 'default'){
+    html.classList.remove('custom-bg-active');
+    document.body.style.backgroundImage = '';
+    document.body.style.backgroundColor = '';
+    return;
+  }
+  html.classList.add('custom-bg-active');
+  if(pref.tipo === 'color'){
+    document.body.style.backgroundImage = '';
+    document.body.style.backgroundColor = pref.valor;
+  } else if(pref.tipo === 'imagen'){
+    document.body.style.backgroundColor = '';
+    document.body.style.backgroundImage = `url("${pref.valor}")`;
+  }
+}
+
+function guardarPreferenciaFondo(pref){
+  localStorage.setItem('bitacora_fondo', JSON.stringify(pref));
+  aplicarFondoAlDOM(pref);
+}
+
+function aplicarFondoColor(hex){
+  guardarPreferenciaFondo({ tipo:'color', valor:hex });
+  pintarSwatches(hex);
+  document.getElementById('inputColorCustom').value = hex;
+  document.getElementById('configPreviewThumb').classList.add('hidden');
+  toast('Color de fondo aplicado', 'ok');
+}
+
+document.getElementById('btnAplicarColorCustom').addEventListener('click', ()=>{
+  aplicarFondoColor(document.getElementById('inputColorCustom').value);
+});
+
+document.getElementById('btnAplicarUrlFondo').addEventListener('click', ()=>{
+  const url = document.getElementById('inputUrlFondo').value.trim();
+  if(!url){ toast('Pega primero la URL de una imagen', 'err'); return; }
+  guardarPreferenciaFondo({ tipo:'imagen', valor:url });
+  pintarSwatches(null);
+  const thumb = document.getElementById('configPreviewThumb');
+  thumb.style.backgroundImage = `url("${url}")`;
+  thumb.classList.remove('hidden');
+  toast('Imagen de fondo aplicada', 'ok');
+});
+
+document.getElementById('inputImagenLocal').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const url = URL.createObjectURL(file);
+  guardarPreferenciaFondo({ tipo:'imagen', valor:url });
+  pintarSwatches(null);
+  const thumb = document.getElementById('configPreviewThumb');
+  thumb.style.backgroundImage = `url("${url}")`;
+  thumb.classList.remove('hidden');
+  toast('Imagen local aplicada como fondo', 'ok');
+});
+
+document.getElementById('btnResetFondo').addEventListener('click', ()=>{
+  guardarPreferenciaFondo({ tipo:'default' });
+  pintarSwatches(null);
+  document.getElementById('configPreviewThumb').classList.add('hidden');
+  document.getElementById('inputUrlFondo').value = '';
+  toast('Fondo restablecido', 'info');
+});
+
+function initBackground(){
+  let pref = null;
+  try{ pref = JSON.parse(localStorage.getItem('bitacora_fondo')); }catch(e){ pref = null; }
+  aplicarFondoAlDOM(pref);
+  pintarSwatches(pref && pref.tipo === 'color' ? pref.valor : null);
+  if(pref && pref.tipo === 'imagen'){
+    const thumb = document.getElementById('configPreviewThumb');
+    thumb.style.backgroundImage = `url("${pref.valor}")`;
+    thumb.classList.remove('hidden');
+  }
+}
+
+document.getElementById('btnConfigVisual').addEventListener('click', ()=> modalConfigVisual.classList.add('open'));
+document.getElementById('btnCerrarConfigVisual').addEventListener('click', ()=> modalConfigVisual.classList.remove('open'));
+
 // ---------- Inicialización general ----------
 document.getElementById('yearTag').textContent = new Date().getFullYear();
-initTheme();
 </script>
 </body>
 </html>
