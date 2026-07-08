@@ -17,7 +17,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<!-- Firestore guarda también la foto de perfil (como imagen redimensionada),
+     por lo que no se requiere el SDK de Firebase Storage. -->
 
 <!-- Chart.js para métricas y reportes -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -386,6 +387,14 @@ input:disabled, select:disabled{ opacity:.55; cursor:not-allowed; }
 .student-preview .nm{ font-weight:600; font-size:14px; }
 .student-preview .id{ font-size:12px; color: var(--text-muted); font-family: var(--font-mono); }
 
+.registro-estudiante-card{
+  padding:14px 16px; border-radius: var(--radius-sm); margin-bottom:16px;
+  background: var(--warning-bg); border:1px solid transparent; animation: cardIn .3s var(--ease);
+}
+.registro-estudiante-card .reg-title{ font-size:13.5px; font-weight:700; color: var(--warning); }
+.registro-estudiante-card .reg-sub{ font-size:12px; color: var(--text-muted); margin-top:3px; }
+.registro-estudiante-card input{ background: var(--surface); }
+
 /* ---- Table ---- */
 .table-wrap{ overflow-x:auto; border-radius: var(--radius-sm); border:1px solid var(--border); }
 table{ width:100%; border-collapse: collapse; font-size:13.5px; min-width:640px; }
@@ -603,6 +612,10 @@ html.custom-bg-active #toastHost .toast{
 
     <div class="nav-group" id="navRecursos">
       <div class="nav-label">Recursos</div>
+      <div class="nav-item" data-view="extensiones">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.35 1.79.68 2.63a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.45-1.45a2 2 0 0 1 2.11-.45c.84.33 1.73.56 2.63.68A2 2 0 0 1 22 16.92Z"/></svg>
+        Extensiones
+      </div>
       <a class="nav-item" href="https://danielozu233-cmyk.github.io/Auxiliares/Index.html" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
         Estados de agentes
@@ -723,7 +736,7 @@ html.custom-bg-active #toastHost .toast{
                     <input type="text" id="inputCarnet" placeholder="Ej. 12345 (sin ceros a la izquierda)" class="mono" autocomplete="off" inputmode="numeric" maxlength="9">
                     <span class="stat" id="carnetStat"></span>
                   </div>
-                  <div class="hint">El ID siempre tiene 9 dígitos. Escribe solo los números, sin los ceros iniciales, y se autocompleta.</div>
+                  <div class="hint">El ID siempre tiene 9 dígitos. Escribe solo los números, sin los ceros iniciales. Si aún no está registrado, podrás darlo de alta aquí mismo.</div>
                 </div>
                 <div id="studentPreview"></div>
                 <div class="field">
@@ -817,6 +830,24 @@ html.custom-bg-active #toastHost .toast{
           <div class="section-title">Retroalimentación recibida</div>
           <div id="listaBuzon"></div>
           <div id="buzonEmpty"></div>
+        </div>
+      </section>
+
+      <!-- ---- VIEW: Extensiones (todos los agentes) ---- -->
+      <section class="view hidden" id="view-extensiones">
+        <div class="card">
+          <div class="toolbar">
+            <div class="section-title" style="margin-bottom:0;">Directorio de extensiones</div>
+            <div style="flex:1;"></div>
+            <input type="text" id="buscarExtension" class="grow" placeholder="Buscar por nombre o extensión…" style="max-width:280px;">
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Nombre</th><th>Puesto</th><th>Área</th><th>Ext.</th><th>Correo</th></tr></thead>
+              <tbody id="tablaExtensiones"></tbody>
+            </table>
+          </div>
+          <div id="extensionesEmpty"></div>
         </div>
       </section>
 
@@ -1008,7 +1039,8 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const storage = firebase.storage();
+// Nota: la foto de perfil se guarda como imagen redimensionada directamente
+// en Firestore (ver más abajo), por lo que no se requiere Firebase Storage.
 
 const msProvider = new firebase.auth.OAuthProvider('microsoft.com');
 msProvider.setCustomParameters({ tenant: 'common', prompt: 'select_account' });
@@ -1065,6 +1097,68 @@ function buscarUsuarioUPANA(correo){
   const c = correo.trim().toLowerCase();
   return usuariosUPANA.find(u=> u.correo.toLowerCase() === c) || null;
 }
+
+// ---------- Directorio de extensiones (visible para todos los agentes) ----------
+const AREA_CALL_CENTER = 'Admisión y Atracción Estudiantil';
+const DIRECTORIO_EXTENSIONES = [
+  { nombre:"Magister Joselyn Maria Anita Juárez Girón", puesto:"Coordinadora de Atracción Estudiantil, admisiones (Call Center) y Comunicación Interna", area:AREA_CALL_CENTER, ext:"1111", correo:"jmjuarez@upana.edu.gt" },
+  { nombre:"Mayra Maribel Arévalo Ruiz", puesto:"Asistente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8033", correo:"mmarevalo@upana.edu.gt" },
+  { nombre:"Merlin Carolina Bajan Ibañez", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8004", correo:"mbajan@upana.edu.gt" },
+  { nombre:"César Daniel Coyoy", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8014", correo:"ccoyoy@upana.edu.gt" },
+  { nombre:"Josabeth Mishell de León Flores", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8021", correo:"jmdeleon@upana.edu.gt" },
+  { nombre:"Nestor Daniel Ozuna Galvez", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8015", correo:"nozuna@upana.edu.gt" },
+  { nombre:"Jackeline Stephanie Castillo Calderón", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8008", correo:"jcastilloc@upana.edu.gt" },
+  { nombre:"José Pablo Ibañez Ibáñez", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8029", correo:"jibanez@upana.edu.gt" },
+  { nombre:"José Alejandro Vasquez Alvarez", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8006", correo:"javasquez@upana.edu.gt" },
+  { nombre:"Evelin Saraí Churumia Gómez", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8001", correo:"echurumia@upana.edu.gt" },
+  { nombre:"Tania Izamar de León Quiñonez", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8010", correo:"tdeleon@upana.edu.gt" },
+  { nombre:"—", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8025", correo:"" },
+  { nombre:"Marta Julia Morales Solorzano", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8028", correo:"mmoraless@upana.edu.gt" },
+  { nombre:"Jonatan Rafael Sanchez Tinti", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8027", correo:"jsanchezt@upana.edu.gt" },
+  { nombre:"Justa Gabriela Jaes Sánchez", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8002", correo:"jjaes@upana.edu.gt" },
+  { nombre:"—", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8024", correo:"" },
+  { nombre:"Bryan Christopher Hernández Cruz", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8026", correo:"bchernandez@upana.edu.gt" },
+  { nombre:"Diego Rolando Chiché Pineda", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8017", correo:"dchiche@upana.edu.gt" },
+  { nombre:"Jorge Mario Veliz Acajabón", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8013", correo:"jveliz@upana.edu.gt" },
+  { nombre:"Joselyne Andrea Velásquez Padilla", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8007", correo:"javelasquez@upana.edu.gt" },
+  { nombre:"Andrea María Jiménez Orellana", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8016", correo:"amjimenez@upana.edu.gt" },
+  { nombre:"—", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8012", correo:"" },
+  { nombre:"Javier Sebastian Alvarez Ruano", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8003", correo:"jsalvarez@upana.edu.gt" },
+  { nombre:"Synndy Elizabeth Sanchez Salazar", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8020", correo:"sesanchez@upana.edu.gt" },
+  { nombre:"Anthony Ismar García Revolorio", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8011", correo:"aigarcia@upana.edu.gt" },
+  { nombre:"Mildred Gabriela Cordero Canté", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8009", correo:"mcordero@upana.edu.gt" },
+  { nombre:"Madelin Gabriela Ovando Franco", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8023", correo:"movando@upana.edu.gt" },
+  { nombre:"Mónica Paola Ordóñez Morales", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8005", correo:"mpordonez@upana.edu.gt" },
+  { nombre:"Maria José Perdomo Castañeda", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8030", correo:"mperdomo@upana.edu.gt" },
+  { nombre:"Ashley Dinora Mishelle Alvarado López", puesto:"Agente de Call Center y Servicio al Cliente", area:AREA_CALL_CENTER, ext:"8018", correo:"aalvarado@upana.edu.gt" }
+].sort((a,b)=> Number(a.ext) - Number(b.ext));
+
+function renderExtensiones(){
+  const tbody = document.getElementById('tablaExtensiones');
+  const emptyHost = document.getElementById('extensionesEmpty');
+  const q = (document.getElementById('buscarExtension').value || '').toLowerCase().trim();
+  const filas = DIRECTORIO_EXTENSIONES.filter(u=>
+    !q || u.nombre.toLowerCase().includes(q) || u.ext.includes(q) || (u.correo||'').toLowerCase().includes(q)
+  );
+  if(!filas.length){
+    tbody.innerHTML = '';
+    emptyHost.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <div class="t">Sin resultados</div><div class="d">Prueba con otro nombre o número de extensión.</div>
+    </div>`;
+    return;
+  }
+  emptyHost.innerHTML = '';
+  tbody.innerHTML = filas.map(u=> `
+    <tr>
+      <td>${u.nombre}</td>
+      <td>${u.puesto}</td>
+      <td>${u.area}</td>
+      <td class="mono"><span class="badge badge-gold">${u.ext}</span></td>
+      <td>${u.correo || '—'}</td>
+    </tr>`).join('');
+}
+document.getElementById('buscarExtension').addEventListener('input', renderExtensiones);
 
 // ---------- Mock Data de contingencia (estudiantes UPANA) ----------
 // Los IDs siempre tienen 9 dígitos. El agente escribe sin ceros a la
@@ -1187,36 +1281,34 @@ function entrarAlPanel(){
 }
 
 async function cargarOCrearPerfil(user){
-  const ref = db.collection('usuarios').doc(user.uid);
-  const snap = await ref.get();
   const oficial = buscarUsuarioUPANA(user.email);
+  const ref = db.collection('usuarios').doc(user.uid);
 
-  if(snap.exists){
-    state.perfilDoc = snap.data();
-  } else {
-    state.perfilDoc = {
-      nombre: (oficial && oficial.nombre) || user.displayName || user.email,
-      correo: user.email,
-      rol: (oficial && oficial.rolBase) || 'agente',
-      ext: (oficial && oficial.ext) || null,
-      permisoDual: !!(oficial && oficial.permisoDual),
-      puesto: (oficial && oficial.puesto) || null,
-      fotoURL: user.photoURL || null,
-      creadoEn: firebase.firestore.FieldValue.serverTimestamp()
-    };
-    await ref.set(state.perfilDoc);
-  }
+  // La lista oficial de UPANA siempre manda sobre el rol, la extensión,
+  // el puesto y el permiso dual — sin importar lo que haya quedado
+  // guardado antes en Firestore, para que nunca queden desactualizados.
+  const base = {
+    nombre: (oficial && oficial.nombre) || user.displayName || user.email,
+    correo: user.email,
+    rol: (oficial && oficial.rolBase) || 'agente',
+    ext: (oficial && oficial.ext) || null,
+    permisoDual: !!(oficial && oficial.permisoDual),
+    puesto: (oficial && oficial.puesto) || null
+  };
 
-  // Sincroniza siempre extensión, permiso dual y puesto con la lista oficial vigente
-  if(oficial){
-    const cambios = {};
-    if(state.perfilDoc.ext !== oficial.ext) cambios.ext = oficial.ext;
-    if(state.perfilDoc.permisoDual !== oficial.permisoDual) cambios.permisoDual = oficial.permisoDual;
-    if(state.perfilDoc.puesto !== oficial.puesto) cambios.puesto = oficial.puesto;
-    if(Object.keys(cambios).length){
-      Object.assign(state.perfilDoc, cambios);
-      await ref.set(cambios, { merge:true });
+  state.perfilDoc = Object.assign({ fotoURL: user.photoURL || null }, base);
+
+  try{
+    const snap = await ref.get();
+    if(snap.exists && snap.data().fotoURL){
+      state.perfilDoc.fotoURL = snap.data().fotoURL;
     }
+    await ref.set(Object.assign({}, base, {
+      fotoURL: state.perfilDoc.fotoURL,
+      actualizadoEn: firebase.firestore.FieldValue.serverTimestamp()
+    }), { merge:true });
+  }catch(err){
+    console.error('No se pudo sincronizar el perfil en Firestore (se usan los datos oficiales locales):', err);
   }
 
   state.rol = state.perfilDoc.rol || 'agente';
@@ -1289,6 +1381,7 @@ const VIEW_META = {
   'nueva-llamada': { title:'Nueva llamada', sub:'Registra la atención brindada al estudiante' },
   'historial': { title:'Mi historial', sub:'Registros que has capturado hoy' },
   'buzon': { title:'Buzón de retroalimentación', sub:'Evaluaciones y comentarios de tu coordinación' },
+  'extensiones': { title:'Extensiones', sub:'Directorio telefónico del call center de UPANA' },
   'feedback-agentes': { title:'Feedback a agentes', sub:'Envía una evaluación cualitativa en tiempo real' },
   'buscar': { title:'Buscar registros', sub:'Consulta llamadas de cualquier agente' },
   'metricas': { title:'Métricas', sub:'Panorama operativo del call center' },
@@ -1317,6 +1410,7 @@ function cambiarVista(view){
   if(view === 'reportes') cargarTodosRegistros(renderReportes);
   if(view === 'auditoria') renderAuditoria();
   if(view === 'buzon') renderBuzon();
+  if(view === 'extensiones') renderExtensiones();
   if(view === 'feedback-agentes') renderFeedbackAgentesForm();
 }
 document.querySelectorAll('.nav-item[data-view]').forEach(item=>{
@@ -1357,20 +1451,45 @@ document.getElementById('inputFotoPerfil').addEventListener('change', (e)=>{
   reader.readAsDataURL(file);
 });
 
+// Redimensiona la imagen en el navegador (sin depender de Firebase Storage)
+// y la deja lista como una imagen JPEG comprimida en formato Data URL.
+function redimensionarImagenPerfil(file, maxLado=240, calidad=0.82){
+  return new Promise((resolve, reject)=>{
+    const lector = new FileReader();
+    lector.onload = (ev)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        let { width, height } = img;
+        if(width > height){
+          if(width > maxLado){ height = Math.round(height * (maxLado / width)); width = maxLado; }
+        } else {
+          if(height > maxLado){ width = Math.round(width * (maxLado / height)); height = maxLado; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', calidad));
+      };
+      img.onerror = ()=> reject(new Error('No se pudo procesar la imagen seleccionada'));
+      img.src = ev.target.result;
+    };
+    lector.onerror = ()=> reject(new Error('No se pudo leer el archivo seleccionado'));
+    lector.readAsDataURL(file);
+  });
+}
+
 document.getElementById('btnGuardarFoto').addEventListener('click', async ()=>{
   if(!archivoFotoSeleccionado){ toast('Selecciona una imagen primero', 'err'); return; }
   const btn = document.getElementById('btnGuardarFoto');
-  btn.disabled = true; btn.textContent = 'Subiendo…';
+  btn.disabled = true; btn.textContent = 'Guardando…';
   try{
-    const ref = storage.ref().child(`fotos_perfil/${state.user.uid}_${Date.now()}`);
-    await ref.put(archivoFotoSeleccionado);
-    const url = await ref.getDownloadURL();
-    await state.user.updateProfile({ photoURL: url });
-    await db.collection('usuarios').doc(state.user.uid).update({ fotoURL: url });
-    state.perfilDoc.fotoURL = url;
-    document.getElementById('topAvatar').src = url;
+    const dataUrl = await redimensionarImagenPerfil(archivoFotoSeleccionado);
+    await db.collection('usuarios').doc(state.user.uid).set({ fotoURL: dataUrl }, { merge:true });
+    state.perfilDoc.fotoURL = dataUrl;
+    document.getElementById('topAvatar').src = dataUrl;
     toast('Foto de perfil actualizada', 'ok');
     modalPerfil.classList.remove('open');
+    archivoFotoSeleccionado = null;
   }catch(err){
     console.error(err);
     toast('No se pudo actualizar la foto: ' + (err.message||err.code), 'err');
@@ -1380,9 +1499,13 @@ document.getElementById('btnGuardarFoto').addEventListener('click', async ()=>{
 });
 
 // ================================================================
-// BÚSQUEDA DE ESTUDIANTE POR CARNET (ID de 9 dígitos, autocompletado)
+// BÚSQUEDA Y REGISTRO DE ESTUDIANTE POR CARNET (ID de 9 dígitos)
 // ================================================================
+// Ya no se depende de ninguna sincronización externa: si el ID no existe
+// todavía, la propia Bitácora permite registrarlo al instante en Firestore
+// (colección "estudiantesRegistrados") para usarlo aquí y en llamadas futuras.
 const inputCarnet = document.getElementById('inputCarnet');
+let carnetBuscarTimeout = null;
 
 function soloDigitos(v){ return (v||'').replace(/\D/g,'').slice(0,9); }
 function carnetPadded(v){ const d = soloDigitos(v); return d ? d.padStart(9,'0') : ''; }
@@ -1393,25 +1516,88 @@ inputCarnet.addEventListener('input', ()=>{
   if(inputCarnet.value !== digitos) inputCarnet.value = digitos;
 
   const statEl = document.getElementById('carnetStat');
-  if(!digitos.length){ statEl.textContent=''; document.getElementById('studentPreview').innerHTML=''; state.estudianteSeleccionado=null; return; }
+  const previewHost = document.getElementById('studentPreview');
+  clearTimeout(carnetBuscarTimeout);
+
+  if(!digitos.length){
+    statEl.textContent=''; previewHost.innerHTML=''; state.estudianteSeleccionado=null;
+    document.getElementById('inputNombre').value = '';
+    return;
+  }
 
   const padded = carnetPadded(digitos);
   const est = MOCK_ESTUDIANTES[padded];
   if(est){
     statEl.textContent = 'Encontrado'; statEl.className = 'stat stat-found';
     aplicarEstudiante(padded, est.nombre, est.carrera);
-  } else {
-    statEl.textContent = 'Buscando…'; statEl.className = 'stat stat-search';
-    document.getElementById('inputNombre').value = '';
-    document.getElementById('studentPreview').innerHTML = '';
-    state.estudianteSeleccionado = null;
-    setTimeout(()=>{
-      if(soloDigitos(inputCarnet.value) === digitos && !MOCK_ESTUDIANTES[carnetPadded(digitos)]){
-        statEl.textContent = 'No encontrado'; statEl.className = 'stat stat-none';
-      }
-    }, 500);
+    return;
   }
+
+  statEl.textContent = 'Buscando…'; statEl.className = 'stat stat-search';
+  document.getElementById('inputNombre').value = '';
+  previewHost.innerHTML = '';
+  state.estudianteSeleccionado = null;
+
+  carnetBuscarTimeout = setTimeout(()=> buscarEstudianteEnFirestore(digitos, padded), 450);
 });
+
+async function buscarEstudianteEnFirestore(digitosOriginales, padded){
+  const statEl = document.getElementById('carnetStat');
+  try{
+    const snap = await db.collection('estudiantesRegistrados').doc(padded).get();
+    // Si el usuario ya siguió escribiendo, esta búsqueda quedó obsoleta
+    if(soloDigitos(inputCarnet.value) !== digitosOriginales) return;
+    if(snap.exists){
+      const data = snap.data();
+      statEl.textContent = 'Encontrado'; statEl.className = 'stat stat-found';
+      aplicarEstudiante(padded, data.nombre, data.carrera);
+    } else {
+      statEl.textContent = 'No registrado'; statEl.className = 'stat stat-none';
+      mostrarFormularioRegistroEstudiante(padded);
+    }
+  }catch(err){
+    console.error(err);
+    if(soloDigitos(inputCarnet.value) !== digitosOriginales) return;
+    statEl.textContent = 'No registrado'; statEl.className = 'stat stat-none';
+    mostrarFormularioRegistroEstudiante(padded);
+  }
+}
+
+function mostrarFormularioRegistroEstudiante(carnet){
+  const host = document.getElementById('studentPreview');
+  host.innerHTML = `
+    <div class="registro-estudiante-card">
+      <div class="reg-title">Este ID <span class="mono">${carnet}</span> aún no está registrado</div>
+      <div class="reg-sub">Escribe los datos del estudiante para registrarlo y usarlo en esta y futuras llamadas.</div>
+      <div class="field" style="margin:10px 0 8px;">
+        <input type="text" id="regNombreEstudiante" placeholder="Nombre completo del estudiante">
+      </div>
+      <div class="field" style="margin-bottom:10px;">
+        <input type="text" id="regCarreraEstudiante" placeholder="Carrera (opcional)">
+      </div>
+      <button type="button" class="btn btn-primary btn-sm" id="btnRegistrarEstudiante">Registrar estudiante</button>
+    </div>`;
+  document.getElementById('btnRegistrarEstudiante').addEventListener('click', async ()=>{
+    const nombre = document.getElementById('regNombreEstudiante').value.trim();
+    const carrera = document.getElementById('regCarreraEstudiante').value.trim();
+    if(!nombre){ toast('Escribe el nombre del estudiante', 'err'); return; }
+    const btn = document.getElementById('btnRegistrarEstudiante');
+    btn.disabled = true; btn.textContent = 'Guardando…';
+    try{
+      await db.collection('estudiantesRegistrados').doc(carnet).set({
+        nombre, carrera: carrera || null,
+        registradoPor: state.perfilDoc.nombre,
+        registradoEn: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      toast('Estudiante registrado correctamente', 'ok');
+      aplicarEstudiante(carnet, nombre, carrera);
+    }catch(err){
+      console.error(err);
+      toast('No se pudo registrar: ' + (err.message||err.code), 'err');
+      btn.disabled = false; btn.textContent = 'Registrar estudiante';
+    }
+  });
+}
 
 // Al salir del campo, se autocompleta visualmente con los 9 dígitos completos
 inputCarnet.addEventListener('blur', ()=>{
