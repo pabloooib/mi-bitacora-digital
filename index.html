@@ -108,7 +108,17 @@ body{
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   transition: background .35s var(--ease), color .35s var(--ease);
+  position: relative;
 }
+body::before{
+  content:"";
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(900px 480px at 8% -8%, rgba(63,110,180,.20), transparent 60%),
+    radial-gradient(760px 420px at 100% 105%, rgba(201,162,39,.10), transparent 60%);
+}
+html.custom-bg-active body::before{ display:none; }
+#loginScreen, #appShell{ position:relative; z-index:1; }
 h1,h2,h3,h4,.display{ font-family: var(--font-display); letter-spacing:-.01em; margin:0; }
 code, .mono{ font-family: var(--font-mono); }
 button{ font-family: inherit; }
@@ -209,8 +219,8 @@ a{ color: inherit; }
   transition: transform .18s var(--ease), box-shadow .18s var(--ease), background .2s var(--ease), opacity .2s;
 }
 .btn:active{ transform: translateY(1px) scale(.99); }
-.btn-primary{ background: var(--azul-upana); color:#fff; box-shadow: var(--shadow-sm); }
-.btn-primary:hover{ background: var(--azul-upana-600); box-shadow: var(--shadow); }
+.btn-primary{ background: linear-gradient(135deg, var(--azul-upana-600), var(--azul-upana)); color:#fff; box-shadow: var(--shadow-sm); }
+.btn-primary:hover{ background: linear-gradient(135deg, var(--azul-upana-600), var(--azul-hondo)); box-shadow: var(--shadow); transform: translateY(-1px); }
 .btn-gold{ background: var(--oro-upana); color:#2A2103; }
 .btn-gold:hover{ filter: brightness(1.06); box-shadow: var(--shadow); }
 .btn-ghost{ background: transparent; color: var(--text); border:1px solid var(--border-strong); }
@@ -326,11 +336,13 @@ a{ color: inherit; }
   background: var(--surface); border:1px solid var(--border);
   border-radius: var(--radius); box-shadow: var(--shadow-sm);
   padding: 22px;
+  transition: box-shadow .25s var(--ease), transform .25s var(--ease);
 }
 .grid-2{ display:grid; grid-template-columns: 1.3fr .95fr; gap:20px; align-items:start; }
 @media (max-width: 980px){ .grid-2{ grid-template-columns:1fr; } }
 
 .section-title{ font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color: var(--text-muted); margin-bottom:14px; display:flex; align-items:center; gap:8px;}
+.section-title::before{ content:""; width:4px; height:14px; border-radius:3px; background: linear-gradient(180deg, var(--oro-suave), var(--oro-upana)); flex-shrink:0; }
 
 /* ---- Form ---- */
 .field{ margin-bottom:16px; }
@@ -386,14 +398,6 @@ input:disabled, select:disabled{ opacity:.55; cursor:not-allowed; }
 .student-preview .ico{ width:36px; height:36px; border-radius:50%; background: var(--success); color:#fff; display:grid; place-items:center; font-weight:700; font-family: var(--font-display); flex-shrink:0; }
 .student-preview .nm{ font-weight:600; font-size:14px; }
 .student-preview .id{ font-size:12px; color: var(--text-muted); font-family: var(--font-mono); }
-
-.registro-estudiante-card{
-  padding:14px 16px; border-radius: var(--radius-sm); margin-bottom:16px;
-  background: var(--warning-bg); border:1px solid transparent; animation: cardIn .3s var(--ease);
-}
-.registro-estudiante-card .reg-title{ font-size:13.5px; font-weight:700; color: var(--warning); }
-.registro-estudiante-card .reg-sub{ font-size:12px; color: var(--text-muted); margin-top:3px; }
-.registro-estudiante-card input{ background: var(--surface); }
 
 /* ---- Table ---- */
 .table-wrap{ overflow-x:auto; border-radius: var(--radius-sm); border:1px solid var(--border); }
@@ -732,16 +736,12 @@ html.custom-bg-active #toastHost .toast{
               <div id="bloqueEstudiante">
                 <div class="field">
                   <label for="inputCarnet">Carnet / ID de estudiante</label>
-                  <div class="input-status">
-                    <input type="text" id="inputCarnet" placeholder="Ej. 12345 (sin ceros a la izquierda)" class="mono" autocomplete="off" inputmode="numeric" maxlength="9">
-                    <span class="stat" id="carnetStat"></span>
-                  </div>
-                  <div class="hint">El ID siempre tiene 9 dígitos. Escribe solo los números, sin los ceros iniciales. Si aún no está registrado, podrás darlo de alta aquí mismo.</div>
+                  <input type="text" id="inputCarnet" placeholder="Ej. 12345 (sin ceros a la izquierda)" class="mono" autocomplete="off" inputmode="numeric" maxlength="9">
+                  <div class="hint">El ID siempre tiene 9 dígitos. Escribe solo los números, sin los ceros iniciales; se completa automáticamente al salir del campo.</div>
                 </div>
-                <div id="studentPreview"></div>
                 <div class="field">
                   <label for="inputNombre">Nombre completo del estudiante</label>
-                  <input type="text" id="inputNombre" placeholder="Se autocompleta automáticamente" disabled>
+                  <input type="text" id="inputNombre" placeholder="Escribe el nombre completo del estudiante" autocomplete="off">
                 </div>
               </div>
 
@@ -1055,7 +1055,6 @@ const state = {
   modoVista: 'agente',     // agente | supervisor (solo relevante si permisoDual === true)
   ext: '—',
   currentView: 'nueva-llamada',
-  estudianteSeleccionado: null,
   todosLosRegistros: [],   // cache para vistas de supervisor/jefe
   misRegistrosHoy: []
 };
@@ -1066,7 +1065,7 @@ const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/initials/svg?backgroundType
 const usuariosUPANA = [
   { nombre: "Magister Joselyn Maria Anita Juárez Girón", ext: "1111", correo: "jmjuarez@upana.edu.gt", puesto: "Coordinadora de Atracción Estudiantil, admisiones (Call Center) y Comunicación Interna", permisoDual: true, rolBase: "jefe" },
   { nombre: "Mayra Maribel Arévalo Ruiz", ext: "8033", correo: "mmarevalo@upana.edu.gt", puesto: "Asistente de Call Center y Servicio al Cliente", permisoDual: true, rolBase: "supervisor" },
-  { nombre: "José Pablo Ibáñez Ibáñez", ext: "8029", correo: "jibanez@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: true, rolBase: "agente" },
+  { nombre: "José Pablo Ibáñez Ibáñez", ext: "8029", correo: "jibanez@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
   { nombre: "Nestor Daniel Ozuna Galvez", ext: "8015", correo: "nozuna@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: true, rolBase: "agente" },
   { nombre: "Merlin Carolina Bajan Ibañez", ext: "8004", correo: "mbajan@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
   { nombre: "César Daniel Coyoy", ext: "8014", correo: "ccoyoy@upana.edu.gt", puesto: "Agente de Call Center y Servicio al Cliente", permisoDual: false, rolBase: "agente" },
@@ -1159,19 +1158,6 @@ function renderExtensiones(){
     </tr>`).join('');
 }
 document.getElementById('buscarExtension').addEventListener('input', renderExtensiones);
-
-// ---------- Mock Data de contingencia (estudiantes UPANA) ----------
-// Los IDs siempre tienen 9 dígitos. El agente escribe sin ceros a la
-// izquierda y el sistema autocompleta la clave real con padStart(9,'0').
-const MOCK_ESTUDIANTES = {
-  "000123456": { nombre: "María Fernanda López Castillo", carrera: "Ingeniería en Sistemas" },
-  "000598765": { nombre: "Carlos Andrés Ramírez Solís", carrera: "Administración de Empresas" },
-  "000988112": { nombre: "Ana Lucía Morales Pérez", carrera: "Derecho" },
-  "000445533": { nombre: "José Manuel Girón Estrada", carrera: "Psicología Clínica" },
-  "077665544": { nombre: "Paola Nicté Hernández Ajú", carrera: "Arquitectura" },
-  "033227788": { nombre: "Diego Alejandro Sam Cifuentes", carrera: "Ingeniería Industrial" },
-  "006611445": { nombre: "Gabriela Isabel Roca Mazariegos", carrera: "Mercadotecnia" }
-};
 
 // ================================================================
 // UTILIDADES
@@ -1499,127 +1485,26 @@ document.getElementById('btnGuardarFoto').addEventListener('click', async ()=>{
 });
 
 // ================================================================
-// BÚSQUEDA Y REGISTRO DE ESTUDIANTE POR CARNET (ID de 9 dígitos)
+// CARNET / ID DE ESTUDIANTE (formato de 9 dígitos, sin verificación)
 // ================================================================
-// Ya no se depende de ninguna sincronización externa: si el ID no existe
-// todavía, la propia Bitácora permite registrarlo al instante en Firestore
-// (colección "estudiantesRegistrados") para usarlo aquí y en llamadas futuras.
+// Esta Bitácora únicamente registra la llamada: el agente escribe el ID
+// y el nombre del estudiante directamente, sin ningún tipo de búsqueda,
+// sincronización o validación contra una base de datos externa.
 const inputCarnet = document.getElementById('inputCarnet');
-let carnetBuscarTimeout = null;
 
 function soloDigitos(v){ return (v||'').replace(/\D/g,'').slice(0,9); }
 function carnetPadded(v){ const d = soloDigitos(v); return d ? d.padStart(9,'0') : ''; }
 
 inputCarnet.addEventListener('input', ()=>{
-  // Solo se permiten dígitos mientras se escribe
   const digitos = soloDigitos(inputCarnet.value);
   if(inputCarnet.value !== digitos) inputCarnet.value = digitos;
-
-  const statEl = document.getElementById('carnetStat');
-  const previewHost = document.getElementById('studentPreview');
-  clearTimeout(carnetBuscarTimeout);
-
-  if(!digitos.length){
-    statEl.textContent=''; previewHost.innerHTML=''; state.estudianteSeleccionado=null;
-    document.getElementById('inputNombre').value = '';
-    return;
-  }
-
-  const padded = carnetPadded(digitos);
-  const est = MOCK_ESTUDIANTES[padded];
-  if(est){
-    statEl.textContent = 'Encontrado'; statEl.className = 'stat stat-found';
-    aplicarEstudiante(padded, est.nombre, est.carrera);
-    return;
-  }
-
-  statEl.textContent = 'Buscando…'; statEl.className = 'stat stat-search';
-  document.getElementById('inputNombre').value = '';
-  previewHost.innerHTML = '';
-  state.estudianteSeleccionado = null;
-
-  carnetBuscarTimeout = setTimeout(()=> buscarEstudianteEnFirestore(digitos, padded), 450);
 });
 
-async function buscarEstudianteEnFirestore(digitosOriginales, padded){
-  const statEl = document.getElementById('carnetStat');
-  try{
-    const snap = await db.collection('estudiantesRegistrados').doc(padded).get();
-    // Si el usuario ya siguió escribiendo, esta búsqueda quedó obsoleta
-    if(soloDigitos(inputCarnet.value) !== digitosOriginales) return;
-    if(snap.exists){
-      const data = snap.data();
-      statEl.textContent = 'Encontrado'; statEl.className = 'stat stat-found';
-      aplicarEstudiante(padded, data.nombre, data.carrera);
-    } else {
-      statEl.textContent = 'No registrado'; statEl.className = 'stat stat-none';
-      mostrarFormularioRegistroEstudiante(padded);
-    }
-  }catch(err){
-    console.error(err);
-    if(soloDigitos(inputCarnet.value) !== digitosOriginales) return;
-    statEl.textContent = 'No registrado'; statEl.className = 'stat stat-none';
-    mostrarFormularioRegistroEstudiante(padded);
-  }
-}
-
-function mostrarFormularioRegistroEstudiante(carnet){
-  const host = document.getElementById('studentPreview');
-  host.innerHTML = `
-    <div class="registro-estudiante-card">
-      <div class="reg-title">Este ID <span class="mono">${carnet}</span> aún no está registrado</div>
-      <div class="reg-sub">Escribe los datos del estudiante para registrarlo y usarlo en esta y futuras llamadas.</div>
-      <div class="field" style="margin:10px 0 8px;">
-        <input type="text" id="regNombreEstudiante" placeholder="Nombre completo del estudiante">
-      </div>
-      <div class="field" style="margin-bottom:10px;">
-        <input type="text" id="regCarreraEstudiante" placeholder="Carrera (opcional)">
-      </div>
-      <button type="button" class="btn btn-primary btn-sm" id="btnRegistrarEstudiante">Registrar estudiante</button>
-    </div>`;
-  document.getElementById('btnRegistrarEstudiante').addEventListener('click', async ()=>{
-    const nombre = document.getElementById('regNombreEstudiante').value.trim();
-    const carrera = document.getElementById('regCarreraEstudiante').value.trim();
-    if(!nombre){ toast('Escribe el nombre del estudiante', 'err'); return; }
-    const btn = document.getElementById('btnRegistrarEstudiante');
-    btn.disabled = true; btn.textContent = 'Guardando…';
-    try{
-      await db.collection('estudiantesRegistrados').doc(carnet).set({
-        nombre, carrera: carrera || null,
-        registradoPor: state.perfilDoc.nombre,
-        registradoEn: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      toast('Estudiante registrado correctamente', 'ok');
-      aplicarEstudiante(carnet, nombre, carrera);
-    }catch(err){
-      console.error(err);
-      toast('No se pudo registrar: ' + (err.message||err.code), 'err');
-      btn.disabled = false; btn.textContent = 'Registrar estudiante';
-    }
-  });
-}
-
-// Al salir del campo, se autocompleta visualmente con los 9 dígitos completos
+// Al salir del campo, se completa a los 9 dígitos oficiales (con ceros a la izquierda)
 inputCarnet.addEventListener('blur', ()=>{
   if(!inputCarnet.value.trim()) return;
   inputCarnet.value = carnetPadded(inputCarnet.value);
 });
-
-function aplicarEstudiante(carnet, nombre, carrera){
-  document.getElementById('inputCarnet').value = carnet;
-  document.getElementById('inputNombre').value = nombre || '';
-  state.estudianteSeleccionado = { carnet, nombre, carrera: carrera||'' };
-  const statEl = document.getElementById('carnetStat');
-  statEl.textContent = 'Encontrado'; statEl.className = 'stat stat-found';
-  document.getElementById('studentPreview').innerHTML = nombre ? `
-    <div class="student-preview">
-      <div class="ico">${iniciales(nombre)}</div>
-      <div>
-        <div class="nm">${nombre}</div>
-        <div class="id">${carnet}${carrera ? ' · '+carrera : ''}</div>
-      </div>
-    </div>` : '';
-}
 
 // ================================================================
 // TOGGLE "NO ES ESTUDIANTE"
@@ -1644,8 +1529,11 @@ document.getElementById('formLlamada').addEventListener('submit', async (e)=>{
   const esExterno = chkNoEstudiante.checked;
   const btn = document.getElementById('btnGuardarLlamada');
 
-  if(!esExterno && !state.estudianteSeleccionado){
-    toast('Ingresa un carnet válido o activa "No es estudiante"', 'err'); return;
+  const carnetEstudiante = carnetPadded(document.getElementById('inputCarnet').value);
+  const nombreEstudiante = document.getElementById('inputNombre').value.trim();
+
+  if(!esExterno && (!carnetEstudiante || !nombreEstudiante)){
+    toast('Ingresa el carnet y el nombre del estudiante, o activa "No es estudiante"', 'err'); return;
   }
   if(esExterno && (!document.getElementById('selectAsuntoExterno').value || !document.getElementById('inputNombreExterno').value.trim())){
     toast('Completa el asunto y el nombre de quien llama', 'err'); return;
@@ -1653,8 +1541,8 @@ document.getElementById('formLlamada').addEventListener('submit', async (e)=>{
 
   const registro = {
     EsEstudiante: !esExterno,
-    ID_Estudiante: esExterno ? null : state.estudianteSeleccionado.carnet,
-    Nombre: esExterno ? document.getElementById('inputNombreExterno').value.trim() : state.estudianteSeleccionado.nombre,
+    ID_Estudiante: esExterno ? null : carnetEstudiante,
+    Nombre: esExterno ? document.getElementById('inputNombreExterno').value.trim() : nombreEstudiante,
     AsuntoExterno: esExterno ? document.getElementById('selectAsuntoExterno').value : null,
     Tipo_Llamada: document.getElementById('selectTipoLlamada').value,
     Motivo: document.getElementById('selectMotivo').value,
@@ -1679,9 +1567,6 @@ document.getElementById('formLlamada').addEventListener('submit', async (e)=>{
     toast('Registro guardado correctamente', 'ok');
     document.getElementById('formLlamada').reset();
     chkNoEstudiante.dispatchEvent(new Event('change'));
-    document.getElementById('studentPreview').innerHTML = '';
-    document.getElementById('carnetStat').textContent = '';
-    state.estudianteSeleccionado = null;
   }catch(err){
     console.error(err);
     toast('Error al guardar: ' + (err.message||err.code), 'err');
