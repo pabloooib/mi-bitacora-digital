@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="es" data-theme="dark">
 <head>
@@ -302,7 +304,9 @@ a{ color: inherit; }
   background: var(--surface-2); display:grid; place-items:center; cursor:pointer;
   color: var(--text-muted); transition: all .2s var(--ease);
 }
-.icon-btn:hover{ background: var(--bg-alt); color: var(--text); }
+.icon-btn:hover{ background: var(--bg-alt); color: var(--text); transform: translateY(-1px); }
+#btnRefresh:active svg{ transform: rotate(180deg); }
+#btnRefresh svg{ transition: transform .4s var(--ease); }
 .icon-btn svg{ width:18px; height:18px; }
 
 .avatar{
@@ -326,7 +330,10 @@ a{ color: inherit; }
   display:inline-flex; align-items:center; gap:6px; margin-top:6px;
   font-size:11px; font-weight:600; padding:3px 9px; border-radius:99px;
   background: var(--warning-bg); color: var(--warning);
+  transition: background .3s var(--ease), color .3s var(--ease);
 }
+#viewsHost{ transition: opacity .18s var(--ease), transform .18s var(--ease); }
+#viewsHost.modo-cambiando{ opacity:.4; transform: scale(.99); }
 .role-badge.rol-supervisor{ background: #E3ECFB; color:#1F4B8C; }
 [data-theme="dark"] .role-badge.rol-supervisor{ background:#132444; color:#8FB2E8; }
 .role-badge.rol-jefe{ background:#FBEAE8; color:#9A3A32;}
@@ -846,7 +853,7 @@ html.custom-bg-active #toastHost .toast{
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Hora</th><th>Estudiante / Contacto</th><th>ID</th><th>Tipo</th><th>Motivo</th><th>Detalles</th></tr></thead>
+              <thead><tr><th>Hora</th><th>Estudiante / Contacto</th><th>ID</th><th>Tipo</th><th>Motivo</th><th>Detalles</th><th></th></tr></thead>
               <tbody id="tablaHistorial"></tbody>
             </table>
           </div>
@@ -1045,6 +1052,50 @@ html.custom-bg-active #toastHost .toast{
     <div style="display:flex; flex-direction:column; gap:10px;">
       <button class="btn btn-primary btn-block" id="btnEntrarComoAgente">Ingresar como Agente</button>
       <button class="btn btn-gold btn-block" id="btnEntrarComoSupervisor">Ingresar como Supervisor</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL EDITAR REGISTRO ================= -->
+<div class="modal-overlay" id="modalEditarRegistro">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-head">
+      <h3>Editar registro</h3>
+      <div class="icon-btn" id="btnCerrarModalEditar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+    </div>
+    <div class="field">
+      <label>Estudiante / Contacto</label>
+      <input type="text" id="editNombre">
+    </div>
+    <div class="row-2">
+      <div class="field">
+        <label>Tipo de llamada</label>
+        <select id="editTipoLlamada">
+          <option value="Entrante">Entrante</option>
+          <option value="Saliente">Saliente</option>
+          <option value="Whatsapp">WhatsApp</option>
+          <option value="Correo">Correo / ticket</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Motivo principal</label>
+        <select id="editMotivo">
+          <option value="Pagos">Pagos y facturación</option>
+          <option value="Inscripcion">Inscripción</option>
+          <option value="Notas">Notas y expediente</option>
+          <option value="Constancias">Constancias y documentos</option>
+          <option value="Soporte_Tecnico">Soporte técnico / plataforma</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Detalles de la atención</label>
+      <textarea id="editDetalles" rows="4"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="btnEliminarRegistro">Eliminar</button>
+      <button class="btn btn-primary" id="btnGuardarEdicionRegistro">Guardar cambios</button>
     </div>
   </div>
 </div>
@@ -1397,10 +1448,18 @@ function aplicarPermisosDeRol(){
 
 function cambiarModoVista(){
   if(!state.permisoDual) return;
-  state.modoVista = (state.modoVista === 'agente') ? 'supervisor' : 'agente';
-  aplicarPermisosDeRol();
-  cambiarVista(state.modoVista === 'agente' ? 'nueva-llamada' : 'feedback-agentes');
-  toast(`Cambiaste a la vista de ${state.modoVista === 'agente' ? 'Agente' : 'Supervisor'}`, 'info');
+  try{
+    const host = document.getElementById('viewsHost');
+    host.classList.add('modo-cambiando');
+    state.modoVista = (state.modoVista === 'agente') ? 'supervisor' : 'agente';
+    aplicarPermisosDeRol();
+    cambiarVista(state.modoVista === 'agente' ? 'nueva-llamada' : 'feedback-agentes');
+    toast(`Cambiaste a la vista de ${state.modoVista === 'agente' ? 'Agente' : 'Supervisor'}`, 'info');
+    setTimeout(()=> host.classList.remove('modo-cambiando'), 180);
+  }catch(err){
+    console.error('Error al cambiar de modo:', err);
+    toast('No se pudo cambiar de vista: ' + (err.message||err), 'err');
+  }
 }
 document.getElementById('btnCambiarModo').addEventListener('click', cambiarModoVista);
 document.getElementById('menuCambiarModo').addEventListener('click', ()=>{
@@ -1442,14 +1501,18 @@ function cambiarVista(view){
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('open');
 
-  if(view === 'historial') renderHistorial();
-  if(view === 'buscar') cargarTodosRegistros(renderBuscar);
-  if(view === 'metricas') cargarTodosRegistros(renderMetricas);
-  if(view === 'reportes') cargarTodosRegistros(renderReportes);
-  if(view === 'auditoria') renderAuditoria();
-  if(view === 'buzon') renderBuzon();
-  if(view === 'extensiones') renderExtensiones();
-  if(view === 'feedback-agentes') renderFeedbackAgentesForm();
+  try{
+    if(view === 'historial') renderHistorial();
+    if(view === 'buscar') cargarTodosRegistros(renderBuscar);
+    if(view === 'metricas') cargarTodosRegistros(renderMetricas);
+    if(view === 'reportes') cargarTodosRegistros(renderReportes);
+    if(view === 'auditoria') renderAuditoria();
+    if(view === 'buzon') renderBuzon();
+    if(view === 'extensiones') renderExtensiones();
+    if(view === 'feedback-agentes') renderFeedbackAgentesForm();
+  }catch(err){
+    console.error('Error al renderizar la vista "'+view+'":', err);
+  }
 }
 document.querySelectorAll('.nav-item[data-view]').forEach(item=>{
   item.addEventListener('click', ()=> cambiarVista(item.dataset.view));
@@ -1692,6 +1755,7 @@ function renderHistorial(){
       <td><span class="badge badge-blue">${r.Tipo_Llamada||'—'}</span></td>
       <td>${r.EsEstudiante ? (r.Motivo||'—') : (r.AsuntoExterno||'Externo')}</td>
       <td>${r.Detalles||'—'}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="abrirModalEditarRegistro('${r.id}','historial')">Editar</button></td>
     </tr>`).join('');
 }
 
@@ -1747,7 +1811,7 @@ function aplicarFiltrosBuscar(){
       <td><span class="badge badge-blue">${r.Tipo_Llamada||'—'}</span></td>
       <td>${r.Motivo||r.AsuntoExterno||'—'}</td>
       <td>${r.Detalles||'—'}</td>
-      <td><button class="btn btn-ghost btn-sm" onclick="editarDetalle('${r.id}')">Editar</button></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="abrirModalEditarRegistro('${r.id}','buscar')">Editar</button></td>
     </tr>`).join('');
 }
 ['buscarAgente','buscarCarnet','buscarFecha'].forEach(id=>{
@@ -1760,25 +1824,94 @@ document.getElementById('btnLimpiarBusqueda').addEventListener('click', ()=>{
   aplicarFiltrosBuscar();
 });
 
-async function editarDetalle(id){
-  const nuevo = prompt('Editar detalles del registro:');
-  if(nuevo === null) return;
+// ================================================================
+// EDITAR / ELIMINAR REGISTRO (Mi historial y Buscar registros)
+// ================================================================
+const modalEditarRegistro = document.getElementById('modalEditarRegistro');
+let registroEnEdicion = null; // { id, origen }
+
+function buscarRegistroPorId(id){
+  return state.misRegistrosHoy.find(r=> r.id === id) || state.todosLosRegistros.find(r=> r.id === id) || null;
+}
+
+function abrirModalEditarRegistro(id, origen){
+  const reg = buscarRegistroPorId(id);
+  if(!reg){ toast('No se encontró el registro', 'err'); return; }
+  registroEnEdicion = { id, origen };
+  document.getElementById('editNombre').value = reg.Nombre || '';
+  document.getElementById('editTipoLlamada').value = reg.Tipo_Llamada || 'Entrante';
+  document.getElementById('editMotivo').value = reg.Motivo || 'Otro';
+  document.getElementById('editDetalles').value = reg.Detalles || '';
+  modalEditarRegistro.classList.add('open');
+}
+document.getElementById('btnCerrarModalEditar').addEventListener('click', ()=> modalEditarRegistro.classList.remove('open'));
+
+async function refrescarDespuesDeEditar(){
+  if(!registroEnEdicion) return;
+  if(registroEnEdicion.origen === 'buscar'){
+    cargarTodosRegistros(renderBuscar);
+  } else {
+    renderHistorial();
+  }
+}
+
+document.getElementById('btnGuardarEdicionRegistro').addEventListener('click', async ()=>{
+  if(!registroEnEdicion) return;
+  const btn = document.getElementById('btnGuardarEdicionRegistro');
+  const cambios = {
+    Nombre: document.getElementById('editNombre').value.trim(),
+    Tipo_Llamada: document.getElementById('editTipoLlamada').value,
+    Motivo: document.getElementById('editMotivo').value,
+    Detalles: document.getElementById('editDetalles').value.trim()
+  };
+  btn.disabled = true; btn.textContent = 'Guardando…';
   try{
-    await db.collection('registros').doc(id).update({ Detalles: nuevo });
+    await db.collection('registros').doc(registroEnEdicion.id).update(cambios);
     await db.collection('auditoria').add({
-      registroId: id,
-      accion: 'Edición de detalles',
+      registroId: registroEnEdicion.id,
+      accion: 'Edición de registro',
       usuario: state.user.displayName || state.perfilDoc.nombre,
       usuarioUid: state.user.uid,
       fecha: firebase.firestore.FieldValue.serverTimestamp(),
-      cambios: `Detalles actualizados a: "${nuevo}"`
+      cambios: `Actualizado: ${cambios.Nombre} · ${cambios.Tipo_Llamada} · ${cambios.Motivo}`
     });
     toast('Registro actualizado', 'ok');
-    cargarTodosRegistros(renderBuscar);
+    modalEditarRegistro.classList.remove('open');
+    await refrescarDespuesDeEditar();
   }catch(err){
-    toast('No se pudo actualizar: '+(err.message||err.code), 'err');
+    console.error(err);
+    toast('No se pudo actualizar: ' + (err.message||err.code), 'err');
+  }finally{
+    btn.disabled = false; btn.textContent = 'Guardar cambios';
   }
-}
+});
+
+document.getElementById('btnEliminarRegistro').addEventListener('click', async ()=>{
+  if(!registroEnEdicion) return;
+  const confirmado = confirm('¿Eliminar este registro de forma permanente? Esta acción no se puede deshacer.');
+  if(!confirmado) return;
+  const btn = document.getElementById('btnEliminarRegistro');
+  btn.disabled = true; btn.textContent = 'Eliminando…';
+  try{
+    await db.collection('registros').doc(registroEnEdicion.id).delete();
+    await db.collection('auditoria').add({
+      registroId: registroEnEdicion.id,
+      accion: 'Eliminación de registro',
+      usuario: state.user.displayName || state.perfilDoc.nombre,
+      usuarioUid: state.user.uid,
+      fecha: firebase.firestore.FieldValue.serverTimestamp(),
+      cambios: 'Registro eliminado permanentemente'
+    });
+    toast('Registro eliminado', 'ok');
+    modalEditarRegistro.classList.remove('open');
+    await refrescarDespuesDeEditar();
+  }catch(err){
+    console.error(err);
+    toast('No se pudo eliminar: ' + (err.message||err.code), 'err');
+  }finally{
+    btn.disabled = false; btn.textContent = 'Eliminar';
+  }
+});
 
 // ---------- Métricas (Supervisor) ----------
 let chartAgentesRef = null;
@@ -2014,8 +2147,10 @@ document.getElementById('btnEnviarFeedback').addEventListener('click', async ()=
     btn.disabled = false; btn.textContent = 'Enviar al buzón del agente';
   }
 });
+let unsubFeedbackEnviado = null;
 function suscribirFeedbackEnviado(){
-  db.collection('feedback')
+  if(unsubFeedbackEnviado){ unsubFeedbackEnviado(); unsubFeedbackEnviado = null; }
+  unsubFeedbackEnviado = db.collection('feedback')
     .where('deCorreo', '==', state.user.email)
     .limit(50)
     .onSnapshot(snap=>{
