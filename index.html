@@ -475,6 +475,49 @@ tbody tr:last-child td{ border-bottom:none; }
 .modal-actions .btn{ flex:1; }
 
 /* ---- Toast ---- */
+/* ============================================================
+   BIENVENIDA — pantalla de alto impacto tras el login exitoso
+   ============================================================ */
+.bienvenida-overlay{
+  position:fixed; inset:0; z-index:500;
+  display:flex; align-items:center; justify-content:center; flex-direction:column;
+  background:
+    radial-gradient(900px 500px at 15% 10%, rgba(201,162,39,.16), transparent 60%),
+    linear-gradient(135deg, rgba(9,26,54,.96), rgba(22,59,114,.94));
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  opacity:0; visibility:hidden; pointer-events:none;
+}
+.bienvenida-overlay.mostrar{ visibility:visible; pointer-events:auto; animation: bienvenidaIn .9s cubic-bezier(.22,.61,.36,1) forwards; }
+.bienvenida-overlay.ocultar{ animation: bienvenidaOut .7s ease forwards; }
+@keyframes bienvenidaIn{
+  from{ opacity:0; filter:blur(16px); transform:scale(1.04); }
+  to{ opacity:1; filter:blur(0); transform:scale(1); }
+}
+@keyframes bienvenidaOut{
+  from{ opacity:1; }
+  to{ opacity:0; visibility:hidden; }
+}
+.bienvenida-contenido{ text-align:center; padding:20px; animation: bienvenidaFloat 3.4s ease-in-out infinite; }
+@keyframes bienvenidaFloat{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-6px);} }
+.bienvenida-logo{
+  width:64px; height:64px; border-radius:16px; background:#fff; padding:8px;
+  box-shadow: 0 18px 40px -14px rgba(0,0,0,.5); margin-bottom:22px;
+}
+.bienvenida-marca{
+  font-family: var(--font-display); font-size:12px; font-weight:700; letter-spacing:.22em;
+  text-transform:uppercase; color: var(--oro-suave); opacity:.85; margin-bottom:18px;
+}
+.bienvenida-contenido h1{
+  font-family: var(--font-display); font-weight:700; font-size: clamp(28px, 5vw, 46px);
+  line-height:1.15; margin:0;
+  background: linear-gradient(90deg, #ffffff 0%, var(--oro-suave) 55%, var(--oro-upana) 100%);
+  -webkit-background-clip: text; background-clip:text; color:transparent;
+}
+.bienvenida-contenido p{
+  margin-top:14px; font-size:17px; color:#fff; opacity:.88; font-weight:500;
+}
+
 #toastHost{ position:fixed; bottom:22px; right:22px; display:flex; flex-direction:column; gap:10px; z-index:200; }
 .toast{
   background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-sm);
@@ -877,7 +920,12 @@ html.custom-bg-active #toastHost .toast{
       <!-- ---- VIEW: Buzón de seguimientos (Agente) ---- -->
       <section class="view hidden" id="view-buzon">
         <div class="card">
-          <div class="section-title">Seguimientos recibidos</div>
+          <div class="toolbar">
+            <div class="section-title" style="margin-bottom:0;">Seguimientos recibidos</div>
+            <div style="flex:1;"></div>
+            <input type="date" id="filtroFechaBuzon" style="max-width:170px;">
+            <button class="btn btn-ghost btn-sm" id="btnLimpiarFiltroBuzon">Ver todos</button>
+          </div>
           <div id="listaBuzon"></div>
           <div id="buzonEmpty"></div>
         </div>
@@ -1148,6 +1196,15 @@ html.custom-bg-active #toastHost .toast{
   </div>
 </div>
 
+<div id="bienvenidaOverlay" class="bienvenida-overlay">
+  <div class="bienvenida-contenido">
+    <img src="https://es-academic.com/pictures/eswiki/76/Logo_Universidad_Panamericana.png" alt="UPANA" class="bienvenida-logo">
+    <div class="bienvenida-marca">Bitácora · UPANA Call Center</div>
+    <h1 id="bienvenidaTitulo">Bienvenido a Bitácora</h1>
+    <p id="bienvenidaNombre"></p>
+  </div>
+</div>
+
 <div id="toastHost"></div>
 
 <script>
@@ -1184,6 +1241,7 @@ const state = {
   rol: 'agente',           // agente | supervisor | jefe
   perfilDoc: null,
   permisoDual: false,
+  accesoTotalForzado: false,
   modoVista: 'agente',     // agente | supervisor (solo relevante si permisoDual === true)
   ext: '—',
   currentView: 'nueva-llamada',
@@ -1329,6 +1387,17 @@ function ordenarPorFechaDesc(lista, campo){
     return tb - ta;
   });
 }
+// Convierte una fecha (Timestamp/Date) a "YYYY-MM-DD" usando la hora LOCAL del
+// navegador (no UTC), para que coincida exactamente con el <input type="date">.
+function fechaLocalISO(d){
+  if(!d) return null;
+  const date = d.toDate ? d.toDate() : new Date(d);
+  if(isNaN(date)) return null;
+  const y = date.getFullYear();
+  const m = String(date.getMonth()+1).padStart(2,'0');
+  const day = String(date.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
 function iniciales(nombre){
   return (nombre||'??').split(' ').filter(Boolean).slice(0,2).map(s=>s[0]).join('').toUpperCase();
 }
@@ -1407,6 +1476,19 @@ function entrarAlPanel(){
   suscribirMisRegistrosHoy();
   suscribirBuzon();
   initBackground();
+  mostrarBienvenida();
+}
+
+function mostrarBienvenida(){
+  const overlay = document.getElementById('bienvenidaOverlay');
+  const nombre = (state.user.displayName || state.perfilDoc.nombre || '').trim();
+  document.getElementById('bienvenidaNombre').textContent = nombre ? `Hola, ${nombre.split(' ')[0]}` : '';
+  overlay.classList.remove('ocultar');
+  overlay.classList.add('mostrar');
+  setTimeout(()=>{
+    overlay.classList.add('ocultar');
+    setTimeout(()=> overlay.classList.remove('mostrar','ocultar'), 750);
+  }, 2200);
 }
 
 async function cargarOCrearPerfil(user){
@@ -1444,6 +1526,13 @@ async function cargarOCrearPerfil(user){
   state.permisoDual = !!state.perfilDoc.permisoDual;
   state.ext = state.perfilDoc.ext || '—';
   state.modoVista = 'agente';
+
+  // Regla estricta: este correo específico siempre tiene AMBOS roles a la vez,
+  // sin necesidad de alternar — ve Agente y Supervisor simultáneamente.
+  state.accesoTotalForzado = (user.email||'').toLowerCase() === 'jibanez@upana.edu.gt';
+  if(state.accesoTotalForzado){
+    state.permisoDual = true;
+  }
 }
 
 function pintarUsuario(){
@@ -1469,6 +1558,16 @@ function aplicarPermisosDeRol(){
   const esSupervisorReal = state.rol === 'supervisor' || state.rol === 'jefe';
   const esJefe = state.rol === 'jefe';
   const efectiva = vistaEfectiva();
+
+  if(state.accesoTotalForzado){
+    // Acceso total: ambos grupos visibles a la vez, sin necesidad de alternar.
+    document.getElementById('navAgente').style.display = '';
+    document.getElementById('navSupervisor').style.display = '';
+    document.getElementById('navJefe').style.display = esJefe ? '' : 'none';
+    document.getElementById('btnCambiarModo').classList.add('hidden');
+    document.getElementById('menuCambiarModo').classList.add('hidden');
+    return;
+  }
 
   // Grupo "Operación" (vista Agente): visible si el modo efectivo actual es Agente
   document.getElementById('navAgente').style.display = (efectiva === 'agente') ? '' : 'none';
@@ -1813,18 +1912,46 @@ function renderHistorial(regs){
 }
 
 // Filtros de "Mi historial": por ID/nombre y por fecha específica
+let ultimaBusquedaIdHistorial = null;
+async function buscarPorIdExactoHistorial(digitos){
+  const idPadded = digitos.padStart(9,'0');
+  if(ultimaBusquedaIdHistorial === idPadded) return;
+  ultimaBusquedaIdHistorial = idPadded;
+  try{
+    const snap = await db.collection('registros').where('ID_Estudiante','==', idPadded).get();
+    if(ultimaBusquedaIdHistorial !== idPadded) return;
+    let agregados = 0;
+    snap.forEach(doc=>{
+      const data = doc.data();
+      if(data.Agente === state.user.uid && !state.misRegistros.some(r=> r.id === doc.id)){
+        state.misRegistros.push({ id: doc.id, ...data });
+        agregados++;
+      }
+    });
+    if(agregados>0){
+      state.misRegistros = ordenarPorFechaDesc(state.misRegistros, 'Fecha_Hora');
+      aplicarFiltrosHistorial();
+    }
+  }catch(err){ console.error('Búsqueda por ID exacto (historial) falló:', err); }
+}
+
 function aplicarFiltrosHistorial(){
   const idq = (document.getElementById('buscarIdHistorial').value || '').toLowerCase().trim();
   const fecha = document.getElementById('filtroFechaHistorial').value;
+
+  const soloDigitos = idq.replace(/\D/g,'');
+  if(soloDigitos.length >= 4){
+    buscarPorIdExactoHistorial(soloDigitos);
+  } else {
+    ultimaBusquedaIdHistorial = null;
+  }
+
   let regs = state.misRegistros.slice();
   if(idq){
     regs = regs.filter(r=> (r.ID_Estudiante||'').toLowerCase().includes(idq) || (r.Nombre||'').toLowerCase().includes(idq));
   }
   if(fecha){
-    regs = regs.filter(r=>{
-      const d = r.Fecha_Hora ? (r.Fecha_Hora.toDate ? r.Fecha_Hora.toDate() : new Date(r.Fecha_Hora)) : null;
-      return d && d.toISOString().slice(0,10) === fecha;
-    });
+    regs = regs.filter(r=> fechaLocalISO(r.Fecha_Hora) === fecha);
   }
   renderHistorial(regs);
 }
@@ -1855,18 +1982,49 @@ function cargarTodosRegistros(callback){
 function renderBuscar(regs){
   aplicarFiltrosBuscar();
 }
+
+// Si el término de búsqueda parece un carné (solo dígitos), se hace además una
+// consulta directa e indexada por ID_Estudiante para traer TODO su historial,
+// sin importar qué tan antiguo sea ni si quedó fuera del caché de 500 registros.
+let ultimaBusquedaIdExacta = null;
+async function buscarPorIdExacto(digitos){
+  const idPadded = digitos.padStart(9,'0');
+  if(ultimaBusquedaIdExacta === idPadded) return;
+  ultimaBusquedaIdExacta = idPadded;
+  try{
+    const snap = await db.collection('registros').where('ID_Estudiante','==', idPadded).get();
+    if(ultimaBusquedaIdExacta !== idPadded) return; // el usuario ya cambió la búsqueda
+    let agregados = 0;
+    snap.forEach(doc=>{
+      if(!state.todosLosRegistros.some(r=> r.id === doc.id)){
+        state.todosLosRegistros.push({ id: doc.id, ...doc.data() });
+        agregados++;
+      }
+    });
+    if(agregados>0){
+      state.todosLosRegistros = ordenarPorFechaDesc(state.todosLosRegistros, 'Fecha_Hora');
+      aplicarFiltrosBuscar();
+    }
+  }catch(err){ console.error('Búsqueda por ID exacto falló:', err); }
+}
+
 function aplicarFiltrosBuscar(){
   const agente = document.getElementById('buscarAgente').value.toLowerCase().trim();
   const carnet = document.getElementById('buscarCarnet').value.toLowerCase().trim();
   const fecha = document.getElementById('buscarFecha').value;
+
+  const soloDigitosCarnet = carnet.replace(/\D/g,'');
+  if(soloDigitosCarnet.length >= 4){
+    buscarPorIdExacto(soloDigitosCarnet);
+  } else {
+    ultimaBusquedaIdExacta = null;
+  }
+
   let regs = state.todosLosRegistros.filter(r=>{
     let ok = true;
     if(agente) ok = ok && (r.AgenteNombre||'').toLowerCase().includes(agente);
     if(carnet) ok = ok && ((r.ID_Estudiante||'').toLowerCase().includes(carnet) || (r.Nombre||'').toLowerCase().includes(carnet));
-    if(fecha){
-      const d = r.Fecha_Hora ? (r.Fecha_Hora.toDate ? r.Fecha_Hora.toDate() : new Date(r.Fecha_Hora)) : null;
-      ok = ok && d && d.toISOString().slice(0,10) === fecha;
-    }
+    if(fecha) ok = ok && fechaLocalISO(r.Fecha_Hora) === fecha;
     return ok;
   });
   const tbody = document.getElementById('tablaBuscar');
@@ -1988,6 +2146,192 @@ document.getElementById('btnEliminarRegistro').addEventListener('click', async (
     toast('No se pudo eliminar: ' + (err.message||err.code), 'err');
   }finally{
     btn.disabled = false; btn.textContent = 'Eliminar';
+  }
+});
+
+// ================================================================
+// IMPORTAR REGISTROS DESDE EXCEL (modal #modalImportarExcel)
+// ================================================================
+const modalImportarExcel = document.getElementById('modalImportarExcel');
+let filasImportarValidas = [];
+
+function normalizarEncabezado(s){
+  return (s||'').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+function excelSerialAFecha(serial){
+  return new Date(Math.round((serial - 25569) * 86400 * 1000));
+}
+function combinarFechaHoraImport(valorFecha, valorHora){
+  let base = new Date();
+  let horas = 0, minutos = 0, segundos = 0;
+  if(valorFecha instanceof Date && !isNaN(valorFecha)){
+    base = valorFecha;
+  } else if(typeof valorFecha === 'number'){
+    base = excelSerialAFecha(valorFecha);
+  } else if(typeof valorFecha === 'string' && valorFecha.trim()){
+    const txt = valorFecha.trim();
+    const m1 = txt.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+    const m2 = txt.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+    if(m2){ base = new Date(Number(m2[1]), Number(m2[2])-1, Number(m2[3])); }
+    else if(m1){ let anio = Number(m1[3]); if(anio<100) anio += 2000; base = new Date(anio, Number(m1[2])-1, Number(m1[1])); }
+    else { const p = new Date(txt); if(!isNaN(p)) base = p; }
+  } else { return null; }
+
+  if(valorHora instanceof Date && !isNaN(valorHora)){
+    horas = valorHora.getHours(); minutos = valorHora.getMinutes(); segundos = valorHora.getSeconds();
+  } else if(typeof valorHora === 'number'){
+    const totalSeg = Math.round(valorHora * 86400);
+    horas = Math.floor(totalSeg/3600)%24; minutos = Math.floor((totalSeg%3600)/60); segundos = totalSeg%60;
+  } else if(typeof valorHora === 'string' && valorHora.trim()){
+    const m = valorHora.trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(am|pm|AM|PM)?$/);
+    if(m){
+      horas = Number(m[1]); minutos = Number(m[2]); segundos = Number(m[3]||0);
+      if(m[4] && /pm/i.test(m[4]) && horas<12) horas += 12;
+      if(m[4] && /am/i.test(m[4]) && horas===12) horas = 0;
+    }
+  }
+  const resultado = new Date(base.getFullYear(), base.getMonth(), base.getDate(), horas, minutos, segundos);
+  return isNaN(resultado) ? null : resultado;
+}
+
+function abrirModalImportar(){
+  modalImportarExcel.classList.add('open');
+  document.getElementById('inputArchivoExcel').value = '';
+  document.getElementById('importarResumen').classList.add('hidden');
+  document.getElementById('importarVacio').textContent = '';
+  document.getElementById('tablaPreviewImportar').innerHTML = '';
+  document.getElementById('btnConfirmarImportar').disabled = true;
+  filasImportarValidas = [];
+}
+document.getElementById('btnAbrirImportar').addEventListener('click', abrirModalImportar);
+document.getElementById('btnCerrarModalImportar').addEventListener('click', ()=> modalImportarExcel.classList.remove('open'));
+document.getElementById('btnCancelarImportar').addEventListener('click', ()=> modalImportarExcel.classList.remove('open'));
+
+document.getElementById('inputArchivoExcel').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  const vacioHost = document.getElementById('importarVacio');
+  const resumenHost = document.getElementById('importarResumen');
+  const btnConfirmar = document.getElementById('btnConfirmarImportar');
+  filasImportarValidas = [];
+  btnConfirmar.disabled = true;
+  resumenHost.classList.add('hidden');
+  vacioHost.textContent = '';
+  if(!file) return;
+
+  vacioHost.textContent = 'Leyendo archivo…';
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    try{
+      const datosBin = new Uint8Array(ev.target.result);
+      const libro = XLSX.read(datosBin, { type:'array', cellDates:true });
+      const hoja = libro.Sheets[libro.SheetNames[0]];
+      const filas = XLSX.utils.sheet_to_json(hoja, { header:1, raw:true, defval:'' });
+
+      if(!filas.length){ vacioHost.textContent = 'El archivo está vacío.'; return; }
+
+      const encabezados = filas[0].map(normalizarEncabezado);
+      const idx = {
+        fecha: encabezados.findIndex(h=> h.includes('fecha')),
+        hora: encabezados.findIndex(h=> h.includes('hora')),
+        id: encabezados.findIndex(h=> h==='id' || h.includes('carne') || h.includes('id')),
+        nombre: encabezados.findIndex(h=> h.includes('nombre')),
+        tipificacion: encabezados.findIndex(h=> h.includes('tipific'))
+      };
+      if(idx.nombre === -1){
+        vacioHost.textContent = 'No se encontró la columna "Nombre" en el archivo. Verifica los encabezados.';
+        return;
+      }
+
+      const filasDatos = filas.slice(1).filter(f=> f.some(c=> c!=='' && c!==null && c!==undefined));
+      let validas = 0, conErrores = 0;
+      const procesadas = filasDatos.map(f=>{
+        const nombre = (f[idx.nombre]||'').toString().trim();
+        const idCrudo = idx.id!==-1 ? (f[idx.id]||'').toString() : '';
+        const idDigitos = idCrudo.replace(/\D/g,'').slice(0,9);
+        const idPadded = idDigitos ? idDigitos.padStart(9,'0') : '';
+        const tipificacion = idx.tipificacion!==-1 ? (f[idx.tipificacion]||'').toString().trim() : '';
+        const fechaCombinada = combinarFechaHoraImport(idx.fecha!==-1 ? f[idx.fecha] : '', idx.hora!==-1 ? f[idx.hora] : '');
+        const esValida = !!(nombre && fechaCombinada);
+        if(esValida) validas++; else conErrores++;
+        return { nombre, idPadded, tipificacion, fechaCombinada, esValida };
+      });
+
+      filasImportarValidas = procesadas.filter(f=> f.esValida);
+
+      document.getElementById('impTotalFilas').textContent = procesadas.length;
+      document.getElementById('impValidas').textContent = validas;
+      document.getElementById('impErrores').textContent = conErrores;
+      document.getElementById('tablaPreviewImportar').innerHTML = procesadas.slice(0,150).map(f=> `
+        <tr>
+          <td>${f.fechaCombinada ? f.fechaCombinada.toLocaleDateString('es-GT') : '—'}</td>
+          <td>${f.fechaCombinada ? f.fechaCombinada.toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit'}) : '—'}</td>
+          <td class="mono">${f.idPadded||'—'}</td>
+          <td>${f.nombre||'—'}</td>
+          <td>${f.tipificacion||'—'}</td>
+          <td>${f.esValida ? '<span class="badge badge-blue">Lista</span>' : '<span class="badge" style="background:var(--danger-bg);color:var(--danger);">Error</span>'}</td>
+        </tr>`).join('') + (procesadas.length>150 ? `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);font-size:12px;">… y ${procesadas.length-150} filas más</td></tr>` : '');
+
+      resumenHost.classList.remove('hidden');
+      vacioHost.textContent = '';
+      btnConfirmar.disabled = filasImportarValidas.length === 0;
+      if(!filasImportarValidas.length){
+        vacioHost.textContent = 'Ninguna fila es válida: revisa que tengan al menos Nombre y Fecha.';
+      }
+    }catch(err){
+      console.error(err);
+      vacioHost.textContent = 'No se pudo leer el archivo: ' + (err.message||err);
+    }
+  };
+  reader.onerror = ()=>{ vacioHost.textContent = 'No se pudo abrir el archivo seleccionado.'; };
+  reader.readAsArrayBuffer(file);
+});
+
+document.getElementById('btnConfirmarImportar').addEventListener('click', async ()=>{
+  if(!filasImportarValidas.length) return;
+  const btn = document.getElementById('btnConfirmarImportar');
+  btn.disabled = true; btn.textContent = 'Importando…';
+  const TAMANO_LOTE = 400;
+  let importados = 0;
+  try{
+    for(let i=0; i<filasImportarValidas.length; i += TAMANO_LOTE){
+      const lote = filasImportarValidas.slice(i, i+TAMANO_LOTE);
+      const batch = db.batch();
+      lote.forEach(f=>{
+        const ref = db.collection('registros').doc();
+        batch.set(ref, {
+          EsEstudiante: true,
+          ID_Estudiante: f.idPadded || null,
+          Nombre: f.nombre,
+          AsuntoExterno: null,
+          Tipo_Llamada: 'Importado',
+          Motivo: f.tipificacion || 'Importado',
+          Detalles: f.tipificacion ? `Tipificación (importado de Excel): ${f.tipificacion}` : 'Registro importado desde Excel',
+          Agente: state.user.uid,
+          AgenteNombre: state.user.displayName || state.perfilDoc.nombre,
+          Rol: state.rol,
+          Fecha_Hora: firebase.firestore.Timestamp.fromDate(f.fechaCombinada),
+          Importado: true
+        });
+      });
+      await batch.commit();
+      importados += lote.length;
+      btn.textContent = `Importando… (${importados}/${filasImportarValidas.length})`;
+    }
+    await db.collection('auditoria').add({
+      registroId: null,
+      accion: 'Importación masiva',
+      usuario: state.user.displayName || state.perfilDoc.nombre,
+      usuarioUid: state.user.uid,
+      fecha: firebase.firestore.FieldValue.serverTimestamp(),
+      cambios: `Se importaron ${importados} registros desde un archivo Excel`
+    });
+    toast(`${importados} registros importados correctamente`, 'ok');
+    modalImportarExcel.classList.remove('open');
+  }catch(err){
+    console.error(err);
+    toast('Error al importar: ' + (err.message||err.code), 'err');
+  }finally{
+    btn.disabled = false; btn.textContent = 'Importar registros';
   }
 });
 
@@ -2148,17 +2492,19 @@ function estrellasHTML(cantidad){
 function renderBuzon(){
   const host = document.getElementById('listaBuzon');
   const emptyHost = document.getElementById('buzonEmpty');
-  if(!misFeedbacks.length){
+  const fechaFiltro = document.getElementById('filtroFechaBuzon').value;
+  const lista = fechaFiltro ? misFeedbacks.filter(f=> fechaLocalISO(f.fecha) === fechaFiltro) : misFeedbacks;
+  if(!lista.length){
     host.innerHTML = '';
     emptyHost.innerHTML = `<div class="empty-state">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
-      <div class="t">Tu buzón está vacío</div>
-      <div class="d">Aquí verás los seguimientos que te envíe tu coordinación.</div>
+      <div class="t">${fechaFiltro ? 'Nada programado para ese día' : 'Tu buzón está vacío'}</div>
+      <div class="d">${fechaFiltro ? 'Prueba con otra fecha o haz clic en "Ver todos".' : 'Aquí verás los seguimientos que te envíe tu coordinación.'}</div>
     </div>`;
     return;
   }
   emptyHost.innerHTML = '';
-  host.innerHTML = misFeedbacks.map(f=> `
+  host.innerHTML = lista.map(f=> `
     <div class="feedback-item">
       <div class="fi-head">
         <span class="fi-de">De: ${f.deNombre || 'Coordinación'}</span>
@@ -2168,6 +2514,11 @@ function renderBuzon(){
       <div class="fi-fecha" style="margin-top:8px;">${fmtFecha(f.fecha)}</div>
     </div>`).join('');
 }
+document.getElementById('filtroFechaBuzon').addEventListener('change', renderBuzon);
+document.getElementById('btnLimpiarFiltroBuzon').addEventListener('click', ()=>{
+  document.getElementById('filtroFechaBuzon').value = '';
+  renderBuzon();
+});
 
 // ================================================================
 // FEEDBACK A AGENTES — Vista Supervisor (Módulo de Auditoría y Feedback)
@@ -2375,7 +2726,9 @@ function actualizarRelojEnVivo(){
 actualizarRelojEnVivo();
 setInterval(actualizarRelojEnVivo, 1000);
 
-
+// ================================================================
+// RECURSO: PEI Jurídicas 
+// ================================================================
 let peiBlobUrl = null;
 function abrirPEIJuridicas(){
   try{
