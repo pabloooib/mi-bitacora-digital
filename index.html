@@ -26,6 +26,9 @@
 <!-- SheetJS para leer archivos Excel/CSV en la importación masiva -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
+<!-- EmailJS para el envío de correos de recordatorio de seguimientos -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
 <style>
 /* ============================================================
    BITÁCORA · UPANA — Sistema de tokens de diseño
@@ -358,8 +361,9 @@ a{ color: inherit; }
   background: var(--surface); border:1px solid var(--border);
   border-radius: var(--radius); box-shadow: var(--shadow-sm);
   padding: 22px;
-  transition: box-shadow .25s var(--ease), transform .25s var(--ease);
+  transition: box-shadow .25s var(--ease), transform .25s var(--ease), border-color .25s var(--ease);
 }
+.card:hover{ box-shadow: var(--shadow); border-color: var(--border-strong); }
 .grid-2{ display:grid; grid-template-columns: 1.3fr .95fr; gap:20px; align-items:start; }
 @media (max-width: 980px){ .grid-2{ grid-template-columns:1fr; } }
 
@@ -580,6 +584,13 @@ tbody tr:last-child td{ border-bottom:none; }
 .feedback-item .fi-de{ font-size:12.5px; font-weight:700; color: var(--text-muted); }
 .feedback-item .fi-fecha{ font-size:11.5px; color: var(--text-muted); }
 .feedback-item .fi-comentario{ font-size:13.5px; line-height:1.5; }
+.feedback-item{ transition: box-shadow .2s var(--ease), transform .2s var(--ease); }
+.feedback-item:hover{ box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.feedback-item.recordatorio{ border-left:3px solid var(--oro-upana); }
+.feedback-item .fi-meta-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px; flex-wrap:wrap; }
+.feedback-item .fi-programado{ font-size:11.5px; font-weight:700; color: var(--oro-upana); display:flex; align-items:center; gap:5px; }
+.feedback-item .fi-programado svg{ width:14px; height:14px; }
+.feedback-item .fi-disparado{ color: var(--success); }
 
 /* ============================================================
    PANEL DE CONFIGURACIÓN VISUAL (Fondo)
@@ -689,7 +700,7 @@ html.custom-bg-active #toastHost .toast{
       </div>
       <a class="nav-item" href="https://upana-my.sharepoint.com/:x:/g/personal/mmarevalo_upana_edu_gt1/IQDtBAN2z7i5QqstnaU3J_kBAQ7MnbmTZAAXQIV4d71_IQQ?e=m6hBFB" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
-        Calenadario Academico
+        Reporte de llamadas
       </a>
       <a class="nav-item" href="https://danielozu233-cmyk.github.io/Auxiliares/Index.html" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
@@ -714,6 +725,10 @@ html.custom-bg-active #toastHost .toast{
       <div class="nav-item" data-view="feedback-agentes">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 17l-5.6 3.1 1.4-6.3-4.8-4.3 6.4-.6z"/></svg>
         Seguimientos a agentes
+      </div>
+      <div class="nav-item" data-view="buzon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+        Mi buzón de seguimientos
       </div>
       <div class="nav-item" data-view="buscar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -925,6 +940,10 @@ html.custom-bg-active #toastHost .toast{
             <div style="flex:1;"></div>
             <input type="date" id="filtroFechaBuzon" style="max-width:170px;">
             <button class="btn btn-ghost btn-sm" id="btnLimpiarFiltroBuzon">Ver todos</button>
+            <button type="button" class="btn btn-primary btn-sm" id="btnAbrirNuevoSeguimiento">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px;"><path d="M12 5v14M5 12h14"/></svg>
+              Nuevo seguimiento
+            </button>
           </div>
           <div id="listaBuzon"></div>
           <div id="buzonEmpty"></div>
@@ -965,6 +984,25 @@ html.custom-bg-active #toastHost .toast{
             <div class="field">
               <label>Comentario</label>
               <textarea id="textareaFeedback" placeholder="Escribe un comentario cualitativo para el agente…"></textarea>
+            </div>
+            <div class="field">
+              <label for="inputPersonaFeedback">Persona / estudiante relacionado (opcional)</label>
+              <input type="text" id="inputPersonaFeedback" placeholder="Nombre de la persona sobre la que trata el seguimiento">
+            </div>
+            <div class="field">
+              <label for="inputFechaFeedback">Programar recordatorio (opcional)</label>
+              <input type="datetime-local" id="inputFechaFeedback">
+              <div class="hint">Si defines fecha y hora, al agente le sonará una alerta y podrá recibir un correo cuando llegue el momento.</div>
+            </div>
+            <div class="switch-row">
+              <div>
+                <div class="st">Notificar por correo</div>
+                <div class="sd">Se enviará un correo al agente con este seguimiento</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="chkNotificarCorreoFeedback" checked>
+                <span class="slider"></span>
+              </label>
             </div>
             <button class="btn btn-primary btn-block" id="btnEnviarFeedback">Enviar al buzón del agente</button>
           </div>
@@ -1192,6 +1230,43 @@ html.custom-bg-active #toastHost .toast{
     <div class="modal-actions">
       <button class="btn btn-ghost" id="btnCancelarImportar">Cancelar</button>
       <button class="btn btn-primary" id="btnConfirmarImportar" disabled>Importar registros</button>
+    </div>
+  </div>
+</div>
+
+<!-- ---- MODAL: Nuevo seguimiento propio (Agente/Supervisor) ---- -->
+<div class="modal-overlay" id="modalNuevoSeguimiento">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-head">
+      <h3>Nuevo seguimiento</h3>
+      <div class="icon-btn" id="btnCerrarModalSeguimiento"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+    </div>
+    <p style="color:var(--text-muted); font-size:13px; margin:-6px 0 16px; line-height:1.5;">Prográmate un recordatorio propio. Cuando llegue la fecha, sonará una alerta en pantalla y, si lo permites, recibirás un correo.</p>
+    <div class="field">
+      <label for="segPersona">Persona / estudiante relacionado</label>
+      <input type="text" id="segPersona" placeholder="Nombre de la persona">
+    </div>
+    <div class="field">
+      <label for="segComentario">Motivo del seguimiento</label>
+      <textarea id="segComentario" placeholder="¿Qué necesitas recordar?"></textarea>
+    </div>
+    <div class="field">
+      <label for="segFecha">Fecha y hora del recordatorio</label>
+      <input type="datetime-local" id="segFecha">
+    </div>
+    <div class="switch-row">
+      <div>
+        <div class="st">Enviarme un correo</div>
+        <div class="sd" id="segCorreoDestino">Recibirás un correo cuando llegue la fecha</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="segNotificarCorreo" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="btnCancelarSeguimiento">Cancelar</button>
+      <button class="btn btn-primary" id="btnGuardarSeguimiento">Programar seguimiento</button>
     </div>
   </div>
 </div>
@@ -1625,7 +1700,7 @@ document.addEventListener('click', ()=> userMenu.classList.remove('open'));
 const VIEW_META = {
   'nueva-llamada': { title:'Nueva llamada', sub:'Registra la atención brindada al estudiante' },
   'historial': { title:'Mi historial', sub:'Consulta y busca tus registros capturados' },
-  'buzon': { title:'Buzón de seguimientos', sub:'Seguimientos y recordatorios de tu coordinación' },
+  'buzon': { title:'Buzón de seguimientos', sub:'Seguimientos de tu coordinación y recordatorios que programes' },
   'extensiones': { title:'Extensiones', sub:'Directorio telefónico del call center de UPANA' },
   'feedback-agentes': { title:'Seguimientos a agentes', sub:'Envía un seguimiento cualitativo en tiempo real' },
   'buscar': { title:'Buscar registros', sub:'Consulta llamadas de cualquier agente' },
@@ -2468,18 +2543,79 @@ document.getElementById('btnExportarCSV').addEventListener('click', async ()=>{
 });
 
 // ================================================================
-// BUZÓN DE SEGUIMIENTOS — Vista Agente
+// SONIDO DE NOTIFICACIÓN — beep generado con Web Audio (sin archivos externos)
+// ================================================================
+function reproducirSonidoNotificacion(){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [0, 0.18].forEach((delay, i)=>{
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = i === 0 ? 880 : 1175;
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime + delay);
+      gain.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime + delay + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + 0.28);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(ctx.currentTime + delay);
+      osc.stop(ctx.currentTime + delay + 0.3);
+    });
+  }catch(e){ console.warn('No se pudo reproducir el sonido de notificación', e); }
+}
+
+// ================================================================
+// CORREO DE RECORDATORIO (EmailJS)
+// ⚠️ CONFIGURACIÓN REQUERIDA: crea una cuenta gratuita en
+// https://www.emailjs.com, un "Service" y un "Template" con las
+// variables {{to_email}}, {{to_name}}, {{persona}}, {{comentario}},
+// {{fecha}} y {{asunto}}, y reemplaza los 3 valores de abajo.
+// Sin esto configurado, la app sigue funcionando normalmente
+// (alerta en pantalla + sonido), simplemente no enviará el correo.
+// ================================================================
+const EMAILJS_PUBLIC_KEY  = 'TU_PUBLIC_KEY_AQUI';
+const EMAILJS_SERVICE_ID  = 'TU_SERVICE_ID_AQUI';
+const EMAILJS_TEMPLATE_ID = 'TU_TEMPLATE_ID_AQUI';
+let emailjsListo = false;
+try{
+  if(window.emailjs && EMAILJS_PUBLIC_KEY && EMAILJS_PUBLIC_KEY !== 'TU_PUBLIC_KEY_AQUI'){
+    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+    emailjsListo = true;
+  }
+}catch(e){ console.warn('EmailJS no está configurado todavía.', e); }
+
+async function enviarCorreoSeguimiento(destinoCorreo, destinoNombre, personaRelacionada, comentario, fechaTexto, momento){
+  if(!emailjsListo || !destinoCorreo) return;
+  const asunto = momento === 'recordatorio'
+    ? `Tienes un seguimiento de ${personaRelacionada || 'un contacto'}`
+    : `Seguimiento programado: ${personaRelacionada || 'un contacto'}`;
+  try{
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      to_email: destinoCorreo,
+      to_name: destinoNombre || 'Agente',
+      persona: personaRelacionada || 'un contacto',
+      comentario: comentario || '',
+      fecha: fechaTexto || '',
+      asunto
+    });
+  }catch(e){ console.error('No se pudo enviar el correo de seguimiento:', e); }
+}
+
+// ================================================================
+// BUZÓN DE SEGUIMIENTOS — Vista Agente/Supervisor
+// Incluye seguimientos enviados por coordinación y recordatorios
+// propios programados (con fecha/hora, sonido y correo opcional).
 // ================================================================
 let misFeedbacks = [];
 function suscribirBuzon(){
   db.collection('feedback')
     .where('paraCorreo', '==', state.user.email)
-    .limit(100)
+    .limit(150)
     .onSnapshot(snap=>{
       const regs = [];
       snap.forEach(doc=> regs.push({ id: doc.id, ...doc.data() }));
       misFeedbacks = ordenarPorFechaDesc(regs, 'fecha');
       if(state.currentView === 'buzon') renderBuzon();
+      verificarRecordatoriosPendientes();
     }, err=> console.error(err));
 }
 function estrellasHTML(cantidad){
@@ -2488,6 +2624,11 @@ function estrellasHTML(cantidad){
     html += `<svg viewBox="0 0 24 24" class="${i<=cantidad?'filled':''}"><path d="m12 2 2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 17l-5.6 3.1 1.4-6.3-4.8-4.3 6.4-.6z"/></svg>`;
   }
   return html + '</span>';
+}
+function fechaRecordatorioTexto(f){
+  if(!f.fechaRecordatorio) return '';
+  const d = f.fechaRecordatorio.toDate ? f.fechaRecordatorio.toDate() : new Date(f.fechaRecordatorio);
+  return d.toLocaleString('es-GT', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
 }
 function renderBuzon(){
   const host = document.getElementById('listaBuzon');
@@ -2499,25 +2640,120 @@ function renderBuzon(){
     emptyHost.innerHTML = `<div class="empty-state">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
       <div class="t">${fechaFiltro ? 'Nada programado para ese día' : 'Tu buzón está vacío'}</div>
-      <div class="d">${fechaFiltro ? 'Prueba con otra fecha o haz clic en "Ver todos".' : 'Aquí verás los seguimientos que te envíe tu coordinación.'}</div>
+      <div class="d">${fechaFiltro ? 'Prueba con otra fecha o haz clic en "Ver todos".' : 'Aquí verás los seguimientos de tu coordinación y los recordatorios que programes.'}</div>
     </div>`;
     return;
   }
   emptyHost.innerHTML = '';
-  host.innerHTML = lista.map(f=> `
-    <div class="feedback-item">
+  host.innerHTML = lista.map(f=>{
+    const esPropio = f.esRecordatorioPropio;
+    return `
+    <div class="feedback-item ${f.fechaRecordatorio ? 'recordatorio' : ''}">
       <div class="fi-head">
-        <span class="fi-de">De: ${f.deNombre || 'Coordinación'}</span>
-        ${estrellasHTML(f.estrellas||0)}
+        <span class="fi-de">${esPropio ? 'Recordatorio propio' : ('De: ' + (f.deNombre || 'Coordinación'))}${f.personaRelacionada ? ' · ' + f.personaRelacionada : ''}</span>
+        ${f.estrellas ? estrellasHTML(f.estrellas) : ''}
       </div>
       <div class="fi-comentario">${f.comentario || '—'}</div>
-      <div class="fi-fecha" style="margin-top:8px;">${fmtFecha(f.fecha)}</div>
-    </div>`).join('');
+      <div class="fi-meta-row">
+        <span class="fi-fecha">${fmtFecha(f.fecha)}</span>
+        ${f.fechaRecordatorio ? `<span class="fi-programado ${f.disparado ? 'fi-disparado' : ''}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+            ${f.disparado ? 'Recordado el' : 'Programado para'} ${fechaRecordatorioTexto(f)}
+          </span>` : ''}
+      </div>
+      ${esPropio ? `<div style="margin-top:10px; text-align:right;"><button class="btn btn-ghost btn-sm" onclick="eliminarSeguimientoPropio('${f.id}')">Eliminar</button></div>` : ''}
+    </div>`;
+  }).join('');
 }
 document.getElementById('filtroFechaBuzon').addEventListener('change', renderBuzon);
 document.getElementById('btnLimpiarFiltroBuzon').addEventListener('click', ()=>{
   document.getElementById('filtroFechaBuzon').value = '';
   renderBuzon();
+});
+async function eliminarSeguimientoPropio(id){
+  if(!confirm('¿Eliminar este recordatorio?')) return;
+  try{
+    await db.collection('feedback').doc(id).delete();
+    toast('Recordatorio eliminado', 'ok');
+  }catch(err){
+    console.error(err);
+    toast('No se pudo eliminar: '+(err.message||err.code), 'err');
+  }
+}
+
+// Revisa si algún seguimiento (propio o de coordinación) ya llegó a su
+// fecha/hora programada: reproduce sonido, muestra aviso y, si aplica,
+// envía el correo de recordatorio. Solo se dispara mientras la app está
+// abierta en el navegador (no hay recordatorios en segundo plano sin backend).
+function verificarRecordatoriosPendientes(){
+  const ahora = Date.now();
+  misFeedbacks.forEach(f=>{
+    if(!f.fechaRecordatorio || f.disparado) return;
+    const t = f.fechaRecordatorio.toDate ? f.fechaRecordatorio.toDate().getTime() : new Date(f.fechaRecordatorio).getTime();
+    if(t <= ahora){
+      reproducirSonidoNotificacion();
+      toast(`Tienes un seguimiento de ${f.personaRelacionada || f.deNombre || 'un contacto'}: ${f.comentario||''}`, 'info');
+      db.collection('feedback').doc(f.id).update({ disparado:true }).catch(console.error);
+      if(f.notificarCorreo){
+        enviarCorreoSeguimiento(state.user.email, state.user.displayName || (state.perfilDoc&&state.perfilDoc.nombre), f.personaRelacionada, f.comentario, fechaRecordatorioTexto(f), 'recordatorio');
+      }
+    }
+  });
+}
+setInterval(verificarRecordatoriosPendientes, 30000);
+
+// ----------------------------------------------------------------
+// NUEVO SEGUIMIENTO PROPIO — Agente o Supervisor se auto-programa
+// un recordatorio, disponible desde el Buzón de seguimientos.
+// ----------------------------------------------------------------
+const modalNuevoSeguimiento = document.getElementById('modalNuevoSeguimiento');
+document.getElementById('btnAbrirNuevoSeguimiento').addEventListener('click', ()=>{
+  document.getElementById('segPersona').value = '';
+  document.getElementById('segComentario').value = '';
+  document.getElementById('segFecha').value = '';
+  document.getElementById('segNotificarCorreo').checked = true;
+  document.getElementById('segCorreoDestino').textContent = `Recibirás un correo a ${state.user.email} cuando llegue la fecha`;
+  modalNuevoSeguimiento.classList.add('open');
+});
+document.getElementById('btnCerrarModalSeguimiento').addEventListener('click', ()=> modalNuevoSeguimiento.classList.remove('open'));
+document.getElementById('btnCancelarSeguimiento').addEventListener('click', ()=> modalNuevoSeguimiento.classList.remove('open'));
+document.getElementById('btnGuardarSeguimiento').addEventListener('click', async ()=>{
+  const persona = document.getElementById('segPersona').value.trim();
+  const comentario = document.getElementById('segComentario').value.trim();
+  const fechaVal = document.getElementById('segFecha').value;
+  const notificarCorreo = document.getElementById('segNotificarCorreo').checked;
+  const btn = document.getElementById('btnGuardarSeguimiento');
+  if(!comentario){ toast('Escribe el motivo del seguimiento', 'err'); return; }
+  if(!fechaVal){ toast('Selecciona la fecha y hora del recordatorio', 'err'); return; }
+  const fechaRecordatorio = new Date(fechaVal);
+  if(isNaN(fechaRecordatorio.getTime())){ toast('La fecha ingresada no es válida', 'err'); return; }
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  try{
+    const nombre = state.user.displayName || (state.perfilDoc && state.perfilDoc.nombre) || 'Agente';
+    await db.collection('feedback').add({
+      paraCorreo: state.user.email,
+      deNombre: nombre,
+      deCorreo: state.user.email,
+      esRecordatorioPropio: true,
+      estrellas: 0,
+      comentario: comentario,
+      personaRelacionada: persona || null,
+      fechaRecordatorio: firebase.firestore.Timestamp.fromDate(fechaRecordatorio),
+      notificarCorreo: notificarCorreo,
+      disparado: false,
+      fecha: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    if(notificarCorreo){
+      enviarCorreoSeguimiento(state.user.email, nombre, persona, comentario, fechaRecordatorio.toLocaleString('es-GT'), 'programado');
+    }
+    toast('Seguimiento programado correctamente', 'ok');
+    modalNuevoSeguimiento.classList.remove('open');
+  }catch(err){
+    console.error(err);
+    toast('No se pudo programar: '+(err.message||err.code), 'err');
+  }finally{
+    btn.disabled = false; btn.textContent = 'Programar seguimiento';
+  }
 });
 
 // ================================================================
@@ -2551,10 +2787,19 @@ function pintarStarPicker(){
 document.getElementById('btnEnviarFeedback').addEventListener('click', async ()=>{
   const correoDestino = document.getElementById('selectAgenteFeedback').value;
   const comentario = document.getElementById('textareaFeedback').value.trim();
+  const persona = document.getElementById('inputPersonaFeedback').value.trim();
+  const fechaVal = document.getElementById('inputFechaFeedback').value;
+  const notificarCorreo = document.getElementById('chkNotificarCorreoFeedback').checked;
   const btn = document.getElementById('btnEnviarFeedback');
   if(!correoDestino){ toast('Selecciona un agente', 'err'); return; }
   if(!estrellasSeleccionadas){ toast('Asigna una calificación de 1 a 5 estrellas', 'err'); return; }
   if(!comentario){ toast('Escribe un comentario para el agente', 'err'); return; }
+  let fechaRecordatorio = null;
+  if(fechaVal){
+    fechaRecordatorio = new Date(fechaVal);
+    if(isNaN(fechaRecordatorio.getTime())){ toast('La fecha del recordatorio no es válida', 'err'); return; }
+  }
+  const agenteSel = usuariosUPANA.find(u=> u.correo === correoDestino);
   btn.disabled = true; btn.textContent = 'Enviando…';
   try{
     await db.collection('feedback').add({
@@ -2563,10 +2808,19 @@ document.getElementById('btnEnviarFeedback').addEventListener('click', async ()=
       deCorreo: state.user.email,
       estrellas: estrellasSeleccionadas,
       comentario: comentario,
+      personaRelacionada: persona || null,
+      fechaRecordatorio: fechaRecordatorio ? firebase.firestore.Timestamp.fromDate(fechaRecordatorio) : null,
+      notificarCorreo: notificarCorreo,
+      disparado: !fechaRecordatorio,
       fecha: firebase.firestore.FieldValue.serverTimestamp()
     });
+    if(notificarCorreo){
+      enviarCorreoSeguimiento(correoDestino, agenteSel && agenteSel.nombre, persona, comentario, fechaRecordatorio ? fechaRecordatorio.toLocaleString('es-GT') : '', 'programado');
+    }
     toast('Seguimiento enviado al buzón del agente', 'ok');
     document.getElementById('textareaFeedback').value = '';
+    document.getElementById('inputPersonaFeedback').value = '';
+    document.getElementById('inputFechaFeedback').value = '';
     estrellasSeleccionadas = 0;
     pintarStarPicker();
   }catch(err){
@@ -2598,13 +2852,19 @@ function suscribirFeedbackEnviado(){
       }
       emptyHost.innerHTML = '';
       host.innerHTML = regs.map(f=> `
-        <div class="feedback-item">
+        <div class="feedback-item ${f.fechaRecordatorio ? 'recordatorio' : ''}">
           <div class="fi-head">
-            <span class="fi-de">Para: ${f.paraCorreo}</span>
+            <span class="fi-de">Para: ${f.paraCorreo}${f.personaRelacionada ? ' · ' + f.personaRelacionada : ''}</span>
             ${estrellasHTML(f.estrellas||0)}
           </div>
           <div class="fi-comentario">${f.comentario||'—'}</div>
-          <div class="fi-fecha" style="margin-top:8px;">${fmtFecha(f.fecha)}</div>
+          <div class="fi-meta-row">
+            <span class="fi-fecha">${fmtFecha(f.fecha)}</span>
+            ${f.fechaRecordatorio ? `<span class="fi-programado ${f.disparado ? 'fi-disparado' : ''}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                ${f.disparado ? 'Recordado el' : 'Programado para'} ${fechaRecordatorioTexto(f)}
+              </span>` : ''}
+          </div>
         </div>`).join('');
     }, err=> console.error(err));
 }
