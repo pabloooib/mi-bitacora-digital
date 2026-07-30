@@ -29,6 +29,13 @@
 <!-- SheetJS para leer archivos Excel/CSV en la importación masiva -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
+<!-- ExcelJS para generar archivos .xlsx con estilo (colores, encabezados, bordes) -->
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
+<!-- jsPDF + AutoTable para generar reportes PDF con diseño institucional -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+
 <!-- EmailJS para el envío de correos de recordatorio de seguimientos -->
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
@@ -1193,6 +1200,27 @@ html.custom-bg-active #toastHost .toast{
 
         <!-- Subvista: Dashboard compartido -->
         <div class="subtab-panel" id="facDashboard">
+          <div class="card" style="margin-bottom:16px;">
+            <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px; justify-content:space-between;">
+              <div class="field" style="margin-bottom:0; min-width:220px;">
+                <label for="selectFiltroAgenteFacultad">Agente</label>
+                <select id="selectFiltroAgenteFacultad">
+                  <option value="todos">Todos (José Pablo + Maria José)</option>
+                </select>
+              </div>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button type="button" class="btn btn-ghost btn-sm" id="btnExportarFacultadesExcel">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="m9 13 3 4 3-4M12 13v7" transform="translate(0,-2)"/></svg>
+                  Descargar Excel
+                </button>
+                <button type="button" class="btn btn-gold btn-sm" id="btnExportarFacultadesPDF">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+                  Descargar PDF
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div class="stat-cards" id="facDashboardCards"></div>
           <div class="two-col-charts">
             <div class="card">
@@ -1203,6 +1231,21 @@ html.custom-bg-active #toastHost .toast{
               <div class="section-title">Contestadas vs. no contestadas</div>
               <div class="chart-box"><canvas id="chartFacultadesEstado"></canvas></div>
             </div>
+          </div>
+          <div class="card" style="margin-top:16px;">
+            <div class="section-title">Llamadas por agente — José Pablo vs. Maria José</div>
+            <div class="chart-box" style="max-width:520px;"><canvas id="chartFacultadesAgente"></canvas></div>
+          </div>
+
+          <div class="card" style="margin-top:16px;">
+            <div class="section-title">Detalle de registros compartidos</div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Fecha</th><th>Agente</th><th>Facultad</th><th>Estado</th><th>Duración</th><th>Nota</th></tr></thead>
+                <tbody id="tablaFacultadesDetalle"></tbody>
+              </table>
+            </div>
+            <div id="facultadesDetalleEmpty"></div>
           </div>
         </div>
       </section>
@@ -1456,10 +1499,21 @@ const state = {
 
 const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/initials/svg?backgroundType=gradientLinear&fontWeight=600&seed=';
 
-// ---------- Módulo "Facultades": acceso exclusivo para estos dos correos ----------
+// ---------- Módulo "Facultades": control compartido ----------
+// Editores: José Pablo Ibáñez y Maria José Perdomo, quienes registran las llamadas
+// y administran el catálogo de facultades.
 const FACULTADES_EMAILS = ['jibanez@upana.edu.gt', 'mperdomo@upana.edu.gt'];
-function tieneAccesoFacultades(){
+function esEditorFacultades(){
   return FACULTADES_EMAILS.includes((state.user && state.user.email || '').toLowerCase());
+}
+// Visores: además de los dos editores, cualquier Supervisor o Jefe de Área
+// (p. ej. la Coordinación) puede ENTRAR a la sección y ver el Dashboard con
+// las gráficas y los registros compartidos, aunque no pueda registrar ni
+// administrar facultades. Esto es lo que hace que "Control compartido" y su
+// Dashboard aparezcan en el menú de coordinación/supervisión.
+function tieneAccesoFacultades(){
+  if(esEditorFacultades()) return true;
+  return state.rol === 'jefe' || state.rol === 'supervisor' || state.accesoTotalForzado;
 }
 
 // ---------- Listado oficial de personal UPANA (roles y accesos duales) ----------
@@ -3173,9 +3227,29 @@ function renderVistaFacultades(){
     toast('No tienes acceso a esta sección', 'err');
     return;
   }
+
+  // Los subtabs "Registrar llamada" y "Facultades" (administrar catálogo) son
+  // exclusivos de los dos editores. Quien entra solo con permiso de visor
+  // (Supervisor / Jefe de Área) ve directamente el Dashboard, sin poder
+  // capturar registros a nombre del equipo.
+  const esEditor = esEditorFacultades();
+  const tabRegistro = document.querySelector('#view-facultades .subtab-btn[data-subtab="facRegistro"]');
+  const tabAdmin = document.querySelector('#view-facultades .subtab-btn[data-subtab="facAdmin"]');
+  if(tabRegistro) tabRegistro.style.display = esEditor ? '' : 'none';
+  if(tabAdmin) tabAdmin.style.display = esEditor ? '' : 'none';
+
+  if(!esEditor){
+    document.querySelectorAll('#view-facultades .subtab-btn').forEach(b=> b.classList.remove('active'));
+    document.querySelectorAll('#view-facultades .subtab-panel').forEach(p=> p.classList.remove('active'));
+    const btnDash = document.querySelector('#view-facultades .subtab-btn[data-subtab="facDashboard"]');
+    if(btnDash) btnDash.classList.add('active');
+    document.getElementById('facDashboard').classList.add('active');
+  }
+
   pintarSelectFacultades();
   pintarChipsFacultades();
   renderListaLlamadasFacultad();
+  renderFiltroAgenteFacultades();
   renderDashboardFacultades();
 }
 
@@ -3315,6 +3389,7 @@ function suscribirLlamadasFacultad(){
       snap.forEach(doc=> lista.push({ id: doc.id, ...doc.data() }));
       state.llamadasFacultad = ordenarPorFechaDesc(lista, 'fecha');
       renderListaLlamadasFacultad();
+      renderFiltroAgenteFacultades();
       renderDashboardFacultades();
     }, err=> console.error('Error al leer llamadasFacultad:', err));
 }
@@ -3352,12 +3427,40 @@ function renderListaLlamadasFacultad(){
     </div>`).join('');
 }
 
+// ---------- Filtro por agente (José Pablo / Maria José / Todos) ----------
+function renderFiltroAgenteFacultades(){
+  const sel = document.getElementById('selectFiltroAgenteFacultad');
+  if(!sel) return;
+  const actual = sel.value || 'todos';
+  const correosPresentes = Array.from(new Set(state.llamadasFacultad.map(r=> r.agenteCorreo).filter(Boolean)));
+  // Aseguramos que José Pablo y Maria José aparezcan siempre como opciones,
+  // aunque todavía no tengan registros capturados.
+  FACULTADES_EMAILS.forEach(c=>{ if(!correosPresentes.includes(c)) correosPresentes.push(c); });
+  const nombrePorCorreo = (correo)=>{
+    const reg = state.llamadasFacultad.find(r=> r.agenteCorreo === correo);
+    if(reg) return reg.agenteNombre || correo;
+    const oficial = buscarUsuarioUPANA(correo);
+    return (oficial && oficial.nombre) || correo;
+  };
+  sel.innerHTML = '<option value="todos">Todos (José Pablo + Maria José)</option>' +
+    correosPresentes.map(c=> `<option value="${c}">${nombrePorCorreo(c)}</option>`).join('');
+  if(Array.from(sel.options).some(o=> o.value === actual)) sel.value = actual;
+}
+document.getElementById('selectFiltroAgenteFacultad').addEventListener('change', renderDashboardFacultades);
+
+function registrosFacultadFiltrados(){
+  const sel = document.getElementById('selectFiltroAgenteFacultad');
+  const filtro = sel ? sel.value : 'todos';
+  if(!filtro || filtro === 'todos') return state.llamadasFacultad;
+  return state.llamadasFacultad.filter(r=> r.agenteCorreo === filtro);
+}
+
 // ---------- Dashboard compartido ----------
-let chartFacultadesRef = null, chartFacultadesEstadoRef = null;
+let chartFacultadesRef = null, chartFacultadesEstadoRef = null, chartFacultadesAgenteRef = null;
 function renderDashboardFacultades(){
   const cardsHost = document.getElementById('facDashboardCards');
   if(!cardsHost) return;
-  const regs = state.llamadasFacultad;
+  const regs = registrosFacultadFiltrados();
   const total = regs.length;
   const contestadas = regs.filter(r=> r.estado === 'contesto').length;
   const noContestadas = total - contestadas;
@@ -3397,6 +3500,258 @@ function renderDashboardFacultades(){
       options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, font:{ size:11 } } } } }
     });
   }
+
+  // Llamadas por agente (José Pablo vs. Maria José) — siempre a partir del set
+  // completo, sin aplicar el filtro de agente, para poder compararlos entre sí.
+  const porAgente = {};
+  state.llamadasFacultad.forEach(r=>{
+    const n = r.agenteNombre || r.agenteCorreo || '—';
+    porAgente[n] = (porAgente[n]||0)+1;
+  });
+  const ctxAgente = document.getElementById('chartFacultadesAgente');
+  if(ctxAgente){
+    if(chartFacultadesAgenteRef) chartFacultadesAgenteRef.destroy();
+    chartFacultadesAgenteRef = new Chart(ctxAgente, {
+      type:'bar',
+      data:{
+        labels:Object.keys(porAgente),
+        datasets:[{ label:'Llamadas', data:Object.values(porAgente), backgroundColor:['#163B72','#C9A227','#616B7A'], borderRadius:6, maxBarThickness:56 }]
+      },
+      options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ x:{ beginAtZero:true, ticks:{ precision:0 } } } }
+    });
+  }
+
+  renderTablaFacultadesDetalle(regs);
+}
+
+function renderTablaFacultadesDetalle(regs){
+  const tbody = document.getElementById('tablaFacultadesDetalle');
+  const emptyHost = document.getElementById('facultadesDetalleEmpty');
+  if(!tbody) return;
+  if(!regs.length){
+    tbody.innerHTML = '';
+    if(emptyHost) emptyHost.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M12 7v5l3 3"/></svg>
+      <div class="t">No hay registros para este filtro</div>
+    </div>`;
+    return;
+  }
+  if(emptyHost) emptyHost.innerHTML = '';
+  tbody.innerHTML = regs.map(r=> `
+    <tr>
+      <td>${fmtFecha(r.fecha)}</td>
+      <td>${r.agenteNombre||'—'}</td>
+      <td>${r.facultadNombre||'—'}</td>
+      <td>${r.estado === 'contesto' ? 'Contestó' : 'No contestó'}</td>
+      <td class="mono">${fmtDuracion(r.duracionSegundos)}</td>
+      <td>${(r.nota||'—')}</td>
+    </tr>`).join('');
+}
+
+// ---------- Exportar Excel (estético, con ExcelJS) ----------
+document.getElementById('btnExportarFacultadesExcel').addEventListener('click', async ()=>{
+  const btn = document.getElementById('btnExportarFacultadesExcel');
+  const original = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = 'Generando…';
+  try{
+    await exportarFacultadesExcel();
+    toast('Excel generado correctamente', 'ok');
+  }catch(err){
+    console.error(err);
+    toast('No se pudo generar el Excel: ' + (err.message||err), 'err');
+  }finally{
+    btn.disabled = false; btn.innerHTML = original;
+  }
+});
+
+async function exportarFacultadesExcel(){
+  const regs = registrosFacultadFiltrados();
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'Bitácora UPANA';
+  wb.created = new Date();
+
+  const AZUL = 'FF163B72', BLANCO = 'FFFFFFFF', GRIS_CLARO = 'FFF5F6F8', BORDE = 'FFCBD2DE';
+  const filtroSel = document.getElementById('selectFiltroAgenteFacultad');
+  const filtroTexto = (filtroSel && filtroSel.selectedOptions[0]) ? filtroSel.selectedOptions[0].textContent : 'Todos';
+
+  // ---- Hoja "Resumen" ----
+  const wsResumen = wb.addWorksheet('Resumen', { views:[{ showGridLines:false }] });
+  wsResumen.mergeCells('A1:D1');
+  const titulo = wsResumen.getCell('A1');
+  titulo.value = 'Bitácora UPANA — Control compartido de facultades';
+  titulo.font = { bold:true, size:15, color:{ argb:BLANCO } };
+  titulo.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:AZUL } };
+  titulo.alignment = { vertical:'middle' };
+  wsResumen.getRow(1).height = 28;
+
+  wsResumen.mergeCells('A2:D2');
+  const sub = wsResumen.getCell('A2');
+  sub.value = `Agente: ${filtroTexto}   ·   Generado: ${new Date().toLocaleString('es-GT')}`;
+  sub.font = { italic:true, size:10, color:{ argb:'FF616B7A' } };
+  wsResumen.getRow(2).height = 18;
+
+  const total = regs.length;
+  const contestadas = regs.filter(r=> r.estado === 'contesto').length;
+  const noContestadas = total - contestadas;
+  const efectividad = total ? Math.round((contestadas/total)*100) : 0;
+  const segundosTotales = regs.reduce((acc,r)=> acc + (r.duracionSegundos||0), 0);
+  const promedioSeg = total ? Math.round(segundosTotales/total) : 0;
+
+  const kpis = [
+    ['Llamadas totales', total],
+    ['Contestadas', contestadas],
+    ['No contestadas', noContestadas],
+    ['Efectividad', efectividad + '%'],
+    ['Duración total', Math.floor(segundosTotales/60) + ' min'],
+    ['Duración promedio', fmtDuracion(promedioSeg)]
+  ];
+  let fila = 4;
+  kpis.forEach(([lbl,val])=>{
+    const cA = wsResumen.getCell('A'+fila), cB = wsResumen.getCell('B'+fila);
+    cA.value = lbl; cA.font = { bold:true, color:{ argb:'FF1B2230' } };
+    cB.value = val; cB.font = { bold:true, color:{ argb:AZUL } };
+    wsResumen.getRow(fila).eachCell(c=>{
+      c.fill = { type:'pattern', pattern:'solid', fgColor:{ argb: (fila%2===0) ? GRIS_CLARO : BLANCO } };
+      c.border = { bottom:{ style:'thin', color:{ argb:BORDE } } };
+    });
+    fila++;
+  });
+  wsResumen.getColumn(1).width = 22;
+  wsResumen.getColumn(2).width = 18;
+
+  // ---- Hoja "Registros" ----
+  const wsReg = wb.addWorksheet('Registros', { views:[{ state:'frozen', ySplit:1, showGridLines:false }] });
+  wsReg.columns = [
+    { header:'Fecha', key:'fecha', width:20 },
+    { header:'Agente', key:'agente', width:28 },
+    { header:'Correo', key:'correo', width:26 },
+    { header:'Facultad', key:'facultad', width:32 },
+    { header:'Estado', key:'estado', width:16 },
+    { header:'Duración', key:'duracion', width:14 },
+    { header:'Nota', key:'nota', width:44 }
+  ];
+  wsReg.getRow(1).eachCell(c=>{
+    c.font = { bold:true, color:{ argb:BLANCO } };
+    c.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:AZUL } };
+    c.alignment = { vertical:'middle' };
+  });
+  wsReg.getRow(1).height = 22;
+  wsReg.autoFilter = { from:'A1', to:'G1' };
+
+  regs.forEach((r,i)=>{
+    const row = wsReg.addRow({
+      fecha: fmtFecha(r.fecha),
+      agente: r.agenteNombre || '—',
+      correo: r.agenteCorreo || '—',
+      facultad: r.facultadNombre || '—',
+      estado: r.estado === 'contesto' ? 'Contestó' : 'No contestó',
+      duracion: fmtDuracion(r.duracionSegundos),
+      nota: r.nota || ''
+    });
+    row.eachCell(c=>{
+      c.border = { bottom:{ style:'thin', color:{ argb:BORDE } } };
+      c.fill = { type:'pattern', pattern:'solid', fgColor:{ argb: (i%2===0) ? BLANCO : GRIS_CLARO } };
+      c.alignment = { vertical:'middle', wrapText:false };
+    });
+    const estadoCell = row.getCell('estado');
+    estadoCell.font = { bold:true, color:{ argb: r.estado === 'contesto' ? 'FF22764F' : 'FFB23A32' } };
+  });
+
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `control_compartido_facultades_${new Date().toISOString().slice(0,10)}.xlsx`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ---------- Exportar PDF (estético, con jsPDF + AutoTable) ----------
+document.getElementById('btnExportarFacultadesPDF').addEventListener('click', ()=>{
+  const btn = document.getElementById('btnExportarFacultadesPDF');
+  const original = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = 'Generando…';
+  try{
+    exportarFacultadesPDF();
+    toast('PDF generado correctamente', 'ok');
+  }catch(err){
+    console.error(err);
+    toast('No se pudo generar el PDF: ' + (err.message||err), 'err');
+  }finally{
+    btn.disabled = false; btn.innerHTML = original;
+  }
+});
+
+function exportarFacultadesPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'landscape', unit:'pt', format:'a4' });
+  const regs = registrosFacultadFiltrados();
+  const pageWidth = doc.internal.pageSize.getWidth();
+
+  const AZUL = [22,59,114];
+
+  // Encabezado institucional
+  doc.setFillColor(AZUL[0],AZUL[1],AZUL[2]);
+  doc.rect(0,0,pageWidth,58,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(16);
+  doc.text('Bitácora UPANA · Control compartido de facultades', 32, 30);
+
+  const filtroSel = document.getElementById('selectFiltroAgenteFacultad');
+  const filtroTexto = (filtroSel && filtroSel.selectedOptions[0]) ? filtroSel.selectedOptions[0].textContent : 'Todos';
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(10);
+  doc.text(`Agente: ${filtroTexto}   ·   Generado: ${new Date().toLocaleString('es-GT')}`, 32, 46);
+
+  const total = regs.length;
+  const contestadas = regs.filter(r=> r.estado === 'contesto').length;
+  const noContestadas = total - contestadas;
+  const efectividad = total ? Math.round((contestadas/total)*100) : 0;
+  const segundosTotales = regs.reduce((acc,r)=> acc + (r.duracionSegundos||0), 0);
+
+  // Tarjetas de KPI
+  const kpis = [
+    ['Total', total], ['Contestadas', contestadas], ['No contestadas', noContestadas],
+    ['Efectividad', efectividad + '%'], ['Duración total', Math.floor(segundosTotales/60) + ' min']
+  ];
+  const startY = 76;
+  const gap = 10;
+  const cardW = (pageWidth - 64 - (kpis.length-1)*gap) / kpis.length;
+  kpis.forEach((k,i)=>{
+    const x = 32 + i*(cardW+gap);
+    doc.setDrawColor(203,210,222);
+    doc.setFillColor(245,246,248);
+    doc.roundedRect(x, startY, cardW, 44, 4, 4, 'FD');
+    doc.setFontSize(9);
+    doc.setTextColor(97,107,122);
+    doc.text(String(k[0]), x+10, startY+16);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(14);
+    doc.setTextColor(AZUL[0],AZUL[1],AZUL[2]);
+    doc.text(String(k[1]), x+10, startY+34);
+    doc.setFont('helvetica','normal');
+  });
+
+  doc.autoTable({
+    startY: startY + 58,
+    head: [['Fecha','Agente','Facultad','Estado','Duración','Nota']],
+    body: regs.map(r=> [
+      fmtFecha(r.fecha), r.agenteNombre || '—', r.facultadNombre || '—',
+      r.estado === 'contesto' ? 'Contestó' : 'No contestó', fmtDuracion(r.duracionSegundos), r.nota || ''
+    ]),
+    styles:{ fontSize:8.5, cellPadding:5, textColor:[27,34,48] },
+    headStyles:{ fillColor:AZUL, textColor:[255,255,255], fontStyle:'bold' },
+    alternateRowStyles:{ fillColor:[245,246,248] },
+    margin:{ left:32, right:32 },
+    didParseCell: function(data){
+      if(data.section === 'body' && data.column.index === 3){
+        data.cell.styles.textColor = (data.cell.raw === 'Contestó') ? [34,118,79] : [178,58,50];
+      }
+    }
+  });
+
+  doc.save(`control_compartido_facultades_${new Date().toISOString().slice(0,10)}.pdf`);
 }
 
 // ---------- Inicialización general ----------
